@@ -1,0 +1,1946 @@
+{
+  "scenes": {
+    "pre_sales": {
+      "qa": {
+        "price": {
+          "complete": [
+            [
+              "请问$entity$多少钱",
+              "$entity$怎么卖的",
+              "$entity$价格多少"
+            ],
+            "$entity_price$"
+          ],
+          "lack_entity": [
+            [
+              "多少钱啊",
+              "这款价格多少啊",
+              "怎么卖的啊这款",
+              "这款怎么卖"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_price$"
+          ]
+        },
+        "discount": {
+          "complete": [
+            [
+              "$entity$目前有活动吗",
+              "有什么促销活动吗$entity$",
+              "有没有什么活动啊$entity$"
+            ],
+            "$entity_discountValue$"
+          ],
+          "lack_entity": [
+            [
+              "有什么活动吗",
+              "有促销吗",
+              "目前有做什么活动吗"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_discountValue$"
+          ]
+        },
+        "weight": {
+          "complete": [
+            [
+              "请问$entity$有多重",
+              "$entity$有多重",
+              "$entity$重不",
+              "$entity$重量是多少",
+              "$entity$重吗"
+            ],
+            "$entity_weight$"
+          ],
+          "lack_entity": [
+            [
+              "重吗",
+              "重不重啊这款",
+              "轻吗",
+              "有多重啊这个"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_weight$"
+          ]
+        },
+        "os": {
+          "complete": [
+            [
+              "请问$entity$是什么系统的",
+              "$entity$是哪种操作系统",
+              "$entity$支持什么系统",
+              "我想知道$entity$是什么系统"
+            ],
+            "$entity_os$"
+          ],
+          "lack_entity": [
+            [
+              "这款是哪种操作系统",
+              "什么样的系统啊",
+              "支持什么系统",
+              "具体是什么样的系统啊"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_os$"
+          ]
+        },
+        "generation": {
+          "complete": [
+            [
+              "$entity$是第几代了",
+              "$entity$是哪一代",
+              "$entity$第几代"
+            ],
+            "$entity_generation$"
+          ],
+          "lack_entity": [
+            [
+              "它是第几代了",
+              "这款是第几代"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_generation$"
+          ]
+        },
+        "color": {
+          "complete": [
+            [
+              "$entity$是什么颜色的",
+              "$entity$有哪几种颜色啊"
+            ],
+            "$entity_color$"
+          ],
+          "lack_entity": [
+            [
+              "这款目前有哪几种配色啊",
+              "有哪些颜色啊这款"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_color$"
+          ]
+        },
+        "thickness": {
+          "complete": [
+            [
+              "$entity$厚度多少",
+              "$entity$厚不厚",
+              "$entity$薄吗",
+              "$entity$厚吗",
+              "厚度多少啊$entity$",
+              "$entity$有多薄"
+            ],
+            "$entity_thickness$"
+          ],
+          "lack_entity": [
+            [
+              "这款产品厚不",
+              "厚吗",
+              "厚不厚啊",
+              "有多厚啊它",
+              "薄吗它"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_thickness$"
+          ]
+        },
+        "size": {
+          "complete": [
+            [
+              "$entity$有多大",
+              "尺寸多大啊$entity$",
+              "有多大啊$entity$",
+              "大吗$entity$",
+              "$entity$大不大啊",
+              "$entity$小不小啊",
+              "小吗$entity$"
+            ],
+            "$entity_size$"
+          ],
+          "lack_entity": [
+            [
+              "多大",
+              "小不小",
+              "尺寸小不",
+              "这款产品尺寸多大",
+              "尺寸小吗"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_size$"
+          ]
+        },
+        "material": {
+          "complete": [
+            [
+              "$entity$是什么材质的",
+              "$entity$的材质好吗",
+              "$entity$材质是啥"
+            ],
+            "$entity_material$"
+          ],
+          "lack_entity": [
+            [
+              "什么材质啊",
+              "材质好不好",
+              "材质是用什么做的"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_material$"
+          ]
+        },
+        "network": {
+          "complete": [
+            [
+              "$entity$咋上网啊",
+              "$entity$能够上网吗",
+              "$entity$可不可以上网"
+            ],
+            "$entity_network$"
+          ],
+          "lack_entity": [
+            [
+              "这款咋上网啊",
+              "可以上网吗",
+              "能够上网吗"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_network$"
+          ]
+        },
+        "nfc": {
+          "complete": [
+            [
+              "$entity$有nfc功能吗",
+              "有nfc功能吗$entity$",
+              "$entity$支不支持nfc",
+              "有nfc吗$entity$",
+              "可以使用nfc吗$entity$"
+            ],
+            "$entity_nfc$"
+          ],
+          "lack_entity": [
+            [
+              "有nfc吗",
+              "这款有nfc吗",
+              "有nfc吗这款",
+              "支不支持nfc",
+              "可以使用nfc吗",
+              "支持nfc功能吗"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_nfc$"
+          ]
+        }
+      },
+      "compare": {
+        "price": {
+          "complete": [
+            [
+              "$entity1$比$entity2$贵吗",
+              "和$entity1$比起来$entity2$更贵吗",
+              "价格上和$entity1$相比，$entity2$是不是更便宜啊",
+              "$entity1$是不是比$entity2$更便宜啊",
+              "在价格上$entity1$和$entity2$哪个更划算一点呢",
+              "$entity1$和$entity2$哪个更便宜",
+              "在价格上$entity1$和$entity2$哪个更有吸引力呢"
+            ],
+            "$entity1_entity2_price_difference$"
+          ],
+          "lack_entity": [
+            [
+              "$entity1$是不是更便宜啊",
+              "$entity1$是不是价格更划算啊",
+              "$entity1$在价格上是不是更有优势啊",
+              "$entity1$更便宜吗",
+              "$entity1$更贵吗"
+            ],
+            "您想和哪款比呢",
+            [
+              "和$entity2$比较",
+              "同$entity2$比较而言",
+              "我想和$entity2$进行比较",
+              "相对于$entity2$比较而言",
+              "我是和$entity2$进行对比",
+              "$entity2$"
+            ],
+            "$entity1_entity2_price_difference$"
+          ],
+          "lack_attribute": [
+            [
+              "$entity1$是不是比$entity2$更划算",
+              "和$entity1$比起来，$entity2$是不是更划得来"
+            ],
+            "您是指哪方面",
+            [
+              "价格上",
+              "价格",
+              "价钱",
+              "我指价格这方面"
+            ],
+            "$entity1_entity2_price_difference$"
+          ],
+          "lack_attribute_entity": [
+            [
+              "$entity1$是不是更好一点啊",
+              "$entity1$是不是更划算呢",
+              "$entity1$是不是更值",
+              "$entity1$更好吗"
+            ],
+            "您是指哪方面",
+            [
+              "价格上",
+              "价格",
+              "价钱",
+              "我指价格这方面"
+            ],
+            "您想和哪款比呢",
+            [
+              "和$entity2$比较",
+              "同$entity2$比较而言",
+              "我想和$entity2$进行比较",
+              "相对于$entity2$比较而言",
+              "我是和$entity2$进行对比",
+              "$entity2$"
+            ],
+            "$entity1_entity2_price_difference$"
+          ]
+        },
+        "discount": {
+          "complete": [
+            [
+              "$entity1$和$entity2$哪个折扣更大",
+              "谁的折扣更大啊$entity1$和$entity2$",
+              "$entity1$和$entity2$哪个活动更优惠",
+              "$entity1$和$entity2$哪个活动更吸引人",
+              "$entity1$和$entity2$哪个有折扣更给力"
+            ],
+            "$entity1_entity2_discount_difference$"
+          ],
+          "lack_entity": [
+            [
+              "$entity1$是不是折扣力度更大",
+              "$entity1$的折扣是不是更多",
+              "$entity1$从折扣上讲是不是更值得买",
+              "$entity1$折扣更大吗",
+              "$entity1$打折更多吗"
+            ],
+            "您想和哪款比呢",
+            [
+              "和$entity2$比较",
+              "同$entity2$比较而言",
+              "我想和$entity2$进行比较",
+              "相对于$entity2$比较而言",
+              "我是和$entity2$进行对比",
+              "$entity2$"
+            ],
+            "$entity1_entity2_discount_difference$"
+          ],
+          "lack_attribute": [
+            [
+              "$entity1$是不是比$entity2$更划算",
+              "和$entity1$比起来，$entity2$是不是更划得来"
+            ],
+            "您是指哪方面",
+            [
+              "折扣上",
+              "我指折扣力度上"
+            ],
+            "$entity1_entity2_discount_difference$"
+          ],
+          "lack_attribute_entity": [
+            [
+              "$entity1$是不是更划算呢",
+              "$entity1$更值得买吗"
+            ],
+            "您是指哪方面",
+            [
+              "折扣上",
+              "我指折扣力度上"
+            ],
+            "您想和哪款比呢",
+            [
+              "和$entity2$比较",
+              "同$entity2$比较而言",
+              "我想和$entity2$进行比较",
+              "相对于$entity2$比较而言",
+              "我是和$entity2$进行对比",
+              "$entity2$"
+            ],
+            "$entity1_entity2_discount_difference$"
+          ]
+        },
+        "weight": {
+          "complete": [
+            [
+              "$entity1$比$entity2$重吗",
+              "和$entity1$比起来$entity2$更重吗",
+              "重量上和$entity1$相比，$entity2$是不是更轻一点啊",
+              "$entity1$是不是比$entity2$更轻",
+              "$entity1$和$entity2$哪个更轻",
+              "$entity1$和$entity2$哪个更重"
+            ],
+            "$entity1_entity2_weight_difference$"
+          ],
+          "lack_entity": [
+            [
+              "$entity1$是不是更轻啊",
+              "$entity1$是不是更重啊"
+            ],
+            "您想和哪款比呢",
+            [
+              "和$entity2$比较",
+              "同$entity2$比较而言",
+              "我想和$entity2$进行比较",
+              "相对于$entity2$比较而言",
+              "我是和$entity2$进行对比",
+              "$entity2$"
+            ],
+            "$entity1_entity2_weight_difference$"
+          ],
+          "lack_attribute": [
+            [
+              "$entity1$是不是比$entity2$更好",
+              "$entity1$是不是比$entity2$更具有优势"
+            ],
+            "您是指哪方面",
+            [
+              "重量",
+              "我指重量这方面"
+            ],
+            "$entity1_entity2_weight_difference$"
+          ],
+          "lack_attribute_entity": [
+            [
+              "$entity1$是不是更好一点啊",
+              "$entity1$更好吗"
+            ],
+            "您是指哪方面",
+            [
+              "重量",
+              "我指重量这方面"
+            ],
+            "您想和哪款比呢",
+            [
+              "和$entity2$比较",
+              "同$entity2$比较而言",
+              "我想和$entity2$进行比较",
+              "相对于$entity2$比较而言",
+              "我是和$entity2$进行对比",
+              "$entity2$"
+            ],
+            "$entity1_entity2_weight_difference$"
+          ]
+        },
+        "thickness": {
+          "complete": [
+            [
+              "$entity1$比$entity2$厚吗",
+              "$entity1$比$entity2$薄吗",
+              "和$entity1$比起来$entity2$更厚吗",
+              "和$entity1$比起来$entity2$更薄吗",
+              "和$entity1$相比，$entity2$是不是更薄啊",
+              "和$entity1$相比，$entity2$是不是更厚啊",
+              "$entity1$是不是比$entity2$更薄啊",
+              "$entity1$是不是比$entity2$更厚啊",
+              "$entity1$和$entity2$哪个更薄",
+              "$entity1$和$entity2$哪个更厚",
+              "$entity1$和$entity2$在厚度上哪个更有优势呢"
+            ],
+            "$entity1_entity2_thickness_difference$"
+          ],
+          "lack_entity": [
+            [
+              "$entity1$是不是更薄啊",
+              "$entity1$是不是更厚啊",
+              "在厚度上$entity1$是不是更有优势啊",
+              "$entity1$更厚吗",
+              "$entity1$更薄吗"
+            ],
+            "您想和哪款比呢",
+            [
+              "和$entity2$比较",
+              "同$entity2$比较而言",
+              "我想和$entity2$进行比较",
+              "相对于$entity2$比较而言",
+              "我是和$entity2$进行对比",
+              "$entity2$"
+            ],
+            "$entity1_entity2_thickness_difference$"
+          ],
+          "lack_attribute": [
+            [
+              "$entity1$是不是比$entity2$更好"
+            ],
+            "您是指哪方面",
+            [
+              "厚度上",
+              "厚薄度上",
+              "我指厚度这方面"
+            ],
+            "$entity1_entity2_thickness_difference$"
+          ],
+          "lack_attribute_entity": [
+            [
+              "$entity1$是不是更好一点啊",
+              "$entity1$更好吗"
+            ],
+            "您是指哪方面",
+            [
+              "厚度上",
+              "厚薄度上",
+              "我指厚度这方面"
+            ],
+            "您想和哪款比呢",
+            [
+              "和$entity2$比较",
+              "同$entity2$比较而言",
+              "我想和$entity2$进行比较",
+              "相对于$entity2$比较而言",
+              "我是和$entity2$进行对比",
+              "$entity2$"
+            ],
+            "$entity1_entity2_thickness_difference$"
+          ]
+        },
+        "nfc": {
+          "complete": [
+            [
+              "$entity1$和$entity2$都支持nfc吗",
+              "$entity1$和$entity2$哪个没有nfc啊",
+              "$entity1$和$entity2$都有nfc吗",
+              "哪个没有nfc功能啊$entity1$和$entity2$",
+              "$entity1$和$entity2$两款都有nfc吗"
+            ],
+            "$entity1_entity2_nfc_difference$"
+          ],
+          "lack_entity": [
+            [
+              "在对nfc的支持上$entity1$是不是更值得入手啊",
+              "$entity1$是不是对nfc支持得更好",
+              "对nfc的支持上$entity1$是不是更有优势啊",
+              "$entity1$对nfc有更好的支持能力吗"
+            ],
+            "您想和哪款比呢",
+            [
+              "和$entity2$比较",
+              "同$entity2$比较而言",
+              "我想和$entity2$进行比较",
+              "相对于$entity2$比较而言",
+              "我是和$entity2$进行对比",
+              "$entity2$"
+            ],
+            "$entity1_entity2_nfc_difference$"
+          ],
+          "lack_attribute": [
+            [
+              "$entity1$是不是比$entity2$更好",
+              "和$entity1$比起来，$entity2$更值得买吗"
+            ],
+            "您是指哪方面",
+            [
+              "nfc功能上",
+              "nfc上",
+              "对nfc的支持上",
+              "我指两个是不是都支持nfc"
+            ],
+            "$entity1_entity2_nfc_difference$"
+          ],
+          "lack_attribute_entity": [
+            [
+              "$entity1$是不是更好一点啊",
+              "$entity1$更好吗"
+            ],
+            "您是指哪方面",
+            [
+              "nfc功能上",
+              "nfc上",
+              "对nfc的支持上",
+              "我指是不是都支持nfc"
+            ],
+            "您想和哪款比呢",
+            [
+              "和$entity2$比较",
+              "同$entity2$比较而言",
+              "我想和$entity2$进行比较",
+              "相对于$entity2$比较而言",
+              "我是和$entity2$进行对比",
+              "$entity2$"
+            ],
+            "$entity1_entity2_nfc_difference$"
+          ]
+        },
+        "size": {
+          "complete": [
+            [
+              "$entity1$比$entity2$大吗",
+              "$entity1$比$entity2$小吗",
+              "和$entity1$比起来$entity2$尺寸更大吗",
+              "和$entity1$比起来$entity2$尺寸更小吗",
+              "和$entity1$相比，$entity2$是不是更大啊",
+              "和$entity1$相比，$entity2$是不是更小啊",
+              "$entity1$是不是比$entity2$大啊",
+              "$entity1$是不是比$entity2$小啊",
+              "$entity1$和$entity2$哪个更大",
+              "$entity1$和$entity2$哪个更小"
+            ],
+            "$entity1_entity2_size_difference$"
+          ],
+          "lack_entity": [
+            [
+              "$entity1$是不是更大啊",
+              "$entity1$是不是更小啊",
+              "$entity1$更大吗",
+              "$entity1$更小吗"
+            ],
+            "您想和哪款比呢",
+            [
+              "和$entity2$比较",
+              "同$entity2$比较而言",
+              "我想和$entity2$进行比较",
+              "相对于$entity2$比较而言",
+              "我是和$entity2$进行对比",
+              "$entity2$"
+            ],
+            "$entity1_entity2_size_difference$"
+          ]
+        },
+        "network": {
+          "complete": [
+            [
+              "$entity1$和$entity2$都支持4g吗",
+              "$entity1$和$entity2$哪个不支持4g啊",
+              "哪个没有4g啊$entity1$和$entity2$",
+              "$entity1$和$entity2$两款能够4g上网吗"
+            ],
+            "$entity1_entity2_network_difference$"
+          ],
+          "lack_entity": [
+            [
+              "$entity1$对4g支持得更好吗",
+              "对4g的支持上$entity1$更好吗"
+            ],
+            "您想和哪款比呢",
+            [
+              "和$entity2$比较",
+              "同$entity2$比较而言",
+              "我想和$entity2$进行比较",
+              "相对于$entity2$比较而言",
+              "我是和$entity2$进行对比",
+              "$entity2$"
+            ],
+            "$entity1_entity2_network_difference$"
+          ],
+          "lack_attribute": [
+            [
+              "$entity1$是不是比$entity2$更好",
+              "和$entity1$比起来，$entity2$更值得买吗"
+            ],
+            "您是指哪方面",
+            [
+              "上网功能上",
+              "网络功能上",
+              "对4g网络的支持上",
+              "我指是不是都支持4g"
+            ],
+            "$entity1_entity2_network_difference$"
+          ],
+          "lack_attribute_entity": [
+            [
+              "$entity1$是不是更好一点啊",
+              "$entity1$更好吗"
+            ],
+            "您是指哪方面",
+            [
+              "上网功能上",
+              "网络功能上",
+              "对4g网络的支持上",
+              "我指是不是都支持4g"
+            ],
+            "您想和哪款比呢",
+            [
+              "和$entity2$比较",
+              "同$entity2$比较而言",
+              "我想和$entity2$进行比较",
+              "相对于$entity2$比较而言",
+              "我是和$entity2$进行对比",
+              "$entity2$"
+            ],
+            "$entity1_entity2_network_difference$"
+          ]
+        }
+      },
+      "confirm": {
+        "price": {
+          "complete": [
+            [
+              "$entity$的价格$compare$$value$吗",
+              "$compare$$value$吗$entity$"
+            ],
+            "$entity_price_compare_value_confirm$"
+          ],
+          "lack_entity": [
+            [
+              "价格$compare$$value$吗"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_price_compare_value_confirm$"
+          ]
+        },
+        "discount": {
+          "complete": [
+            [
+              "$entity$的折扣$compare$$value$吗",
+              "$compare$$value$吗$entity$的折扣力度"
+            ],
+            "$entity_discount_compare_value_confirm$"
+          ],
+          "lack_entity": [
+            [
+              "折扣$compare$$value$吗"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_discount_compare_value_confirm$"
+          ]
+        },
+        "weight": {
+          "complete": [
+            [
+              "$entity$这款产品的重量$compare$$value$吗",
+              "$entity$重量$compare$$value$吧",
+              "重量应该$compare$$value$吧$entity$"
+            ],
+            "$entity_weight_compare_value_confirm$"
+          ],
+          "lack_entity": [
+            [
+              "重量$compare$$value$吧",
+              "重量应该$compare$$value$吧"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_weight_compare_value_confirm$"
+          ]
+        },
+        "os": {
+          "complete": [
+            [
+              "$entity$是$value$系统吗",
+              "$entity$支持$value$系统吗",
+              "可以运行$value$系统吗$entity$"
+            ],
+            "$entity_os_is_value_confirm$"
+          ],
+          "lack_entity": [
+            [
+              "是$value$系统吗",
+              "支持$value$系统吗",
+              "可以运行$value$系统吗"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_os_is_value_confirm$"
+          ]
+        },
+        "generation": {
+          "complete": [
+            [
+              "$entity$是$value$吗",
+              "是$value$吗$entity$"
+            ],
+            "$entity_generation_is_value_confirm$"
+          ],
+          "lack_entity": [
+            [
+              "是$value$吗",
+              "这款产品是$value$吗"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_generation_is_value_confirm$"
+          ]
+        },
+        "color": {
+          "complete": [
+            [
+              "$entity$有$value$吗",
+              "有没有$value$啊$entity$"
+            ],
+            "$entity_color_has_value_confirm$"
+          ],
+          "lack_entity": [
+            [
+              "有$value$吗",
+              "这款有$value$的吗"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_color_has_value_confirm$"
+          ]
+        },
+        "thickness": {
+          "complete": [
+            [
+              "$entity$的厚度$compare$$value$吧"
+            ],
+            "$entity_thickness_compare_value_confirm$"
+          ],
+          "lack_entity": [
+            [
+              "厚度$compare$$value$吗"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_thickness_compare_value_confirm$"
+          ]
+        },
+        "size": {
+          "complete": [
+            [
+              "$entity$的尺寸$compare$$value$"
+            ],
+            "$entity_size_compare_value_confirm$"
+          ],
+          "lack_entity": [
+            [
+              "产品尺寸$compare$$value$吗"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_size_compare_value_confirm$"
+          ]
+        },
+        "material": {
+          "complete": [
+            [
+              "$entity$的材质为$value$吗",
+              "$entity$的材质是不是$value$",
+              "是用$value$做的吗$entity$"
+            ],
+            "$entity_material_is_value_confirm$"
+          ],
+          "lack_entity": [
+            [
+              "材质为$value$吗",
+              "是$value$做的吗"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_material_is_value_confirm$"
+          ]
+        },
+        "network": {
+          "complete": [
+            [
+              "$entity$可以用$value$上网吗",
+              "支持$value$上网吗$entity$",
+              "可不可以用$value$上网"
+            ],
+            "$entity_network_is_value_confirm$"
+          ],
+          "lack_entity": [
+            [
+              "支持$value$吗",
+              "有$value$吗",
+              "可不可以$value$上网",
+              "能够使用$value$吗"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_network_is_value_confirm$"
+          ]
+        },
+        "nfc": {
+          "complete": [
+            [
+              "$entity$应该支持nfc吧",
+              "支持nfc功能吧$entity$",
+              "$entity$应该是能够使用nfc的吧"
+            ],
+            "$entity_nfc_is_True_confirm$"
+          ],
+          "lack_entity": [
+            [
+              "应该支持nfc吧",
+              "有nfc功能吗",
+              "可以使用nfc吧",
+              "具有nfc功能吧"
+            ],
+            "您说的哪款啊",
+            [
+              "我是说$entity$这款",
+              "$entity$",
+              "$entity$啊",
+              "我指$entity$",
+              "我是说$entity$"
+            ],
+            "$entity_nfc_is_True_confirm$"
+          ]
+        }
+      }
+    },
+    "in_sales": {
+      "discount": {
+        "complete": [
+          [
+            "那你把$entity$的活动链接发给我",
+            "把$entity$的折扣链接发给我"
+          ],
+          "$entity_discountURL$"
+        ],
+        "lack_entity": [
+          [
+            "把活动链接给我",
+            "活动链接发我一下"
+          ],
+          "您说的哪款啊",
+          [
+            "我是说$entity$这款",
+            "$entity$",
+            "$entity$啊",
+            "我指$entity$",
+            "我是说$entity$"
+          ],
+          "$entity_discountURL$"
+        ]
+      },
+      "gift": {
+        "complete": [
+          [
+            "购买$entity$有小赠品吗",
+            "如果我买$entity$会不会有什么赠品啊",
+            "请问现在送东西吗如果购买$entity$"
+          ],
+          "$entity_gift$"
+        ],
+        "lack_entity": [
+          [
+            "有赠品吗",
+            "有礼品送吗",
+            "会不会送礼物啊"
+          ],
+          "您说的哪款啊",
+          [
+            "我是说$entity$这款",
+            "$entity$",
+            "$entity$啊",
+            "我指$entity$",
+            "我是说$entity$"
+          ],
+          "$entity_gift$"
+        ]
+      },
+      "payment": {
+        "complete": [
+          [
+            "$entity$支持哪些支付方式",
+            "$entity$支持怎样的支付方式啊",
+            "可以怎么付款呢$entity$",
+            "$entity$可以用$value$支付吗"
+          ],
+          "$entity_payment$"
+        ],
+        "lack_entity": [
+          [
+            "可以采用什么方式支付呢",
+            "有什么样的支付方式呢",
+            "你们支持什么支付方式"
+          ],
+          "您说的哪款啊",
+          [
+            "我是说$entity$这款",
+            "$entity$",
+            "$entity$啊",
+            "我指$entity$",
+            "我是说$entity$"
+          ],
+          "$entity_payment$"
+        ]
+      },
+      "express": {
+        "complete": [
+          [
+            "快递多久能到呢",
+            "要等多久能够收到货",
+            "多久能够收到"
+          ],
+          "$expressTime$"
+        ]
+      }
+    },
+    "after_sales": {
+      "consult": {
+        "network": {
+          "complete_verbose1": [
+            [
+              "为什么我上不了网啊",
+              "为什么用不了4g网啊",
+              "你们的产品网络有问题啊"
+            ],
+            "您可以尝试更新到最新的系统"
+          ],
+          "complete_verbose2": [
+            [
+              "为什么我上不了网啊",
+              "为什么用不了4g网啊",
+              "你们的产品网络有问题啊"
+            ],
+            "您可以尝试更新到最新的系统",
+            [
+              "怎么更新啊",
+              "我不会啊",
+              "具体该怎么搞啊",
+              "咋更新啊"
+            ],
+            "$osUpdate$"
+          ],
+          "complete_verbose3": [
+            [
+              "为什么我上不了网啊",
+              "为什么用不了4g网啊",
+              "你们的产品网络有问题啊"
+            ],
+            "您可以尝试更新到最新的系统",
+            [
+              "我的系统是最新版的啊",
+              "我已经更新了感觉还是不行啊",
+              "更新系统也没用啊",
+              "已经是最新版的系统了啊"
+            ],
+            "我帮您返厂维修一下行吗",
+            [
+              "好的",
+              "行",
+              "好",
+              "谢谢"
+            ],
+            "麻烦您提供一下姓名",
+            "$name$",
+            "麻烦您提供一下电话号码",
+            "$phone$",
+            "麻烦您提供一下收货地址",
+            "$address$",
+            "请您把商品寄到这个地址$address$"
+          ]
+        },
+        "os": {
+          "complete_verbose1": [
+            [
+              "我的系统老卡",
+              "系统老出问题",
+              "你们的产品怎么老卡顿啊",
+              "系统用一段时间后就卡"
+            ],
+            "您可以尝试更新到最新的系统"
+          ],
+          "complete_verbose2": [
+            [
+              "我的系统老卡",
+              "系统老出问题",
+              "你们的产品怎么老卡顿啊",
+              "系统用一段时间后就卡"
+            ],
+            "您可以尝试更新到最新的系统",
+            [
+              "怎么更新啊",
+              "我不会啊",
+              "具体该怎么搞啊",
+              "咋更新啊"
+            ],
+            "$osUpdate$"
+          ],
+          "complete_verbose3": [
+            [
+              "我的系统老卡",
+              "系统老出问题",
+              "你们的产品怎么老卡顿啊",
+              "系统用一段时间后就卡"
+            ],
+            "您可以尝试更新到最新的系统",
+            [
+              "我的系统是最新版的啊",
+              "我已经更新了感觉还是不行啊",
+              "更新系统也没用啊",
+              "已经是最新版的系统了啊"
+            ],
+            "那可能是系统空间不够了"
+          ]
+        },
+        "nfc": {
+          "complete_verbose1": [
+            [
+              "我的nfc功能好像用不了",
+              "nfc好像不起作用",
+              "我的nfc好像是坏的",
+              "nfc功能开启不了啊怎么办"
+            ],
+            "您可以尝试更新到最新的系统"
+          ],
+          "complete_verbose2": [
+            [
+              "我的nfc功能好像用不了",
+              "nfc好像不起作用",
+              "我的nfc好像是坏的",
+              "nfc功能开启不了啊怎么办"
+            ],
+            "您可以尝试更新到最新的系统",
+            [
+              "怎么更新啊",
+              "我不会啊",
+              "具体该怎么搞啊",
+              "咋更新啊"
+            ],
+            "$osUpdate$"
+          ],
+          "complete_verbose3": [
+            [
+              "我的nfc功能好像用不了",
+              "nfc好像不起作用",
+              "我的nfc好像是坏的",
+              "nfc功能开启不了啊怎么办"
+            ],
+            "您可以尝试更新到最新的系统",
+            [
+              "我的系统是最新版的啊",
+              "我已经更新了感觉还是不行啊",
+              "更新系统也没用啊",
+              "已经是最新版的系统了啊"
+            ],
+            "我帮您返厂维修一下行吗",
+            [
+              "好的",
+              "行",
+              "好",
+              "谢谢"
+            ],
+            "麻烦您提供一下姓名",
+            "$name$",
+            "麻烦您提供一下电话号码",
+            "$phone$",
+            "麻烦您提供一下收货地址",
+            "$address$",
+            "请您把商品寄到这个地址$address$"
+          ]
+        }
+      },
+      "refund": {
+        "complete": [
+          [
+            "您好我要退货",
+            "我不喜欢你们的产品，我要退货",
+            "可不可以退货啊，我不喜欢"
+          ],
+          "请问您哪里不满意吗",
+          "$refundReason$",
+          "麻烦您提供一下您的订单号",
+          "$orderNumber$",
+          "请您把商品寄到这个地址$address$"
+        ]
+      },
+      "exchange": {
+        "network": {
+          "complete_verbose1": [
+            [
+              "网络有问题，我要换一下货",
+              "网络不行，我要换货",
+              "换一下货，这个网络好像有问题",
+              "不管咋样网络总是无法使用，我要换货"
+            ],
+            "您可以尝试更新到最新的系统"
+          ],
+          "complete_verbose2": [
+            [
+              "网络有问题，我要换一下货",
+              "网络不行，我要换货",
+              "换一下货，这个网络好像有问题",
+              "不管咋样网络总是无法使用，我要换货"
+            ],
+            "您可以尝试更新到最新的系统",
+            [
+              "怎么更新啊",
+              "我不会啊",
+              "具体该怎么搞啊",
+              "咋更新啊"
+            ],
+            "$osUpdate$"
+          ],
+          "complete_verbose3": [
+            [
+              "网络有问题，我要换一下货",
+              "网络不行，我要换货",
+              "换一下货，这个网络好像有问题",
+              "不管咋样网络总是无法使用，我要换货"
+            ],
+            "您可以尝试更新到最新的系统",
+            [
+              "我的系统是最新版的啊",
+              "我已经更新了感觉还是不行啊",
+              "更新系统也没用啊",
+              "已经是最新版的系统了啊"
+            ],
+            "我帮您换一下货",
+            [
+              "好的",
+              "行",
+              "好",
+              "谢谢"
+            ],
+            "麻烦您提供一下姓名",
+            "$name$",
+            "麻烦您提供一下电话号码",
+            "$phone$",
+            "麻烦您提供一下收货地址",
+            "$address$",
+            "麻烦您提供一下您的订单号",
+            "$orderNumber$",
+            "请您把商品寄到这个地址$address$"
+          ]
+        },
+        "color": {
+          "lack_attribute": [
+            [
+              "这个颜色我不满意，我要换一下",
+              "颜色我不喜欢，我想换一下",
+              "换个颜色"
+            ],
+            "请问您想换成什么颜色",
+            "$color$",
+            "麻烦您提供一下姓名",
+            "$name$",
+            "麻烦您提供一下电话号码",
+            "$phone$",
+            "麻烦您提供一下收货地址",
+            "$address$",
+            "麻烦您提供一下您的订单号",
+            "$orderNumber$",
+            "请您把商品寄到这个地址$address$"
+          ],
+          "complete": [
+            [
+              "这个颜色我不喜欢，我想换成$color$",
+              "可不可以帮我换成$color$",
+              "原来的颜色我不喜欢，我想换成$color$"
+            ],
+            "麻烦您提供一下姓名",
+            "$name$",
+            "麻烦您提供一下电话号码",
+            "$phone$",
+            "麻烦您提供一下收货地址",
+            "$address$",
+            "麻烦您提供一下您的订单号",
+            "$orderNumber$",
+            "请您把商品寄到这个地址$address$"
+          ]
+        },
+        "weight": {
+          "lack_entity": [
+            [
+              "我买的这个重量不合适，我要换货",
+              "我不喜欢这个重量，我要换货",
+              "买来才发现带着不称手，换一个"
+            ],
+            "请问您想换成哪款",
+            [
+              "换成$entity$",
+              "我想换成$entity$",
+              "可不可以换成$entity$",
+              "能够帮我换成$entity$吗",
+              "$entity$还有库存吗，我要换成这个",
+              "可否换成$entity$",
+              "$entity$"
+            ],
+            "麻烦您提供一下姓名",
+            "$name$",
+            "麻烦您提供一下电话号码",
+            "$phone$",
+            "麻烦您提供一下收货地址",
+            "$address$",
+            "麻烦您提供一下您的订单号",
+            "$orderNumber$",
+            "请您把商品寄到这个地址$address$"
+          ],
+          "complete": [
+            [
+              "之前买的那个重量不合适，我想换成$entity$",
+              "我不喜欢原来那个的重量我要换成$entity$",
+              "我想换成$entity$，原来那个带着不称手"
+            ],
+            "麻烦您提供一下姓名",
+            "$name$",
+            "麻烦您提供一下电话号码",
+            "$phone$",
+            "麻烦您提供一下收货地址",
+            "$address$",
+            "麻烦您提供一下您的订单号",
+            "$orderNumber$",
+            "请您把商品寄到这个地址$address$"
+          ]
+        },
+        "material": {
+          "complete": [
+            [
+              "我买的这个材质怎么有异味，帮我换一下",
+              "我想换货，我买的这个感觉材质很差",
+              "做工感觉不行，能不能换一个"
+            ],
+            "麻烦您提供一下姓名",
+            "$name$",
+            "麻烦您提供一下电话号码",
+            "$phone$",
+            "麻烦您提供一下收货地址",
+            "$address$",
+            "麻烦您提供一下您的订单号",
+            "$orderNumber$",
+            "请您把商品寄到这个地址$address$"
+          ]
+        },
+        "os": {
+          "complete_verbose1": [
+            [
+              "我买的这个系统老是卡顿，帮我换一下货",
+              "我想换货，我买的这个感觉系统有问题",
+              "系统老卡顿，能不能换一个",
+              "系统升级后还是很卡，我要求换货"
+            ],
+            "您可以尝试更新到最新的系统"
+          ],
+          "complete_verbose2": [
+            [
+              "我买的这个系统老是卡顿，帮我换一下货",
+              "我想换货，我买的这个感觉系统有问题",
+              "系统老卡顿，能不能换一个",
+              "系统升级后还是很卡，我要求换货"
+            ],
+            "您可以尝试更新到最新的系统",
+            [
+              "怎么更新啊",
+              "我不会啊",
+              "具体该怎么搞啊",
+              "咋更新啊"
+            ],
+            "$osUpdate$"
+          ],
+          "complete_verbose3": [
+            [
+              "我买的这个系统老是卡顿，帮我换一下货",
+              "我想换货，我买的这个感觉系统有问题",
+              "系统老卡顿，能不能换一个",
+              "系统升级后还是很卡，我要求换货"
+            ],
+            "您可以尝试更新到最新的系统",
+            [
+              "我的系统是最新版的啊",
+              "我已经更新了感觉还是不行啊",
+              "更新系统也没用啊",
+              "已经是最新版的系统了啊"
+            ],
+            "我帮您换一下货",
+            [
+              "好的",
+              "行",
+              "好",
+              "谢谢"
+            ],
+            "麻烦您提供一下姓名",
+            "$name$",
+            "麻烦您提供一下电话号码",
+            "$phone$",
+            "麻烦您提供一下收货地址",
+            "$address$",
+            "麻烦您提供一下您的订单号",
+            "$orderNumber$",
+            "请您把商品寄到这个地址$address$"
+          ]
+        },
+        "nfc": {
+          "complete_verbose1": [
+            [
+              "我买的这个商品nfc用不了，我要换货",
+              "nfc用不了，我要换货",
+              "我要换货，nfc功能一直用不了",
+              "我想换货，我买的这个nfc是坏的",
+              "nfc总是无法使用，我需要换货"
+            ],
+            "您可以尝试更新到最新的系统"
+          ],
+          "complete_verbose2": [
+            [
+              "我买的这个商品nfc用不了，我要换货",
+              "nfc用不了，我要换货",
+              "我要换货，nfc功能一直用不了",
+              "我想换货，我买的这个nfc是坏的",
+              "nfc总是无法使用，我需要换货"
+            ],
+            "您可以尝试更新到最新的系统",
+            [
+              "怎么更新啊",
+              "我不会啊",
+              "具体该怎么搞啊",
+              "咋更新啊"
+            ],
+            "$osUpdate$"
+          ],
+          "complete_verbose3": [
+            [
+              "我买的这个商品nfc用不了，我要换货",
+              "nfc用不了，我要换货",
+              "我要换货，nfc功能一直用不了",
+              "我想换货，我买的这个nfc是坏的",
+              "nfc总是无法使用，我需要换货"
+            ],
+            "您可以尝试更新到最新的系统",
+            [
+              "我的系统是最新版的啊",
+              "我已经更新了感觉还是不行啊",
+              "更新系统也没用啊",
+              "已经是最新版的系统了啊"
+            ],
+            "我帮您换一下货",
+            [
+              "好的",
+              "行",
+              "好",
+              "谢谢"
+            ],
+            "麻烦您提供一下姓名",
+            "$name$",
+            "麻烦您提供一下电话号码",
+            "$phone$",
+            "麻烦您提供一下收货地址",
+            "$address$",
+            "麻烦您提供一下您的订单号",
+            "$orderNumber$",
+            "请您把商品寄到这个地址$address$"
+          ]
+        },
+        "size": {
+          "lack_entity": [
+            [
+              "尺寸我不满意我要换一下货",
+              "带着尺寸不好，我要换一下货",
+              "我想换个大小",
+              "我想换个尺寸"
+            ],
+            "请问您想换成哪款",
+            [
+              "换成$entity$",
+              "我想换成$entity$",
+              "可不可以换成$entity$",
+              "能够帮我换成$entity$吗",
+              "$entity$还有库存吗，我要换成这个",
+              "可否换成$entity$"
+            ],
+            "麻烦您提供一下姓名",
+            "$name$",
+            "麻烦您提供一下电话号码",
+            "$phone$",
+            "麻烦您提供一下收货地址",
+            "$address$",
+            "麻烦您提供一下您的订单号",
+            "$orderNumber$",
+            "请您把商品寄到这个地址$address$"
+          ],
+          "complete": [
+            [
+              "尺寸我不喜欢，我想换成$entity$",
+              "原来的那个尺寸不对，我想换成$entity$",
+              "我想换个大小，换成$entity$",
+              "我想换个尺寸，换成$entity$"
+            ],
+            "麻烦您提供一下姓名",
+            "$name$",
+            "麻烦您提供一下电话号码",
+            "$phone$",
+            "麻烦您提供一下收货地址",
+            "$address$",
+            "麻烦您提供一下您的订单号",
+            "$orderNumber$",
+            "请您把商品寄到这个地址$address$"
+          ]
+        },
+        "thickness": {
+          "lack_entity": [
+            [
+              "我买的这个厚度不合适，能不能帮忙换一下",
+              "厚度不合适，我想换货",
+              "能不能换个厚度的产品"
+            ],
+            "请问您想换成哪款",
+            [
+              "换成$entity$",
+              "我想换成$entity$",
+              "可不可以换成$entity$",
+              "能够帮我换成$entity$吗",
+              "$entity$还有库存吗，我要换成这个",
+              "可否换成$entity$"
+            ],
+            "麻烦您提供一下姓名",
+            "$name$",
+            "麻烦您提供一下电话号码",
+            "$phone$",
+            "麻烦您提供一下收货地址",
+            "$address$",
+            "麻烦您提供一下您的订单号",
+            "$orderNumber$",
+            "请您把商品寄到这个地址$address$"
+          ],
+          "complete": [
+            [
+              "我买的这个厚度不合适，帮我换成$entity$",
+              "换成另外一个厚度的$entity$",
+              "我想换成$entity$，之前买的那个厚度不合适"
+            ],
+            "麻烦您提供一下姓名",
+            "$name$",
+            "麻烦您提供一下电话号码",
+            "$phone$",
+            "麻烦您提供一下收货地址",
+            "$address$",
+            "麻烦您提供一下您的订单号",
+            "$orderNumber$",
+            "请您把商品寄到这个地址$address$"
+          ]
+        }
+      },
+      "express": {
+        "lack_orderNumber": [
+          [
+            "麻烦帮我查询一下我的快递到哪了",
+            "我的快递还没到，帮我查一下",
+            "查一下我的快递到哪了"
+          ],
+          "麻烦您提供一下您的订单号",
+          "$orderNumber$",
+          "已经帮您查到了，$expressInfo$"
+        ],
+        "complete": [
+          [
+            "我的快递单号是$orderNumber$麻烦帮我查询一下我的快递到哪了",
+            "我的快递还没到，帮我查一下，单号是$orderNumber$",
+            "查一下我的快递到哪了，单号是$orderNumber$",
+            "查一下快递，我的单号是$orderNumber$"
+          ],
+          "已经帮您查到了，$expressInfo$"
+        ]
+      },
+      "gift": {
+        "lack_entity": [
+          [
+            "为什么我没有收到礼品呢",
+            "没有给我发礼物啊",
+            "你们漏发了我的礼物",
+            "包装里面没看到礼物啊",
+            "是不是忘记给我发礼物了"
+          ],
+          "实在是抱歉，请您谅解",
+          [
+            "帮我补发一下",
+            "那你们帮我发一个赠品",
+            "再给我发一次吧",
+            "没事，补发一下"
+          ],
+          "请问您购买的是哪款产品",
+          "$entity$",
+          "麻烦您提供一下姓名",
+          "$name$",
+          "麻烦您提供一下电话号码",
+          "$phone$",
+          "麻烦您提供一下收货地址",
+          "$address$",
+          "我们会尽快为您寄到，还望您耐心等待"
+        ],
+        "complete": [
+          [
+            "我购买的$entity$但没收到礼品",
+            "之前买过$entity$不过没有给我发礼物啊",
+            "当时买$entity$时不是说有礼物吗，我没收到",
+            "开包裹时只看到了$entity$没有对应的赠品啊",
+            "你们只给我发了$entity$没有发赠品",
+            "你们漏发了$entity$的赠品"
+          ],
+          "实在是抱歉，请您谅解",
+          [
+            "帮我补发一下",
+            "那你们帮我发一个赠品",
+            "再给我发一次吧",
+            "没事，补发一下"
+          ],
+          "麻烦您提供一下姓名",
+          "$name$",
+          "麻烦您提供一下电话号码",
+          "$phone$",
+          "麻烦您提供一下收货地址",
+          "$address$",
+          "我们会尽快为您寄到，还望您耐心等待"
+        ]
+      },
+      "invoice": {
+        "lack_invoiceHead": [
+          [
+            "我要发票",
+            "提供一下发票",
+            "发票可不可以提供一下"
+          ],
+          "麻烦您提供一下抬头",
+          "$invoiceHead$",
+          "麻烦您提供一下姓名",
+          "$name$",
+          "麻烦您提供一下电话号码",
+          "$phone$",
+          "麻烦您提供一下收货地址",
+          "$address$",
+          "我们会尽快为您寄到，还望您耐心等待"
+        ],
+        "complete": [
+          [
+            "我要发票，抬头是$invoiceHead$",
+            "提供一下发票，注意抬头是$invoiceHead$",
+            "可不可以提供一下发票，我的抬头是$invoiceHead$"
+          ],
+          "麻烦您提供一下姓名",
+          "$name$",
+          "麻烦您提供一下电话号码",
+          "$phone$",
+          "麻烦您提供一下收货地址",
+          "$address$",
+          "我们会尽快为您寄到，还望您耐心等待"
+        ]
+      }
+    },
+    "sentiment": {
+      "positive": {
+        "general": [
+          [
+            "我很喜欢你们的产品",
+            "这已经是我第二次购买了",
+            "我是你家的常客啦"
+          ],
+          "感谢您对我们的支持"
+        ],
+        "price": [
+          [
+            "感觉价格还是很公道的",
+            "你们家是我买过最便宜的",
+            "这个价格能够买到这么好的产品很不错了",
+            "这个价格我很满意",
+            "好便宜啊$entity$"
+          ],
+          "我们的价格是最划算的哦"
+        ],
+        "color": [
+          [
+            "这款颜色我很喜欢",
+            "你们的配色都很不错",
+            "颜色我还是很喜欢的",
+            "$entity$的颜色我很满意"
+          ],
+          "我们的产品是艺术家反复打磨出来的"
+        ],
+        "size": [
+          [
+            "感觉这个的大小刚刚好",
+            "大小很合适，我很喜欢",
+            "$entity$的大小我很满意"
+          ],
+          "您喜欢就好"
+        ],
+        "discount": [
+          [
+            "活动这么给力啊",
+            "$entity$的折扣力度挺大的啊",
+            "$entity$的促销很不错"
+          ],
+          "我们的折扣力度是最给力的哦"
+        ],
+        "material": [
+          [
+            "材质我很满意",
+            "你们的产品做工还不错",
+            "做工不错",
+            "$entity$的材质还行啊"
+          ],
+          "我们的产品总是用最好的材质"
+        ],
+        "weight": [
+          [
+            "这个重量还不错",
+            "挺轻便的啊",
+            "$entity$的重量刚刚好啊",
+            "佩戴后很舒服呢"
+          ],
+          "您喜欢就好"
+        ],
+        "thickness": [
+          [
+            "产品很薄啊",
+            "我很喜欢这个厚度",
+            "$entity$的厚度适中"
+          ],
+          "您喜欢就好"
+        ],
+        "express": [
+          [
+            "快递很给力啊",
+            "很快就到了",
+            "快递我很满意"
+          ],
+          "都亏了快递小哥辛勤工作啊"
+        ],
+        "network": [
+          [
+            "太棒了，支持4g",
+            "网络还不错啊，可以支持4g网络",
+            "4g网络我很满意"
+          ],
+          "谢谢您的支持，未来将会有更多的产品支持4g"
+        ],
+        "nfc": [
+          [
+            "太棒了，居然支持nfc",
+            "我很喜欢这个nfc功能",
+            "nfc功能真是太棒了",
+            "nfc功能很好用"
+          ],
+          "谢谢您的支持，未来将会有更多的产品支持nfc"
+        ]
+      },
+      "negative": {
+        "general": [
+          [
+            "你们的产品很难用啊",
+            "我再也不会买你们家的了",
+            "用户体验太差了",
+            "你们家的产品是我用过最难用的了"
+          ],
+          "设计师们正在想办法提升用户体验呢"
+        ],
+        "price": [
+          [
+            "价格不低啊",
+            "你们的产品怎么这么贵",
+            "这个价格我很不满意",
+            "这个东西也要这么贵啊",
+            "$entity$好贵啊"
+          ],
+          "我们家的产品可不贵啊"
+        ],
+        "color": [
+          [
+            "怎么没有我喜欢的颜色",
+            "你们家的配色不行啊",
+            "颜色好丑啊",
+            "$entity$的颜色我都不喜欢"
+          ],
+          "马上会有更多配色，总有您喜欢的"
+        ],
+        "size": [
+          [
+            "大小不适合我",
+            "我不喜欢这个大小",
+            "$entity$的大小我不满意"
+          ],
+          "我们会根据您的意见努力改进的"
+        ],
+        "discount": [
+          [
+            "活动力度不行啊",
+            "$entity$的折扣怎么这么小",
+            "你们就不能打个折吗"
+          ],
+          "我们的产品已经很便宜了"
+        ],
+        "material": [
+          [
+            "做工很粗糙",
+            "你们的产品做工不行",
+            "做工好烂啊"
+          ],
+          "我们会尽力减少生成过程中的瑕疵品"
+        ],
+        "weight": [
+          [
+            "好重啊这款",
+            "这款重量太重我不喜欢",
+            "$entity$的重量太重了",
+            "佩戴后很不舒服呢"
+          ],
+          "我们会根据您的意见努力改进的"
+        ],
+        "thickness": [
+          [
+            "产品很厚啊",
+            "我不喜欢这个厚度",
+            "太厚了带着不舒服",
+            "$entity$的厚度我不满意"
+          ],
+          "我们会根据您的意见努力改进的"
+        ],
+        "express": [
+          [
+            "快递怎么这么慢啊",
+            "快递员在干嘛，怎么还不送到",
+            "你们的快递好慢啊",
+            "等了好久了还没到",
+            "我都等了这么久了还没收到",
+            "好慢啊快递",
+            "我都催了这么多次了，还不发货",
+            "同样时间买的，别人的都用上了，为什么我的还不到"
+          ],
+          "我帮您催一下快递，还望您耐心等待一下"
+        ],
+        "network": [
+          [
+            "居然还不支持4g，太差劲了吧",
+            "网络不给力啊这款",
+            "居然还是3g网络的，网络龟速"
+          ],
+          "您别急，下一代产品会支持4g的"
+        ],
+        "nfc": [
+          [
+            "怎么还不支持nfc啊，太差劲了吧",
+            "怎么还没有nfc功能"
+          ],
+          "您别急，下一代产品会支持nfc的"
+        ]
+      }
+    }
+  }
+}
