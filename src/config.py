@@ -29,4 +29,7 @@ GOODS_ATTRIBUTE_DEFINITION = {'price': {'dtype': 'int', 'min': 1000, 'max': 2000
                               'gift': {'dtype': 'str', 'range': ['表带', '耳机', '电池']}}
 PRICE_NOISE = 400
 
-OTHER_ATTRIBUTE_DEFINITION = {'payment': {}, 'expressTime': {}, 'expressName': {}}
+OTHER_ATTRIBUTE_DEFINITION = {
+    'payment': {'dtype': 'constantList', 'value': ['weChat', 'Alipay', 'creditCard', 'debitCard']},
+    'expressTime': {'dtype': 'constantInt', 'value': 3},
+    'expressName': {'dtype': 'constantList', 'value': ['顺丰', '韵达', '菜鸟', '中通']}}

@@ -32,12 +32,12 @@ class KnowledgeBase(object):
 
         # fill correlated attribute first
         if 'correlate' in attr_definition.keys() and attr_definition['correlate'] not in entity.keys():
-            find_correlate_attr = False
+            found_correlate_attr = False
             for correlate_attr_name in GOODS_ATTRIBUTE_DEFINITION.keys():
                 if correlate_attr_name == attr_definition['correlate']:
-                    find_correlate_attr = True
+                    found_correlate_attr = True
                     break
-            assert find_correlate_attr, "Can't find correlated attribute!"
+            assert found_correlate_attr, "Can't find correlated attribute!"
             entity = self.fill_value(correlate_attr_name, entity_id, entity)
 
         # fill value according to dtype
@@ -123,17 +123,21 @@ class KnowledgeBase(object):
             self.kb.append(entity)
 
     def find_entity(self, entity_id):
-        find_entity = False
+        found_entity = False
         for entity in self.kb:
             if entity['id'] == entity_id:
-                find_entity = True
+                found_entity = True
                 break
-        assert find_entity, "Can't find entity given by users!"
+        assert found_entity, "Can't find entity given by users!"
         return entity
 
     def inform(self, entity_id, attr_name):
-        entity = self.find_entity(entity_id)
-        return entity[attr_name]
+        if entity_id is not None:
+            entity = self.find_entity(entity_id)
+            return entity[attr_name]
+        else:
+            attr_definition = OTHER_ATTRIBUTE_DEFINITION[attr_name]
+            return attr_definition['value']
 
     def confirm(self, entity_id, attr_name, compare, value):
         entity = self.find_entity(entity_id)
