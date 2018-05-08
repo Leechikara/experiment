@@ -3,7 +3,7 @@ DATA_ROOT = '/home/wkwang/workstation/experiment/data'
 
 ORIGINAL_ENTITY = 50
 CHANGE_ORIGINAL_ENTITY = False
-ADD_NEW_ENTITY = 0
+NEW_ADD_ENTITY = 0
 
 GOODS_ATTRIBUTE_DEFINITION = {'price': {'dtype': 'int', 'min': 1000, 'max': 2000, 'prefer': 'low'},
                               'discountValue': {'dtype': 'float', 'range': [0.1 * x for x in range(6, 10)],
@@ -27,7 +27,7 @@ GOODS_ATTRIBUTE_DEFINITION = {'price': {'dtype': 'int', 'min': 1000, 'max': 2000
                               'generation': {'dtype': 'str', 'range': [str(x) for x in range(1, 4)],
                                              'expensive': 'high', 'prefer': 'high'},
                               'gift': {'dtype': 'str', 'range': ['表带', '耳机', '电池']}}
-PRICE_NOISE = 400
+PRICE_NOISE = 300
 
 OTHER_ATTRIBUTE_DEFINITION = {
     'payment': {'dtype': 'constantList', 'value': ['weChat', 'Alipay', 'creditCard', 'debitCard']},

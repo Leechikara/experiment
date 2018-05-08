@@ -18,12 +18,13 @@ class KnowledgeBase(object):
         if CHANGE_ORIGINAL_ENTITY:
             # todo: change original entity
             pass
-        if ADD_NEW_ENTITY > 0:
+        if NEW_ADD_ENTITY > 0:
             self.expand_kb()
-        if CHANGE_ORIGINAL_ENTITY or ADD_NEW_ENTITY > 0:
+        if CHANGE_ORIGINAL_ENTITY or NEW_ADD_ENTITY > 0:
             with io.open(self.kb_file, 'w', encoding='utf-8') as f:
                 json.dump(self.kb, f, ensure_ascii=False, indent=2)
 
+    # We construct the kb below. We may modify kb dynamically.
     def fill_value(self, attr_name, entity_id, entity):
         if attr_name in entity.keys():
             return entity
@@ -117,11 +118,12 @@ class KnowledgeBase(object):
 
     def expand_kb(self):
         original_kb_size = len(self.kb)
-        for i in range(ADD_NEW_ENTITY):
+        for i in range(NEW_ADD_ENTITY):
             entity_id = i + original_kb_size
             entity = self.generate_entity(entity_id)
             self.kb.append(entity)
 
+    # We define the kb operations below
     def find_entity(self, entity_id):
         found_entity = False
         for entity in self.kb:
@@ -132,6 +134,12 @@ class KnowledgeBase(object):
         return entity
 
     def inform(self, entity_id, attr_name):
+        """
+        Inform user some information
+        :param entity_id:
+        :param attr_name:
+        :return: the content asked by users
+        """
         if entity_id is not None:
             entity = self.find_entity(entity_id)
             return entity[attr_name]
@@ -140,8 +148,22 @@ class KnowledgeBase(object):
             return attr_definition['value']
 
     def confirm(self, entity_id, attr_name, compare, value):
+        """
+        Confirm if the true value of attribute in entity meets the given condition.
+        :param entity_id:
+        :param attr_name:
+        :param compare:
+        :param value:
+        :return: if entity[attribute] is None, the expression can not be calculated and we return None; else we return
+        the value of bool expression (entity[attribute] compare value ?)
+        """
         entity = self.find_entity(entity_id)
         true_value = entity[attr_name]
+
+        # some special conditions
+        if true_value is None:
+            return None
+
         if type(true_value) in [float, int]:
             if true_value < value and compare == '<' or \
                                     true_value == value and compare == '=' or \
@@ -163,44 +185,67 @@ class KnowledgeBase(object):
             assert True is False, "Unconsidered situations happened!"
 
     def compare(self, entity1_id, entity2_id, attr_name):
+        """
+        Compare the attr between entity1 and entity2.
+        :param entity1_id:
+        :param entity2_id:
+        :param attr_name:
+        :return: tuple, the first key is in ['None_1', 'None_2', 'Difference', 'noDifference'],
+        the remain two keys are entity_id sorted according to attr_name.
+        """
         entity1 = self.find_entity(entity1_id)
         entity2 = self.find_entity(entity2_id)
         assert attr_name in GOODS_ATTRIBUTE_DEFINITION.keys(), "Can't find this attribute!"
         assert 'prefer' in GOODS_ATTRIBUTE_DEFINITION[attr_name].keys(), "This attribute is not comparable!"
 
+        # some special conditions
+        if entity1[attr_name] is None and entity2[attr_name] is not None:
+            return 'None_1', entity2_id, entity1_id
+        if entity1[attr_name] is not None and entity2[attr_name] is None:
+            return 'None_1', entity1_id, entity2_id
+        if entity1[attr_name] is None and entity2[attr_name] is None:
+            return 'None_2', entity1_id, entity2_id
+
         if type(entity1[attr_name]) == type(entity2[attr_name]) and type(entity1[attr_name]) in [float, int]:
             if GOODS_ATTRIBUTE_DEFINITION[attr_name]['prefer'] == 'low':
                 if entity1[attr_name] < entity2[attr_name]:
-                    return True, entity1_id, entity2_id
+                    return 'Difference', entity1_id, entity2_id
                 elif entity1[attr_name] == entity2[attr_name]:
-                    return False, entity1_id, entity2_id
+                    return 'noDifference', entity1_id, entity2_id
                 else:
-                    return True, entity2_id, entity1_id
+                    return 'Difference', entity2_id, entity1_id
             else:
                 if entity1[attr_name] < entity2[attr_name]:
-                    return True, entity2_id, entity1_id
+                    return 'Difference', entity2_id, entity1_id
                 elif entity1[attr_name] == entity2[attr_name]:
-                    return False, entity1_id, entity2_id
+                    return 'noDifference', entity1_id, entity2_id
                 else:
-                    return True, entity1_id, entity2_id
+                    return 'Difference', entity1_id, entity2_id
         elif type(entity1[attr_name]) == type(entity2[attr_name]) and type(entity1[attr_name]) in [str, bool]:
             if GOODS_ATTRIBUTE_DEFINITION[attr_name]['prefer'] == 'low':
                 if GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity1[attr_name]) < \
                         GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity2[attr_name]):
-                    return True, entity1_id, entity2_id
+                    return 'Difference', entity1_id, entity2_id
                 elif GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity1[attr_name]) == \
                         GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity2[attr_name]):
-                    return False, entity1_id, entity2_id
+                    return 'noDifference', entity1_id, entity2_id
                 else:
-                    return True, entity2_id, entity1_id
+                    return 'Difference', entity2_id, entity1_id
             else:
                 if GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity1[attr_name]) < \
                         GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity2[attr_name]):
-                    return True, entity2_id, entity1_id
+                    return 'Difference', entity2_id, entity1_id
                 elif GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity1[attr_name]) == \
                         GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity2[attr_name]):
-                    return False, entity1_id, entity2_id
+                    return 'noDifference', entity1_id, entity2_id
                 else:
-                    return True, entity1_id, entity2_id
+                    return 'Difference', entity1_id, entity2_id
         else:
             assert True is False, "Unconsidered situations happened!"
+
+
+if __name__ == '__main__':
+    kb = KnowledgeBase()
+    print(kb.inform(0, 'color'))
+    print(kb.confirm(2, 'material', 'is', '金属'))
+    print(kb.compare(3, 2, 'generation'))
