@@ -1,6 +1,6 @@
 # coding = utf-8
 from config import *
-import random, math, copy, json
+import random, math, copy, json, os
 import numpy as np
 
 
@@ -32,17 +32,28 @@ def random_pick(some_list, p_list, pick_num=1):
         return picked_item
 
 
-def resolve_context(some_list, arg_num):
+def resolve_context(some_list, arg_num, matrix, coordinate, axis, concern_list):
     """
     Judge if the agent can resolve context
     :param some_list: entity list or attribute list
     :param arg_num: 1 or 2, the number of considered arguments. In qa or confirm, it's 1; in compare, it's 2.
+    :param matrix: attr entity matrix
+    :param coordinate: current explored point
+    :param axis: if horizontal, axis=1; if vertical, axis=0
+    :param concern_list: a list of attr or entity
     :return: True or False
     """
     assert arg_num in [1, 2], "step should be in [1,2]"
     if arg_num == 1:
         if len(some_list) > 2 and some_list[-1] == some_list[-2] == some_list[-3]:
             return True
+        elif len(some_list) > 2 and some_list[-1] == some_list[-2] and axis is not None and concern_list is not None:
+            if axis == 0 and matrix[coordinate[axis], concern_list.index(some_list[-3])] == 1:
+                return True
+            elif axis == 1 and matrix[concern_list.index(some_list[-3]), coordinate[axis]] == 1:
+                return True
+            else:
+                return False
         elif len(some_list) == 2 and some_list[-1] == some_list[-2]:
             return True
         else:
@@ -56,15 +67,9 @@ def resolve_context(some_list, arg_num):
             return False
 
 
-def qa_generator(script, attr_list, entity_list, wording_list, p_list):
+def qa_generator(script, attr_list, entity_list, wording_list, p_list, matrix, coordinate, axis, concern_list):
     """
     Get a qa dialog script based on dialog history
-    :param script:
-    :param attr_list:
-    :param entity_list:
-    :param wording_list:
-    :param p_list:
-    :return:
     """
     assert len(attr_list) == len(entity_list), "The len of attribute list and entity list should be equal!"
     assert len(wording_list) == len(p_list), "The len of wording list and probability list should be equal!"
@@ -83,9 +88,9 @@ def qa_generator(script, attr_list, entity_list, wording_list, p_list):
             scene_content.append(turn)
 
     # Now we make context important
-    if wording == 'lack_entity' and resolve_context(entity_list, 1):
+    if wording == 'lack_entity' and resolve_context(entity_list, 1, matrix, coordinate, axis, concern_list):
         scene_content = [scene_content[0], scene_content[-1]]
-    elif wording == 'lack_attribute' and resolve_context(attr_list, 1):
+    elif wording == 'lack_attribute' and resolve_context(attr_list, 1, matrix, coordinate, axis, concern_list):
         scene_content = [scene_content[0], scene_content[-1]]
     else:
         pass
@@ -94,15 +99,9 @@ def qa_generator(script, attr_list, entity_list, wording_list, p_list):
     return scene
 
 
-def confirm_generator(script, attr_list, entity_list, wording_list, p_list):
+def confirm_generator(script, attr_list, entity_list, wording_list, p_list, matrix, coordinate, axis, concern_list):
     """
     Get a confirm dialog script based on dialog history
-    :param script:
-    :param attr_list:
-    :param entity_list:
-    :param wording_list:
-    :param p_list:
-    :return:
     """
     assert len(attr_list) == len(entity_list), "The len of attribute list and entity list should be equal!"
     assert len(wording_list) == len(p_list), "The len of wording list and probability list should be equal!"
@@ -121,7 +120,7 @@ def confirm_generator(script, attr_list, entity_list, wording_list, p_list):
             scene_content.append(turn)
 
     # Now we make context important
-    if wording == 'lack_entity' and resolve_context(entity_list, 1):
+    if wording == 'lack_entity' and resolve_context(entity_list, 1, matrix, coordinate, axis, concern_list):
         scene_content = [scene_content[0], scene_content[-1]]
     else:
         pass
@@ -130,17 +129,10 @@ def confirm_generator(script, attr_list, entity_list, wording_list, p_list):
     return scene
 
 
-def compare_generator(script, attr_list, entity_list, wording_list, p_list, move, step):
+def compare_generator(script, attr_list, entity_list, wording_list, p_list, move, step, matrix, coordinate, axis,
+                      concern_list):
     """
     Get a confirm dialog script based on dialog history
-    :param script:
-    :param attr_list:
-    :param entity_list:
-    :param wording_list:
-    :param p_list:
-    :param step:
-    :param move:
-    :return:
     """
     assert len(attr_list) == len(entity_list), "The len of attribute list and entity list should be equal!"
     assert len(wording_list) == len(p_list), "The len of wording list and probability list should be equal!"
@@ -163,28 +155,32 @@ def compare_generator(script, attr_list, entity_list, wording_list, p_list, move
     # Now we make context important
     if step == 1:
         if move == 'diagonal':
-            if wording == 'lack_entity' and resolve_context(entity_list, 2):
+            if wording == 'lack_entity' and resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list):
                 scene_content = [scene_content[0], scene_content[-1]]
             else:
                 pass
         elif move == 'horizontal':
-            if wording == 'lack_entity' and resolve_context(entity_list, 2):
+            if wording == 'lack_entity' and resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list):
                 scene_content = [scene_content[0], scene_content[-1]]
-            elif wording == 'lack_attribute' and resolve_context(attr_list, 2):
+            elif wording == 'lack_attribute' and resolve_context(attr_list, 2, matrix, coordinate, axis, concern_list):
                 scene_content = [scene_content[0], scene_content[-1]]
             elif wording == 'lack_attribute_entity':
-                if resolve_context(entity_list, 2) and resolve_context(attr_list, 2):
+                if resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list) and resolve_context(
+                        attr_list, 2, matrix, coordinate, axis, concern_list):
                     scene_content = [scene_content[0], scene_content[-1]]
-                elif resolve_context(entity_list, 2) and not resolve_context(attr_list, 2):
+                elif resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list) and not resolve_context(
+                        attr_list, 2, matrix, coordinate, axis, concern_list):
                     scene_content = [scene_content[0], scene_content[1], scene_content[2], scene_content[-1]]
-                elif not resolve_context(entity_list, 2) and resolve_context(attr_list, 2):
+                elif not resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list) and resolve_context(
+                        attr_list, 2, matrix, coordinate, axis, concern_list):
                     scene_content = [scene_content[0], scene_content[3], scene_content[4], scene_content[-1]]
                 else:
                     pass
         else:
             assert True is False, "Unconsidered conditions happen!"
     else:
-        if move == 'horizontal' and wording == 'lack_attribute' and resolve_context(attr_list, 2):
+        if move == 'horizontal' and wording == 'lack_attribute' and resolve_context(attr_list, 2, matrix, coordinate,
+                                                                                    axis, concern_list):
             scene_content = [scene_content[0], scene_content[3], scene_content[4], scene_content[-1]]
         else:
             pass
@@ -269,17 +265,9 @@ def calculate_move(previous_coordinate, *args):
     return "_".join([action, str(step)])
 
 
-def get_compare_entity(available_coordinate, p_list, entity_num):
-    # calculate probability sum for each row and sharp it
-    row_p_dict = dict()
-    for coordinate, p in zip(available_coordinate, p_list):
-        i = coordinate[0]
-        row_p_dict[i] = row_p_dict.get(i, 0) + p
-    for key, value in row_p_dict.items():
-        row_p_dict[key] = math.exp(5 * value)
-
-    # choose which row to compare and get probability for each coordinate in that row and sharp it
-    row = random_pick(list(row_p_dict.keys()), list(row_p_dict.values()))
+def get_compared_coordinate(available_coordinate, p_list, chosen_coordinate, entity_num):
+    # get probability for each coordinate in compared row and sharp it
+    row = chosen_coordinate[0]
     available_coordinate_in_row = list()
     p_list_in_row = list()
     for coordinate, p in zip(available_coordinate, p_list):
@@ -290,17 +278,18 @@ def get_compare_entity(available_coordinate, p_list, entity_num):
 
     # choose the entity to compare and how many entity
     if len(available_coordinate_in_row) > 1 and random.random() < 0.5:
-        coordinate1, coordinate2 = random_pick(available_coordinate_in_row, p_list_in_row, 2)
-        explored_num = 2
+        explored_new = True
+        compared_coordinate = random_pick(available_coordinate_in_row, p_list_in_row)
     else:
-        coordinate1 = random_pick(available_coordinate_in_row, p_list_in_row)
-        explored_num = 1
+        explored_new = False
         all_entity = list(range(entity_num))
         for coordinate in available_coordinate_in_row:
             all_entity.remove(coordinate[1])
-        coordinate2_j = random_pick(all_entity, [1] * len(all_entity))
-        coordinate2 = (row, coordinate2_j)
-    return coordinate1, coordinate2, explored_num
+        all_entity.remove(chosen_coordinate[1])
+        compared_coordinate_j = random_pick(all_entity, [1] * len(all_entity))
+        compared_coordinate = (row, compared_coordinate_j)
+
+    return compared_coordinate, explored_new
 
 
 def pre_sales_controller(script, user_concern_attr, user_concern_entity, available_intent, grammar_p_dict,
@@ -323,48 +312,79 @@ def pre_sales_controller(script, user_concern_attr, user_concern_entity, availab
     previous_coordinate = None
 
     while not terminal:
-        available_intent_p_dict = filter_p_dict(available_intent, intent_p_dict)
+        # First, we try to explore a new point
+        available_coordinate, p_list = coordinate_p(matrix, previous_coordinate)
+        coordinate = random_pick(available_coordinate, p_list)
+        matrix[coordinate] = 1
+        coordinate_index = available_coordinate.index(coordinate)
+        del available_coordinate[coordinate_index]
+        del p_list[coordinate_index]
+
+        # Then we see if some intent is not feasible for current point
+        # todo: if new attribute is added, this part may need rewrite!
+        current_available_intent = copy.deepcopy(available_intent)
+        if user_concern_attr[coordinate[0]] not in COMPARE_PERMITTED_ATTR and 'compare' in current_available_intent:
+            current_available_intent.remove('compare')
+
+        # sample a intent and get according dialog script
+        available_intent_p_dict = filter_p_dict(current_available_intent, intent_p_dict)
         intent = random_pick(list(available_intent_p_dict.keys()), list(available_intent_p_dict.values()))
         available_script = script[intent]
-        if intent == 'qa' or intent == 'confirm':
-            available_coordinate, p_list = coordinate_p(matrix, previous_coordinate)
-            coordinate = random_pick(available_coordinate, p_list)
 
+        # generate specific script
+        if intent == 'qa' or intent == 'confirm':
             move = calculate_move(previous_coordinate, coordinate)
-            matrix[coordinate] = 1
             available_grammar_p_dict = grammar_p_dict[intent][move]
 
-            attr_list.append(user_concern_attr(coordinate[0]))
-            entity_list.append(user_concern_entity(coordinate[1]))
+            attr_list.append(user_concern_attr[coordinate[0]])
+            entity_list.append(user_concern_entity[coordinate[1]])
+
+            # for context resolve
+            if move.find('horizontal') != -1:
+                axis = 1
+                concern_list = user_concern_attr
+            elif move.find('vertical') != -1:
+                axis = 0
+                concern_list = user_concern_entity
+            else:
+                axis = None
+                concern_list = None
 
             if intent == 'qa':
                 scene = qa_generator(available_script, attr_list, entity_list, list(available_grammar_p_dict.keys()),
-                                     list(available_grammar_p_dict.values()))
+                                     list(available_grammar_p_dict.values()), matrix, coordinate, axis, concern_list)
             else:
                 scene = confirm_generator(available_script, attr_list, entity_list,
                                           list(available_grammar_p_dict.keys()),
-                                          list(available_grammar_p_dict.values()))
+                                          list(available_grammar_p_dict.values()), matrix, coordinate, axis,
+                                          concern_list)
             previous_coordinate = coordinate
         else:
-            available_coordinate, p_list = coordinate_p(matrix, previous_coordinate)
-            coordinate1, coordinate2, explored_num = get_compare_entity(available_coordinate, p_list, matrix.shape[1])
+            compared_coordinate, explored_new = get_compared_coordinate(available_coordinate, p_list, coordinate,
+                                                                        matrix.shape[1])
 
-            if explored_num == 1:
-                move = calculate_move(previous_coordinate, coordinate1)
-                matrix[coordinate1] = 1
+            if explored_new is False:
+                explored_num = 1
+                move = calculate_move(previous_coordinate, coordinate)
             else:
-                move = calculate_move(previous_coordinate, coordinate1, coordinate2)
-                matrix[coordinate1] = matrix[coordinate2] = 1
+                explored_num = 2
+                move = calculate_move(previous_coordinate, coordinate, compared_coordinate)
+                matrix[compared_coordinate] = 1
+
             available_grammar_p_dict = grammar_p_dict[intent][move]
 
-            attr_list.append(user_concern_attr(coordinate2[0]))
-            attr_list.append(user_concern_attr(coordinate1[0]))
-            entity_list.append(user_concern_entity(coordinate2[1]))
-            entity_list.append(user_concern_entity(coordinate1[1]))
+            attr_list.append(user_concern_attr[compared_coordinate[0]])
+            attr_list.append(user_concern_attr[coordinate[0]])
+            entity_list.append(user_concern_entity[compared_coordinate[1]])
+            entity_list.append(user_concern_entity[coordinate[1]])
+
+            axis = None
+            concern_list = None
 
             scene = compare_generator(available_script, attr_list, entity_list, list(available_grammar_p_dict.keys()),
-                                      list(available_grammar_p_dict.values()), move, explored_num)
-            previous_coordinate = coordinate1
+                                      list(available_grammar_p_dict.values()), move, explored_num, matrix, coordinate,
+                                      axis, concern_list)
+            previous_coordinate = coordinate
 
         pre_sales_script.append(scene)
         if np.sum(matrix) == matrix.shape[0] * matrix.shape[1]:
@@ -374,9 +394,15 @@ def pre_sales_controller(script, user_concern_attr, user_concern_entity, availab
 
 
 if __name__ == "__main__":
-    script_f = DATA_ROOT + 'script.txt'
+    script_f = os.path.join(DATA_ROOT, 'script.txt')
     with open(script_f, 'rb') as f:
         script = json.load(f)
     complicity = AVAILABLE_INTENT_1
-    script = script['pre_sales']
-    user_concern_attr = ['price', 'nfc']
+    script = script['scenes']['pre_sales']
+    user_concern_attr = ['price', 'nfc', 'color']
+    user_concern_entity = ['entity_1', 'entity_10', 'entity_2', 'entity_5']
+    available_intent = AVAILABLE_INTENT_1['pre_sales']
+    grammar_p_dict = GRAMMAR_P_DICT['pre_sales']
+    intent_p_dict = INTENT_P_DICT['pre_sales']
+    pre_sales_controller(script, user_concern_attr, user_concern_entity, available_intent, grammar_p_dict,
+                         intent_p_dict)
