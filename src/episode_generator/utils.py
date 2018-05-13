@@ -60,10 +60,18 @@ def resolve_context(some_list, arg_num, matrix, coordinate, axis, concern_list):
         else:
             return False
     else:
-        if len(some_list) > 3 and some_list[-2] == some_list[-3] == some_list[-4]:
-            return True
-        elif len(some_list) == 3 and some_list[-2] == some_list[-3]:
-            return True
+        if len(some_list) > 3:
+            candidate_set = [some_list[-2], some_list[-3], some_list[-4]]
+            candidate_set = set(candidate_set)
+            if some_list[-1] in candidate_set:
+                candidate_set.remove(some_list[-1])
+            if len(candidate_set) == 1 or len(candidate_set) == 0:
+                return True
+        elif len(some_list) == 3:
+            candidate_set = [some_list[-2], some_list[-3]]
+            candidate_set = set(candidate_set)
+            if len(candidate_set) == 1:
+                return True
         else:
             return False
 
@@ -182,7 +190,7 @@ def compare_generator(script, attr_list, entity_list, wording_list, p_list, move
     else:
         if move == 'horizontal_2' and wording == 'lack_attribute' and resolve_context(attr_list, 2, matrix, coordinate,
                                                                                       axis, concern_list):
-            scene_content = [scene_content[0], scene_content[3], scene_content[4], scene_content[-1]]
+            scene_content = [scene_content[0], scene_content[-1]]
         else:
             pass
 
@@ -227,13 +235,13 @@ def coordinate_p(matrix, previous_coordinate1, previous_coordinate2):
             bonus2 = 1 if i == previous_coordinate2[0] or j == previous_coordinate2[1] else 0
         else:
             bonus2 = 0
-        amplify = math.exp((matrix.shape[1] - i_spare[i] + matrix.shape[0] - j_spare[j] + bonus1 + bonus2 * 0.5) / 1.5)
+        amplify = math.exp((matrix.shape[1] - i_spare[i] + matrix.shape[0] - j_spare[j] + bonus1 * 2 + bonus2) / 2)
         p_amplify_list.append(amplify)
 
     p_list = [p * multi for p, multi in zip(p_list, p_amplify_list)]
 
     # slightly sharp probability and normalize
-    p_list = [math.exp(3 * p) for p in p_list]
+    p_list = [math.exp(2 * p) for p in p_list]
     p_sum = sum(p_list)
     p_list = [p / p_sum for p in p_list]
 
@@ -395,6 +403,8 @@ def pre_sales_controller(script, user_concern_attr, user_concern_entity, availab
             if explored_new is False:
                 explored_num = 1
                 move = calculate_move(previous_coordinate1, coordinate)
+                if move == 'vertical_1':
+                    move = 'diagonal_1'
             else:
                 explored_num = 2
                 move = calculate_move(previous_coordinate1, coordinate, compared_coordinate)
@@ -446,5 +456,8 @@ if __name__ == "__main__":
     available_intent = AVAILABLE_INTENT_3['pre_sales']
     grammar_p_dict = GRAMMAR_P_DICT['pre_sales']
     intent_p_dict = INTENT_P_DICT['pre_sales']
-    pre_sales_controller(script, user_concern_attr, user_concern_entity, available_intent, grammar_p_dict,
-                         intent_p_dict)
+    pre_sales_script = pre_sales_controller(script, user_concern_attr, user_concern_entity, available_intent,
+                                            grammar_p_dict,
+                                            intent_p_dict)
+    for line in pre_sales_script:
+        print(line.items())
