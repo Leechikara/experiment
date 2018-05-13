@@ -2,6 +2,7 @@
 from config import *
 import random, math, copy, json, os
 import numpy as np
+from collections import defaultdict
 
 
 def random_pick(some_list, p_list, pick_num=1):
@@ -200,7 +201,7 @@ def filter_p_dict(available_list, p_dict):
     return new_p_dict
 
 
-def coordinate_p(matrix, previous_coordinate):
+def coordinate_p(matrix, previous_coordinate1, previous_coordinate2):
     available_coordinate = list()
     for i in range(matrix.shape[0]):
         for j in range(matrix.shape[1]):
@@ -218,17 +219,21 @@ def coordinate_p(matrix, previous_coordinate):
     p_amplify_list = list()
     for coordinate in available_coordinate:
         i, j = coordinate
-        if previous_coordinate is not None:
-            bonus = 1 if i == previous_coordinate[0] or j == previous_coordinate[1] else 0
+        if previous_coordinate1 is not None:
+            bonus1 = 1 if i == previous_coordinate1[0] or j == previous_coordinate1[1] else 0
         else:
-            bonus = 0
-        amplify = math.exp((matrix.shape[1] - i_spare[i] + matrix.shape[0] - j_spare[j] + bonus) / 1.5)
+            bonus1 = 0
+        if previous_coordinate2 is not None:
+            bonus2 = 1 if i == previous_coordinate2[0] or j == previous_coordinate2[1] else 0
+        else:
+            bonus2 = 0
+        amplify = math.exp((matrix.shape[1] - i_spare[i] + matrix.shape[0] - j_spare[j] + bonus1 + bonus2 * 0.5) / 1.5)
         p_amplify_list.append(amplify)
 
     p_list = [p * multi for p, multi in zip(p_list, p_amplify_list)]
 
     # slightly sharp probability and normalize
-    p_list = [math.exp(3.5 * p) for p in p_list]
+    p_list = [math.exp(3 * p) for p in p_list]
     p_sum = sum(p_list)
     p_list = [p / p_sum for p in p_list]
 
@@ -310,11 +315,13 @@ def pre_sales_controller(script, user_concern_attr, user_concern_entity, availab
     entity_list = list()
     terminal = False
     pre_sales_script = list()
-    previous_coordinate = None
+    previous_coordinate1 = None
+    previous_coordinate2 = None
+    intent_coordinate_dict = defaultdict(list)
 
     while not terminal:
         # First, we try to explore a new point
-        available_coordinate, p_list = coordinate_p(matrix, previous_coordinate)
+        available_coordinate, p_list = coordinate_p(matrix, previous_coordinate1, previous_coordinate2)
         coordinate = random_pick(available_coordinate, p_list)
         matrix[coordinate] = 1
         coordinate_index = available_coordinate.index(coordinate)
@@ -328,15 +335,24 @@ def pre_sales_controller(script, user_concern_attr, user_concern_entity, availab
             current_available_intent.remove('compare')
         if sum(matrix[coordinate[0]]) == 1 and 'confirm' in current_available_intent:
             current_available_intent.remove('confirm')
+        if 'confirm' in current_available_intent:
+            del_confirm = True
+            for qa_coordinate in intent_coordinate_dict['qa']:
+                if coordinate[0] == qa_coordinate[0]:
+                    del_confirm = False
+                    break
+            if del_confirm:
+                current_available_intent.remove('confirm')
 
         # sample a intent and get according dialog script
         available_intent_p_dict = filter_p_dict(current_available_intent, intent_p_dict)
         intent = random_pick(list(available_intent_p_dict.keys()), list(available_intent_p_dict.values()))
         available_script = script[intent]
+        intent_coordinate_dict[intent].append(coordinate)
 
         # generate specific script
         if intent == 'qa' or intent == 'confirm':
-            move = calculate_move(previous_coordinate, coordinate)
+            move = calculate_move(previous_coordinate1, coordinate)
             available_grammar_p_dict = copy.deepcopy(grammar_p_dict[intent][move])
 
             attr_list.append(user_concern_attr[coordinate[0]])
@@ -370,17 +386,18 @@ def pre_sales_controller(script, user_concern_attr, user_concern_entity, availab
                                           list(available_grammar_p_dict.keys()),
                                           list(available_grammar_p_dict.values()), matrix, coordinate, axis,
                                           concern_list)
-            previous_coordinate = coordinate
+            previous_coordinate2 = previous_coordinate1
+            previous_coordinate1 = coordinate
         else:
             compared_coordinate, explored_new = get_compared_coordinate(available_coordinate, p_list, coordinate,
                                                                         matrix.shape[1])
 
             if explored_new is False:
                 explored_num = 1
-                move = calculate_move(previous_coordinate, coordinate)
+                move = calculate_move(previous_coordinate1, coordinate)
             else:
                 explored_num = 2
-                move = calculate_move(previous_coordinate, coordinate, compared_coordinate)
+                move = calculate_move(previous_coordinate1, coordinate, compared_coordinate)
                 matrix[compared_coordinate] = 1
 
             available_grammar_p_dict = copy.deepcopy(grammar_p_dict[intent][move])
@@ -409,7 +426,8 @@ def pre_sales_controller(script, user_concern_attr, user_concern_entity, availab
             scene = compare_generator(available_script, attr_list, entity_list, list(available_grammar_p_dict.keys()),
                                       list(available_grammar_p_dict.values()), move, explored_num, matrix, coordinate,
                                       axis, concern_list)
-            previous_coordinate = coordinate
+            previous_coordinate2 = previous_coordinate1
+            previous_coordinate1 = coordinate
 
         pre_sales_script.append(scene)
         if np.sum(matrix) == matrix.shape[0] * matrix.shape[1]:
