@@ -54,7 +54,7 @@ def resolve_context(some_list, arg_num, matrix, coordinate, axis, user_concern_l
 
     position = -1
     concern_some_list = list()
-    concern_intent.reserve()
+    concern_intent.reverse()
     for intent in concern_intent:
         if intent == 'compare':
             concern_some_list.append((some_list[position - 1], some_list[position]))
@@ -63,7 +63,7 @@ def resolve_context(some_list, arg_num, matrix, coordinate, axis, user_concern_l
             concern_some_list.append(some_list[position])
             position -= 1
     concern_some_list.reverse()
-    concern_intent.reserve()
+    concern_intent.reverse()
 
     if arg_num == 1:
         # for qa and confirm
