@@ -120,7 +120,7 @@ def qa_generator(script, attr_list, entity_list, wording_list, p_list, matrix, c
         else:
             scene_content.append(turn)
 
-    scene_content = [turn.replace('entity', entity) for turn in scene_content]
+    scene_content = [turn.replace('entity', str(entity)) for turn in scene_content]
 
     # Now we make context important
     if wording == 'lack_entity' and resolve_context(entity_list, 1, matrix, coordinate, axis, concern_list,
@@ -157,7 +157,7 @@ def confirm_generator(script, attr_list, entity_list, wording_list, p_list, matr
         else:
             scene_content.append(turn)
 
-    scene_content = [turn.replace('entity', entity) for turn in scene_content]
+    scene_content = [turn.replace('entity', str(entity)) for turn in scene_content]
 
     # Now we make context important
     if wording == 'lack_entity' and resolve_context(entity_list, 1, matrix, coordinate, axis, concern_list,
@@ -193,8 +193,8 @@ def compare_generator(script, attr_list, entity_list, wording_list, p_list, move
         else:
             scene_content.append(turn)
 
-    scene_content = [turn.replace('entity1', entity1) for turn in scene_content]
-    scene_content = [turn.replace('entity2', entity2) for turn in scene_content]
+    scene_content = [turn.replace('entity1', str(entity1)) for turn in scene_content]
+    scene_content = [turn.replace('entity2', str(entity2)) for turn in scene_content]
 
     # Now we make context important
     if step == 1:
