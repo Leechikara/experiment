@@ -499,7 +499,7 @@ if __name__ == "__main__":
         script = json.load(f)
     script = script['scenes']['pre_sales']
     user_concern_attr = ['price', 'nfc', 'color']
-    user_concern_entity = ['entity1', 'entity10', 'entity2', 'entity5']
+    user_concern_entity = ['entityId=1', 'entityId=10', 'entityId=2', 'entityId=5']
     available_intent = AVAILABLE_INTENT_3['pre_sales']
     grammar_p_dict = GRAMMAR_P_DICT['pre_sales']
     intent_p_dict = INTENT_P_DICT['pre_sales']
