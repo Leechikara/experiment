@@ -49,8 +49,10 @@ def resolve_context(some_list, arg_num, matrix, coordinate, axis, user_concern_l
     intent_size = len(history_intent)
     if intent_size > 2:
         concern_intent = history_intent[-3:]
-    else:
+    elif intent_size == 2:
         concern_intent = history_intent[0:]
+    else:
+        return False
 
     position = -1
     concern_some_list = list()
