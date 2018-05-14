@@ -71,15 +71,21 @@ def resolve_context(some_list, arg_num, matrix, coordinate, axis, user_concern_l
         # for qa and confirm
         target = concern_some_list[-1]
         for item, intent in zip(concern_some_list[:-1], concern_intent[:-1]):
-            if intent == 'compare':
-                return False
-            if target != item:
-                if intent == 'confirm':
+            if type(item) != tuple and target != item:
+                if axis == 0 and matrix[coordinate[axis], user_concern_list.index(item)] != 1:
                     return False
-                else:
-                    if axis == 0 and matrix[coordinate[axis], user_concern_list.index(item)] != 1:
+                if axis == 1 and matrix[user_concern_list.index(item), coordinate[axis]] != 1:
+                    return False
+            if type(item) == tuple:
+                if target != item[0]:
+                    if axis == 0 and matrix[coordinate[axis], user_concern_list.index(item[0])] != 1:
                         return False
-                    if axis == 1 and matrix[user_concern_list.index(item), coordinate[axis]] != 1:
+                    if axis == 1 and matrix[user_concern_list.index(item[0]), coordinate[axis]] != 1:
+                        return False
+                if target != item[1]:
+                    if axis == 0 and matrix[coordinate[axis], user_concern_list.index(item[1])] != 1:
+                        return False
+                    if axis == 1 and matrix[user_concern_list.index(item[1]), coordinate[axis]] != 1:
                         return False
         return True
     else:
