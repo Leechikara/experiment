@@ -33,7 +33,7 @@ def random_pick(some_list, p_list, pick_num=1):
         return picked_item
 
 
-def resolve_context(some_list, arg_num, matrix, coordinate, axis, concern_list):
+def resolve_context(some_list, arg_num, matrix, coordinate, axis, user_concern_list, history_intent):
     """
     Judge if the agent can resolve context
     :param some_list: entity list or attribute list
@@ -41,42 +41,66 @@ def resolve_context(some_list, arg_num, matrix, coordinate, axis, concern_list):
     :param matrix: attr entity matrix
     :param coordinate: current explored point
     :param axis: if horizontal, axis=1; if vertical, axis=0
-    :param concern_list: a list of attr or entity
+    :param user_concern_list: a list of attr or entity
+    :param history_intent: a list of attr or entity
     :return: True or False
     """
     assert arg_num in [1, 2], "step should be in [1,2]"
-    if arg_num == 1:
-        if len(some_list) > 2 and some_list[-1] == some_list[-2] == some_list[-3]:
-            return True
-        elif len(some_list) > 2 and some_list[-1] == some_list[-2] and axis is not None and concern_list is not None:
-            if axis == 0 and matrix[coordinate[axis], concern_list.index(some_list[-3])] == 1:
-                return True
-            elif axis == 1 and matrix[concern_list.index(some_list[-3]), coordinate[axis]] == 1:
-                return True
-            else:
-                return False
-        elif len(some_list) == 2 and some_list[-1] == some_list[-2]:
-            return True
-        else:
-            return False
+    intent_size = len(history_intent)
+    if intent_size > 2:
+        concern_intent = history_intent[-3:]
     else:
-        if len(some_list) > 3:
-            candidate_set = [some_list[-2], some_list[-3], some_list[-4]]
-            candidate_set = set(candidate_set)
-            if some_list[-1] in candidate_set:
-                candidate_set.remove(some_list[-1])
-            if len(candidate_set) == 1 or len(candidate_set) == 0:
-                return True
-        elif len(some_list) == 3:
-            candidate_set = [some_list[-2], some_list[-3]]
-            candidate_set = set(candidate_set)
-            if len(candidate_set) == 1:
-                return True
+        concern_intent = history_intent[0:]
+
+    position = -1
+    concern_some_list = list()
+    concern_intent.reserve()
+    for intent in concern_intent:
+        if intent == 'compare':
+            concern_some_list.append((some_list[position - 1], some_list[position]))
+            position -= 2
         else:
-            return False
+            concern_some_list.append(some_list[position])
+            position -= 1
+    concern_some_list.reverse()
+    concern_intent.reserve()
+
+    if arg_num == 1:
+        # for qa and confirm
+        target = concern_some_list[-1]
+        for item, intent in zip(concern_some_list[:-1], concern_intent[:-1]):
+            if intent == 'compare':
+                return False
+            if target != item:
+                if intent == 'confirm':
+                    return False
+                else:
+                    if axis == 0 and matrix[coordinate[axis], user_concern_list.index(item)] != 1:
+                        return False
+                    if axis == 1 and matrix[user_concern_list.index(item), coordinate[axis]] != 1:
+                        return False
+        return True
+    else:
+        # for compare
+        candidate_set = list()
+        for item in concern_some_list[:-1]:
+            if type(item) == tuple:
+                candidate_set.append(item[0])
+                candidate_set.append(item[1])
+            else:
+                candidate_set.append(item)
+
+        if concern_some_list[-1][-1] in candidate_set:
+            candidate_set.remove(concern_some_list[-1][-1])
+
+        if len(candidate_set) == 1 or len(candidate_set) == 0:
+            return True
+
+        return False
 
 
-def qa_generator(script, attr_list, entity_list, wording_list, p_list, matrix, coordinate, axis, concern_list):
+def qa_generator(script, attr_list, entity_list, wording_list, p_list, matrix, coordinate, axis, concern_list,
+                 history_intent):
     """
     Get a qa dialog script based on dialog history
     """
@@ -97,9 +121,11 @@ def qa_generator(script, attr_list, entity_list, wording_list, p_list, matrix, c
             scene_content.append(turn)
 
     # Now we make context important
-    if wording == 'lack_entity' and resolve_context(entity_list, 1, matrix, coordinate, axis, concern_list):
+    if wording == 'lack_entity' and resolve_context(entity_list, 1, matrix, coordinate, axis, concern_list,
+                                                    history_intent):
         scene_content = [scene_content[0], scene_content[-1]]
-    elif wording == 'lack_attribute' and resolve_context(attr_list, 1, matrix, coordinate, axis, concern_list):
+    elif wording == 'lack_attribute' and resolve_context(attr_list, 1, matrix, coordinate, axis, concern_list,
+                                                         history_intent):
         scene_content = [scene_content[0], scene_content[-1]]
     else:
         pass
@@ -108,7 +134,8 @@ def qa_generator(script, attr_list, entity_list, wording_list, p_list, matrix, c
     return scene
 
 
-def confirm_generator(script, attr_list, entity_list, wording_list, p_list, matrix, coordinate, axis, concern_list):
+def confirm_generator(script, attr_list, entity_list, wording_list, p_list, matrix, coordinate, axis, concern_list,
+                      history_intent):
     """
     Get a confirm dialog script based on dialog history
     """
@@ -129,7 +156,8 @@ def confirm_generator(script, attr_list, entity_list, wording_list, p_list, matr
             scene_content.append(turn)
 
     # Now we make context important
-    if wording == 'lack_entity' and resolve_context(entity_list, 1, matrix, coordinate, axis, concern_list):
+    if wording == 'lack_entity' and resolve_context(entity_list, 1, matrix, coordinate, axis, concern_list,
+                                                    history_intent):
         scene_content = [scene_content[0], scene_content[-1]]
     else:
         pass
@@ -139,7 +167,7 @@ def confirm_generator(script, attr_list, entity_list, wording_list, p_list, matr
 
 
 def compare_generator(script, attr_list, entity_list, wording_list, p_list, move, step, matrix, coordinate, axis,
-                      concern_list):
+                      concern_list, history_intent):
     """
     Get a confirm dialog script based on dialog history
     """
@@ -164,24 +192,30 @@ def compare_generator(script, attr_list, entity_list, wording_list, p_list, move
     # Now we make context important
     if step == 1:
         if move == 'diagonal_1':
-            if wording == 'lack_entity' and resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list):
+            if wording == 'lack_entity' and resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list,
+                                                            history_intent):
                 scene_content = [scene_content[0], scene_content[-1]]
             else:
                 pass
         elif move == 'horizontal_1':
-            if wording == 'lack_entity' and resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list):
+            if wording == 'lack_entity' and resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list,
+                                                            history_intent):
                 scene_content = [scene_content[0], scene_content[-1]]
-            elif wording == 'lack_attribute' and resolve_context(attr_list, 2, matrix, coordinate, axis, concern_list):
+            elif wording == 'lack_attribute' and resolve_context(attr_list, 2, matrix, coordinate, axis, concern_list,
+                                                                 history_intent):
                 scene_content = [scene_content[0], scene_content[-1]]
             elif wording == 'lack_attribute_entity':
-                if resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list) and resolve_context(
-                        attr_list, 2, matrix, coordinate, axis, concern_list):
+                if resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list,
+                                   history_intent) and resolve_context(
+                        attr_list, 2, matrix, coordinate, axis, concern_list, history_intent):
                     scene_content = [scene_content[0], scene_content[-1]]
-                elif resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list) and not resolve_context(
-                        attr_list, 2, matrix, coordinate, axis, concern_list):
+                elif resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list,
+                                     history_intent) and not resolve_context(
+                        attr_list, 2, matrix, coordinate, axis, concern_list, history_intent):
                     scene_content = [scene_content[0], scene_content[1], scene_content[2], scene_content[-1]]
-                elif not resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list) and resolve_context(
-                        attr_list, 2, matrix, coordinate, axis, concern_list):
+                elif not resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list,
+                                         history_intent) and resolve_context(
+                        attr_list, 2, matrix, coordinate, axis, concern_list, history_intent):
                     scene_content = [scene_content[0], scene_content[3], scene_content[4], scene_content[-1]]
                 else:
                     pass
@@ -189,7 +223,8 @@ def compare_generator(script, attr_list, entity_list, wording_list, p_list, move
             assert True is False, "Unconsidered conditions happen!"
     else:
         if move == 'horizontal_2' and wording == 'lack_attribute' and resolve_context(attr_list, 2, matrix, coordinate,
-                                                                                      axis, concern_list):
+                                                                                      axis, concern_list,
+                                                                                      history_intent):
             scene_content = [scene_content[0], scene_content[-1]]
         else:
             pass
@@ -326,6 +361,7 @@ def pre_sales_controller(script, user_concern_attr, user_concern_entity, availab
     previous_coordinate1 = None
     previous_coordinate2 = None
     intent_coordinate_dict = defaultdict(list)
+    history_intent = list()
 
     while not terminal:
         # First, we try to explore a new point
@@ -355,6 +391,7 @@ def pre_sales_controller(script, user_concern_attr, user_concern_entity, availab
         # sample a intent and get according dialog script
         available_intent_p_dict = filter_p_dict(current_available_intent, intent_p_dict)
         intent = random_pick(list(available_intent_p_dict.keys()), list(available_intent_p_dict.values()))
+        history_intent.append(intent)
         available_script = script[intent]
         intent_coordinate_dict[intent].append(coordinate)
 
@@ -388,12 +425,13 @@ def pre_sales_controller(script, user_concern_attr, user_concern_entity, availab
 
             if intent == 'qa':
                 scene = qa_generator(available_script, attr_list, entity_list, list(available_grammar_p_dict.keys()),
-                                     list(available_grammar_p_dict.values()), matrix, coordinate, axis, concern_list)
+                                     list(available_grammar_p_dict.values()), matrix, coordinate, axis, concern_list,
+                                     history_intent)
             else:
                 scene = confirm_generator(available_script, attr_list, entity_list,
                                           list(available_grammar_p_dict.keys()),
                                           list(available_grammar_p_dict.values()), matrix, coordinate, axis,
-                                          concern_list)
+                                          concern_list, history_intent)
             previous_coordinate2 = previous_coordinate1
             previous_coordinate1 = coordinate
         else:
@@ -435,7 +473,7 @@ def pre_sales_controller(script, user_concern_attr, user_concern_entity, availab
 
             scene = compare_generator(available_script, attr_list, entity_list, list(available_grammar_p_dict.keys()),
                                       list(available_grammar_p_dict.values()), move, explored_num, matrix, coordinate,
-                                      axis, concern_list)
+                                      axis, concern_list, history_intent)
             previous_coordinate2 = previous_coordinate1
             previous_coordinate1 = coordinate
 
