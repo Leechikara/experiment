@@ -120,6 +120,8 @@ def qa_generator(script, attr_list, entity_list, wording_list, p_list, matrix, c
         else:
             scene_content.append(turn)
 
+    scene_content = [turn.replace('entity', entity) for turn in scene_content]
+
     # Now we make context important
     if wording == 'lack_entity' and resolve_context(entity_list, 1, matrix, coordinate, axis, concern_list,
                                                     history_intent):
@@ -155,6 +157,8 @@ def confirm_generator(script, attr_list, entity_list, wording_list, p_list, matr
         else:
             scene_content.append(turn)
 
+    scene_content = [turn.replace('entity', entity) for turn in scene_content]
+
     # Now we make context important
     if wording == 'lack_entity' and resolve_context(entity_list, 1, matrix, coordinate, axis, concern_list,
                                                     history_intent):
@@ -188,6 +192,9 @@ def compare_generator(script, attr_list, entity_list, wording_list, p_list, move
             scene_content.append(random.choice(turn))
         else:
             scene_content.append(turn)
+
+    scene_content = [turn.replace('entity1', entity1) for turn in scene_content]
+    scene_content = [turn.replace('entity2', entity2) for turn in scene_content]
 
     # Now we make context important
     if step == 1:
@@ -490,7 +497,7 @@ if __name__ == "__main__":
         script = json.load(f)
     script = script['scenes']['pre_sales']
     user_concern_attr = ['price', 'nfc', 'color']
-    user_concern_entity = ['entity_1', 'entity_10', 'entity_2', 'entity_5']
+    user_concern_entity = ['entity1', 'entity10', 'entity2', 'entity5']
     available_intent = AVAILABLE_INTENT_3['pre_sales']
     grammar_p_dict = GRAMMAR_P_DICT['pre_sales']
     intent_p_dict = INTENT_P_DICT['pre_sales']
