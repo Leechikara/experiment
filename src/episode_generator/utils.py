@@ -90,7 +90,7 @@ def resolve_context(some_list, arg_num, matrix, coordinate, axis, user_concern_l
         return True
     else:
         # for compare
-        candidate_set = list()
+        candidate_set = [concern_some_list[-1][0]]
         for item in concern_some_list[:-1]:
             if type(item) == tuple:
                 candidate_set.append(item[0])
