@@ -246,8 +246,9 @@ def filter_p_dict(available_list, p_dict):
     new_p_dict = dict()
     p_sum = 0
     for item in available_list:
-        new_p_dict[item] = p_dict[item]
-        p_sum += p_dict[item]
+        if item in p_dict.keys():
+            new_p_dict[item] = p_dict[item]
+            p_sum += p_dict[item]
     for key in new_p_dict.keys():
         new_p_dict[key] /= p_sum
     return new_p_dict
@@ -458,6 +459,8 @@ def pre_sales_controller(script, user_concern_attr, user_concern_entity, availab
                 matrix[compared_coordinate] = 1
 
             available_grammar_p_dict = copy.deepcopy(grammar_p_dict[intent][move])
+            available_grammar_p_dict = filter_p_dict(list(available_script[user_concern_attr[coordinate[0]]].keys()),
+                                                     available_grammar_p_dict)
 
             attr_list.append(user_concern_attr[compared_coordinate[0]])
             attr_list.append(user_concern_attr[coordinate[0]])
@@ -498,7 +501,7 @@ if __name__ == "__main__":
     with open(script_f, 'rb') as f:
         script = json.load(f)
     script = script['scenes']['pre_sales']
-    user_concern_attr = ['price', 'nfc', 'color']
+    user_concern_attr = ['price', 'nfc', 'color', 'size']
     user_concern_entity = ['entityId=1', 'entityId=10', 'entityId=2', 'entityId=5']
     available_intent = AVAILABLE_INTENT_3['pre_sales']
     grammar_p_dict = GRAMMAR_P_DICT['pre_sales']
