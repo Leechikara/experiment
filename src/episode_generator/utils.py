@@ -206,16 +206,16 @@ def compare_generator(script, attr_list, entity_list, wording_list, p_list, move
                 scene_content = [scene_content[0], scene_content[-1]]
             elif wording == 'lack_attribute_entity':
                 if resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list,
-                                   history_intent) and resolve_context(
-                        attr_list, 2, matrix, coordinate, axis, concern_list, history_intent):
+                                   history_intent) and resolve_context(attr_list, 2, matrix, coordinate, axis,
+                                                                       concern_list, history_intent):
                     scene_content = [scene_content[0], scene_content[-1]]
                 elif resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list,
-                                     history_intent) and not resolve_context(
-                        attr_list, 2, matrix, coordinate, axis, concern_list, history_intent):
+                                     history_intent) and not resolve_context(attr_list, 2, matrix, coordinate, axis,
+                                                                             concern_list, history_intent):
                     scene_content = [scene_content[0], scene_content[1], scene_content[2], scene_content[-1]]
                 elif not resolve_context(entity_list, 2, matrix, coordinate, axis, concern_list,
-                                         history_intent) and resolve_context(
-                        attr_list, 2, matrix, coordinate, axis, concern_list, history_intent):
+                                         history_intent) and resolve_context(attr_list, 2, matrix, coordinate, axis,
+                                                                             concern_list, history_intent):
                     scene_content = [scene_content[0], scene_content[3], scene_content[4], scene_content[-1]]
                 else:
                     pass
@@ -495,7 +495,6 @@ if __name__ == "__main__":
     grammar_p_dict = GRAMMAR_P_DICT['pre_sales']
     intent_p_dict = INTENT_P_DICT['pre_sales']
     pre_sales_script = pre_sales_controller(script, user_concern_attr, user_concern_entity, available_intent,
-                                            grammar_p_dict,
-                                            intent_p_dict)
+                                            grammar_p_dict, intent_p_dict)
     for line in pre_sales_script:
         print(line.items())
