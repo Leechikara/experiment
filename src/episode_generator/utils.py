@@ -53,8 +53,9 @@ def resolve_context(some_list, arg_num, matrix, coordinate, axis, user_concern_l
         concern_intent = history_intent[0:]
     else:
         return False
-    if 'compare' in concern_intent and 'compare' != concern_intent[-1] and len(concern_intent) == 3:
-        del concern_intent[0]
+    if len(concern_intent) == 3:
+        if 'compare' in concern_intent and 'compare' != concern_intent[-1] or 'compare' not in concern_intent:
+            del concern_intent[0]
 
     position = -1
     concern_some_list = list()
@@ -73,8 +74,11 @@ def resolve_context(some_list, arg_num, matrix, coordinate, axis, user_concern_l
         # for qa and confirm
         target = concern_some_list[-1]
         for item, intent in zip(concern_some_list[:-1], concern_intent[:-1]):
-            if intent == 'compare' and item[0] != item[1]:
-                return False
+            if intent == 'compare':
+                if item[0] != item[1]:
+                    return False
+                else:
+                    item = item[0]
             if target != item:
                 if axis == 0 and matrix[coordinate[axis], user_concern_list.index(item)] != 1:
                     return False
@@ -90,7 +94,10 @@ def resolve_context(some_list, arg_num, matrix, coordinate, axis, user_concern_l
                 candidate_set.append(item[1])
             else:
                 candidate_set.append(item)
+        if concern_some_list[-1][0] not in candidate_set[1:]:
+            return False
 
+        candidate_set = set(candidate_set)
         if concern_some_list[-1][-1] in candidate_set:
             candidate_set.remove(concern_some_list[-1][-1])
 
@@ -496,7 +503,7 @@ def pre_sales_controller(script, user_concern_attr, user_concern_entity, availab
 
 
 if __name__ == "__main__":
-    random.seed(3)
+    random.seed(9)
     script_f = os.path.join(DATA_ROOT, 'script.txt')
     with open(script_f, 'rb') as f:
         script = json.load(f)
