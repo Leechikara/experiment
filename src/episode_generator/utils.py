@@ -56,6 +56,8 @@ def resolve_context(some_list, arg_num, matrix, coordinate, axis, user_concern_l
     if len(concern_intent) == 3:
         if 'compare' in concern_intent and 'compare' != concern_intent[-1] or 'compare' not in concern_intent:
             del concern_intent[0]
+        if 'compare' == concern_intent[-1] and 'compare' not in concern_intent[:-1] and intent_size > 3:
+            concern_intent.insert(0, history_intent[-4])
 
     position = -1
     concern_some_list = list()
@@ -503,7 +505,7 @@ def pre_sales_controller(script, user_concern_attr, user_concern_entity, availab
 
 
 if __name__ == "__main__":
-    random.seed(9)
+    random.seed(0)
     script_f = os.path.join(DATA_ROOT, 'script.txt')
     with open(script_f, 'rb') as f:
         script = json.load(f)

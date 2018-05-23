@@ -34,7 +34,7 @@ PRICE_NOISE = 300
 QA_PERMITTED_ATTR = ['price', 'discountValue', 'weight', 'os', 'color', 'thickness', 'size', 'material',
                      'network', 'nfc', 'generation']
 COMPARE_PERMITTED_ATTR = ['price', 'discountValue', 'weight', 'thickness', 'size', 'material',
-                          'network', 'nfc', 'generation']
+                          'network', 'generation']
 CONFIRM_PERMITTED_ATTR = ['price', 'discountValue', 'weight', 'os', 'color', 'thickness', 'size', 'material',
                           'network', 'nfc', 'generation']
 PRE_SALES_ATTR = list(set(QA_PERMITTED_ATTR) | set(COMPARE_PERMITTED_ATTR) | set(CONFIRM_PERMITTED_ATTR))
@@ -81,6 +81,6 @@ GRAMMAR_P_DICT = {'pre_sales': {'qa': {'init': {'complete': 1 / 30, 'lack_attrib
                                                      'lack_attribute': 1 / 4, 'lack_attribute_entity': 1 / 4},
                                             'horizontal_1': {'complete': 1 / 40, 'lack_entity': 1 / 4,
                                                              'lack_attribute': 1 / 4, 'lack_attribute_entity': 1 / 4},
-                                            'diagonal_1': {'complete': 1 / 20, 'lack_entity': 1 / 2},
+                                            'diagonal_1': {'complete': 1 / 20},
                                             'horizontal_2': {'complete': 1 / 20, 'lack_attribute': 1 / 2},
                                             'diagonal_2': {'complete': 1 / 10}}}}
