@@ -27,8 +27,7 @@ GOODS_ATTRIBUTE_DEFINITION = {'price': {'dtype': 'int', 'min': 1000, 'max': 2000
                               'nfc': {'dtype': 'bool', 'range': [True, False], 'expensive': 'low',
                                       'prefer': 'low'},
                               'generation': {'dtype': 'str', 'range': [str(x) for x in range(1, 4)],
-                                             'expensive': 'high', 'prefer': 'high'},
-                              'gift': {'dtype': 'str', 'range': ['表带', '耳机', '电池']}}
+                                             'expensive': 'high', 'prefer': 'high'}}
 PRICE_NOISE = 300
 
 QA_PERMITTED_ATTR = ['price', 'discountValue', 'weight', 'os', 'color', 'thickness', 'size', 'material',
@@ -46,29 +45,36 @@ OTHER_ATTRIBUTE_DEFINITION = {
 
 # we simulate the complicity of dialog
 AVAILABLE_INTENT_1 = {'pre_sales': ['qa'],
-                      'in_sales': ['payment', 'discountURL', 'gift', 'expressTime', 'expressName']}
+                      'in_sales': ['payment', 'discountURL', 'expressTime', 'expressName']}
 
 AVAILABLE_INTENT_2 = {'pre_sales': ['qa', 'confirm'],
-                      'in_sales': ['payment', 'discountURL', 'gift', 'expressTime', 'expressName']}
+                      'in_sales': ['payment', 'discountURL', 'expressTime', 'expressName']}
 
 AVAILABLE_INTENT_3 = {'pre_sales': ['qa', 'confirm', 'compare'],
-                      'in_sales': ['payment', 'discountURL', 'gift', 'expressTime', 'expressName']}
+                      'in_sales': ['payment', 'discountURL', 'expressTime', 'expressName']}
 
 AVAILABLE_INTENT_4 = {'pre_sales': ['qa', 'confirm', 'compare'],
-                      'in_sales': ['payment', 'discountURL', 'gift', 'expressTime', 'expressName'],
-                      'after_sales': ['exchange']}
+                      'in_sales': ['payment', 'discountURL', 'expressTime', 'expressName'],
+                      'after_sales': ['expressInfo', 'invoice', 'exchange', 'exchange_exchange']}
 
 AVAILABLE_INTENT_5 = {'pre_sales': ['qa', 'confirm', 'compare'],
-                      'in_sales': ['payment', 'discountURL', 'gift', 'expressTime', 'expressName'],
-                      'after_sales': ['exchange', 'consult', 'refund', 'expressInfo', 'gift', 'invoice']}
+                      'in_sales': ['payment', 'discountURL', 'expressTime', 'expressName'],
+                      'after_sales': ['expressInfo', 'invoice', 'exchange', 'exchange_exchange', 'consult', 'refund',
+                                      'consult_refund']}
 
 AVAILABLE_INTENT_6 = {'pre_sales': ['qa', 'confirm', 'compare'],
-                      'in_sales': ['payment', 'discountURL', 'gift', 'expressTime', 'expressName'],
-                      'after_sales': ['consult', 'refund', 'expressInfo', 'gift', 'invoice', 'exchange'],
+                      'in_sales': ['payment', 'discountURL', 'expressTime', 'expressName'],
+                      'after_sales': ['expressInfo', 'invoice', 'exchange', 'exchange_exchange', 'consult', 'refund',
+                                      'consult_refund'],
                       'sentiment': ['positive', 'negative']}
 
 # intent and grammar sample probability in different scenes
-INTENT_P_DICT = {'pre_sales': {'qa': 1 / 3, 'confirm': 1 / 3, 'compare': 1 / 3}}
+INTENT_P_DICT = {'pre_sales': {'qa': 1 / 3, 'confirm': 1 / 3, 'compare': 1 / 3},
+                 'in_sales': {'discountURL': 1 / 4, 'payment': 1 / 4, 'expressTime': 1 / 4,
+                              'expressName': 1 / 4},
+                 'after_sales': {'consult': 1 / 7, 'refund': 1 / 7, 'exchange': 1 / 7, 'expressInfo': 1 / 7,
+                                 'invoice': 1 / 7, 'consult_refund': 1 / 7, 'exchange_exchange': 1 / 7}}
+
 GRAMMAR_P_DICT = {'pre_sales': {'qa': {'init': {'complete': 1 / 30, 'lack_attribute': 1 / 3, 'lack_entity': 1 / 3},
                                        'horizontal_1': {'complete': 1 / 20, 'lack_attribute': 1 / 2},
                                        'vertical_1': {'complete': 1 / 20, 'lack_entity': 1 / 2},
@@ -83,4 +89,8 @@ GRAMMAR_P_DICT = {'pre_sales': {'qa': {'init': {'complete': 1 / 30, 'lack_attrib
                                                              'lack_attribute': 1 / 4, 'lack_attribute_entity': 1 / 4},
                                             'diagonal_1': {'complete': 1 / 20},
                                             'horizontal_2': {'complete': 1 / 20, 'lack_attribute': 1 / 2},
-                                            'diagonal_2': {'complete': 1 / 10}}}}
+                                            'diagonal_2': {'complete': 1 / 10}}},
+                  'in_sales': {'discountURL': {'complete': 1 / 2, 'lack_entity': 1 / 2},
+                               'payment': {'complete': 1},
+                               'expressTime': {'complete': 1},
+                               'expressName': {'complete': 1}}}
