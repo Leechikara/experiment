@@ -3,10 +3,12 @@
 
 DATA_ROOT = '/home/wkwang/workstation/experiment/data'
 
+# experiments for KB changes
 ORIGINAL_ENTITY = 50
 CHANGE_ORIGINAL_ENTITY = False
 NEW_ADD_ENTITY = 0
 
+# attribute definition of goods
 GOODS_ATTRIBUTE_DEFINITION = {'price': {'dtype': 'int', 'min': 1000, 'max': 2000, 'prefer': 'low'},
                               'discountValue': {'dtype': 'float', 'range': [0.1 * x for x in range(6, 10)],
                                                 'acceptNone': True, 'prefer': 'low'},
@@ -28,8 +30,17 @@ GOODS_ATTRIBUTE_DEFINITION = {'price': {'dtype': 'int', 'min': 1000, 'max': 2000
                                       'prefer': 'low'},
                               'generation': {'dtype': 'str', 'range': [str(x) for x in range(1, 4)],
                                              'expensive': 'high', 'prefer': 'high'}}
+
+# global attribute definitions
+OTHER_ATTRIBUTE_DEFINITION = {
+    'payment': {'dtype': 'constantList', 'value': ['weChat', 'Alipay', 'creditCard', 'debitCard']},
+    'expressTime': {'dtype': 'constantInt', 'value': 3},
+    'expressName': {'dtype': 'constantList', 'value': ['顺丰', '韵达', '菜鸟', '中通']}}
+
+# simulate noise in price
 PRICE_NOISE = 300
 
+# available attributes in different intents
 QA_PERMITTED_ATTR = ['price', 'discountValue', 'weight', 'os', 'color', 'thickness', 'size', 'material',
                      'network', 'nfc', 'generation']
 COMPARE_PERMITTED_ATTR = ['price', 'discountValue', 'weight', 'thickness', 'size', 'material',
@@ -38,12 +49,7 @@ CONFIRM_PERMITTED_ATTR = ['price', 'discountValue', 'weight', 'os', 'color', 'th
                           'network', 'nfc', 'generation']
 PRE_SALES_ATTR = list(set(QA_PERMITTED_ATTR) | set(COMPARE_PERMITTED_ATTR) | set(CONFIRM_PERMITTED_ATTR))
 
-OTHER_ATTRIBUTE_DEFINITION = {
-    'payment': {'dtype': 'constantList', 'value': ['weChat', 'Alipay', 'creditCard', 'debitCard']},
-    'expressTime': {'dtype': 'constantInt', 'value': 3},
-    'expressName': {'dtype': 'constantList', 'value': ['顺丰', '韵达', '菜鸟', '中通']}}
-
-# we simulate the complicity of dialog
+# we simulate the size of Hypothesis Space
 AVAILABLE_INTENT_1 = {'pre_sales': ['qa'],
                       'in_sales': ['payment', 'discountURL', 'expressTime', 'expressName']}
 
@@ -68,13 +74,15 @@ AVAILABLE_INTENT_6 = {'pre_sales': ['qa', 'confirm', 'compare'],
                                       'consult_refund'],
                       'sentiment': ['positive', 'negative']}
 
-# intent and grammar sample probability in different scenes
+# intent distributions in different scenes
 INTENT_P_DICT = {'pre_sales': {'qa': 1 / 3, 'confirm': 1 / 3, 'compare': 1 / 3},
                  'in_sales': {'discountURL': 1 / 4, 'payment': 1 / 4, 'expressTime': 1 / 4,
                               'expressName': 1 / 4},
                  'after_sales': {'consult': 1 / 7, 'refund': 1 / 7, 'exchange': 1 / 7, 'expressInfo': 1 / 7,
                                  'invoice': 1 / 7, 'consult_refund': 1 / 7, 'exchange_exchange': 1 / 7}}
 
+# grammar distribution in different situations
+# We can change this distributes to improve the quality of episode generation rules!
 GRAMMAR_P_DICT = {'pre_sales': {'qa': {'init': {'complete': 1 / 30, 'lack_attribute': 1 / 3, 'lack_entity': 1 / 3},
                                        'horizontal_1': {'complete': 1 / 20, 'lack_attribute': 1 / 2},
                                        'vertical_1': {'complete': 1 / 20, 'lack_entity': 1 / 2},
