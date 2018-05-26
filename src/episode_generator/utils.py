@@ -3,6 +3,12 @@ import copy, random
 
 
 def filter_p_dict(available_list, p_dict):
+    """
+    keep the items of p_dict where key in available_list and delete other items
+    :param available_list:
+    :param p_dict:
+    :return:
+    """
     new_p_dict = dict()
     p_sum = 0
     for item in available_list:
@@ -15,6 +21,13 @@ def filter_p_dict(available_list, p_dict):
 
 
 def random_pick(some_list, p_list, pick_num=1):
+    """
+    Pick a few items from some_list according the weight declared by p_list
+    :param some_list:
+    :param p_list:
+    :param pick_num:
+    :return:
+    """
     assert len(some_list) >= pick_num
     assert len(some_list) == len(p_list)
 
