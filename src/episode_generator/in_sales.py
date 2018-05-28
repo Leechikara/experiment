@@ -56,7 +56,9 @@ class InSales(object):
         scene = {scene_name: scene_content}
         return scene
 
-    def episode_generator(self):
+    def episode_generator(self, desired_entity):
+        self.init_episode(desired_entity)
+
         # make topic coherent
         scene_dict = {'pay': [], 'express': []}
         for intent in self.picked_intents:
@@ -95,8 +97,7 @@ if __name__ == "__main__":
     in_sales = InSales(script, available_intent, intent_p_dict, grammar_p_dict)
 
     random.seed(0)
-    in_sales.init_episode(desired_entity)
-    in_sales_script = in_sales.episode_generator()
+    in_sales_script = in_sales.episode_generator(desired_entity)
     for line in in_sales_script:
         for l in list(line.values())[0]:
             print(l)
@@ -105,8 +106,7 @@ if __name__ == "__main__":
     print('.......................\n')
 
     random.seed(1)
-    in_sales.init_episode(desired_entity)
-    in_sales_script = in_sales.episode_generator()
+    in_sales_script = in_sales.episode_generator(desired_entity)
     for line in in_sales_script:
         for l in list(line.values())[0]:
             print(l)
@@ -115,8 +115,7 @@ if __name__ == "__main__":
     print('.......................\n')
 
     random.seed(2)
-    in_sales.init_episode(desired_entity)
-    in_sales_script = in_sales.episode_generator()
+    in_sales_script = in_sales.episode_generator(desired_entity)
     for line in in_sales_script:
         for l in list(line.values())[0]:
             print(l)

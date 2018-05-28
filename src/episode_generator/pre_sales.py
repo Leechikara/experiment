@@ -335,10 +335,12 @@ class PreSales(object):
         scene = {scene_name: scene_content}
         return scene
 
-    def episode_generator(self):
+    def episode_generator(self, user_concern_attr, user_concern_entity):
         """
         Control the flow of pre_sales
         """
+        self.init_episode(user_concern_attr, user_concern_entity)
+
         terminal = False
         while not terminal:
             # First, we try to explore a new point
@@ -468,8 +470,7 @@ if __name__ == "__main__":
 
     # test our code
     random.seed(0)
-    pre_sales.init_episode(user_concern_attr, user_concern_entity)
-    pre_sales_script = pre_sales.episode_generator()
+    pre_sales_script = pre_sales.episode_generator(user_concern_attr, user_concern_entity)
     for line in pre_sales_script:
         for l in list(line.values())[0]:
             print(l)
@@ -478,8 +479,7 @@ if __name__ == "__main__":
     print('.......................\n')
 
     random.seed(1)
-    pre_sales.init_episode(user_concern_attr, user_concern_entity)
-    pre_sales_script = pre_sales.episode_generator()
+    pre_sales_script = pre_sales.episode_generator(user_concern_attr, user_concern_entity)
     for line in pre_sales_script:
         for l in list(line.values())[0]:
             print(l)
@@ -488,8 +488,7 @@ if __name__ == "__main__":
     print('.......................\n')
 
     random.seed(2)
-    pre_sales.init_episode(user_concern_attr, user_concern_entity)
-    pre_sales_script = pre_sales.episode_generator()
+    pre_sales_script = pre_sales.episode_generator(user_concern_attr, user_concern_entity)
     for line in pre_sales_script:
         for l in list(line.values())[0]:
             print(l)
