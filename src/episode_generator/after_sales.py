@@ -63,7 +63,8 @@ class AfterSales(object):
             episode_script.append(scene2)
 
             # In such case, we should delete exchange scene
-            if intent1 == 'exchange' and intent2 == 'exchange' and list(scene1.keys())[0].find('verbose3') == -1:
+            if intent1 == 'exchange' and intent2 == 'exchange' and list(scene1.keys())[0].find('verbose') != -1 \
+                    and list(scene1.keys())[0].find('3') == -1 or list(scene1.keys())[0].find('color') != -1:
                 del episode_script[-1]
 
         return episode_script
