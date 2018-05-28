@@ -243,6 +243,32 @@ class KnowledgeBase(object):
         else:
             assert True is False, "Unconsidered situations happened!"
 
+    def search_kb(self, **kwargs):
+        candidates = list()
+        if kwargs['dtype'] in ['int', 'float']:
+            for entity in self.kb:
+                if kwargs['compare'] == '>' and entity[kwargs['attr']] > kwargs['value']:
+                    candidates.append(entity)
+                elif kwargs['compare'] == '<' and entity[kwargs['attr']] < kwargs['value']:
+                    candidates.append(entity)
+                elif kwargs['compare'] == '=' and entity[kwargs['attr']] == kwargs['value']:
+                    candidates.append(entity)
+                elif kwargs['compare'] == '~' and kwargs['lower'] <= entity[kwargs['attr']] <= kwargs['upper']:
+                    candidates.append(entity)
+            return candidates
+        elif kwargs['dtype'] in ['str', 'bool']:
+            for entity in self.kb:
+                if entity[kwargs['attr']] == kwargs['value']:
+                    candidates.append(entity)
+            return candidates
+        elif kwargs['dtype'] in ['list']:
+            for entity in self.kb:
+                if kwargs['value'] in entity[kwargs['attr']]:
+                    candidates.append(entity)
+            return candidates
+        else:
+            pass
+
 
 if __name__ == '__main__':
     kb = KnowledgeBase()
