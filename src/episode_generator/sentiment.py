@@ -5,9 +5,13 @@ import random
 class Sentiment(object):
     def __init__(self, script):
         self.script = script
+        self.episode = None
+
+    def init_episode(self):
+        self.episode = list()
 
     def episode_generator(self, polarity, attr):
-        episode_script = list()
+        self.init_episode()
 
         scene_name = ' '.join([str(polarity), str(attr)])
         scene_content = list()
@@ -20,6 +24,6 @@ class Sentiment(object):
                 scene_content.append(turn)
 
         scene = {scene_name: scene_content}
-        episode_script.append(scene)
+        self.episode.append(scene)
 
-        return episode_script
+        return self.episode_script

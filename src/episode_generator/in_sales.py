@@ -15,6 +15,7 @@ class InSales(object):
         self.desired_entity = None
         self.given_entity = None
         self.picked_intents = None
+        self.episode_script = None
 
     def init_episode(self, desired_entity):
         self.desired_entity = desired_entity
@@ -29,6 +30,8 @@ class InSales(object):
             self.picked_intents = [picked_intents]
         else:
             self.picked_intents = picked_intents
+
+        self.episode_script = list()
 
     def scene_generator(self, intent):
         current_grammar_p_dict = self.grammar_p_dict[intent]
@@ -76,12 +79,11 @@ class InSales(object):
             picked_intents.extend(scene_content)
 
         # generate episode
-        episode_script = list()
         for intent in picked_intents:
             scene = self.scene_generator(intent)
-            episode_script.append(scene)
+            self.episode_script.append(scene)
 
-        return episode_script
+        return self.episode_script
 
 
 if __name__ == "__main__":
