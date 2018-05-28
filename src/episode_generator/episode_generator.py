@@ -44,6 +44,11 @@ class EpisodeGenerator(object):
                                       intent_p_dict['after_sales'])
         self.sentiment = Sentiment(script['sentiment'])
 
-    def sample_entity_attr(self):
+    def sample_user(self):
+        """
+        Sample 2~3 candidate entities and 2~3 user concern attributes.
+        """
+        price = random.sample
+
 
     def episode_generator(self):
