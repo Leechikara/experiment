@@ -62,7 +62,7 @@ class KnowledgeBase(object):
             else:
                 if attr_name == 'discountURL':
                     value = attr_definition['prefix'] + 'entity_id=' + str(entity_id) + '&' + 'discountValue=' + str(
-                        int(entity[attr_definition['correlate']] * 10)) + attr_definition['postfix']
+                        int(entity[attr_definition['correlate']])) + attr_definition['postfix']
                 else:
                     value = random.choice(attr_definition['range'])
             entity[attr_name] = value
