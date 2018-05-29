@@ -90,7 +90,7 @@ if __name__ == "__main__":
     script_f = os.path.join(DATA_ROOT, 'script.txt')
     with open(script_f, 'rb') as f:
         script = json.load(f)
-    script = script['scenes']['in_sales']
+    script = script['in_sales']
     available_intent = AVAILABLE_INTENT_3['in_sales']
     grammar_p_dict = GRAMMAR_P_DICT['in_sales']
     intent_p_dict = INTENT_P_DICT['in_sales']

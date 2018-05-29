@@ -19,7 +19,7 @@ from pre_sales import PreSales
 from in_sales import InSales
 from after_sales import AfterSales
 from sentiment import Sentiment
-from knowledge_base.knowledge_base import KnowledgeBase
+from src.knowledge_base.knowledge_base import KnowledgeBase
 import random
 import json
 import copy
