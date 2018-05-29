@@ -114,7 +114,7 @@ class EpisodeGenerator(object):
 
     def sample_desired_entity(self):
         entity = random.choice(self.kb_helper.kb)
-        entity_id = entity['id']
+        entity_id = "entityId=" + str(entity['id'])
         return entity_id
 
     def calculate_desired_entity(self, sample_entity, sample_goods_attr, attr_priority, hard_constrains):
@@ -169,7 +169,7 @@ class EpisodeGenerator(object):
                         score += 1 + 0.15 * attr_priority.index(attr)
             entity_score[entity['id']] = score
 
-        entity_id = sorted(entity_score.items(), key=lambda item: item[1], reverse=True)[0][0]
+        entity_id = "entityId=" + str(sorted(entity_score.items(), key=lambda item: item[1], reverse=True)[0][0])
         return entity_id
 
     def episode_generator(self):
