@@ -198,7 +198,7 @@ class EpisodeGenerator(object):
                                                            attr_priority, hard_constrains)
             episode_script.extend(self.in_sales.episode_generator(desired_entity))
         else:
-            pass
+            sys.exit("Unconsidered situations happen!")
 
         # And then, we translate some content based on KB results.
 
