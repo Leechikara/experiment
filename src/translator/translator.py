@@ -155,4 +155,4 @@ class Translator(object):
 
 if __name__ == "__main__":
     translator = Translator()
-    print(translator.translate('$entityId=1_entityId=2_price$'))
+    print(translator.translate('$entityId=1_entityId=0_generation$'))
