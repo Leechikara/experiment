@@ -29,7 +29,10 @@ import sys
 
 
 class EpisodeGenerator(object):
-    def __init__(self, script_file, available_intent, intent_p_dict=INTENT_P_DICT, grammar_p_dict=GRAMMAR_P_DICT):
+    def __init__(self, available_intent,
+                 script_file='script.txt',
+                 intent_p_dict=INTENT_P_DICT,
+                 grammar_p_dict=GRAMMAR_P_DICT):
         # Init basic episode generator
         with open(os.path.join(DATA_ROOT, script_file), 'rb') as f:
             script = json.load(f)
@@ -211,3 +214,15 @@ class EpisodeGenerator(object):
 
     def translate(self, episode_script):
         pass
+
+
+if __name__ == '__main__':
+    episode_generator = EpisodeGenerator(AVAILABLE_INTENT_1)
+
+    # test our code
+    random.seed(0)
+    episode_script = episode_generator.episode_generator()
+    for line in episode_script:
+        for l in list(line.values())[0]:
+            print(l)
+        print('')
