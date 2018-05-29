@@ -26,7 +26,6 @@ import copy
 from config import *
 import os
 import sys
-import re
 
 
 class EpisodeGenerator(object):
@@ -122,7 +121,7 @@ class EpisodeGenerator(object):
         return entity_id
 
     def calculate_desired_entity(self, sample_entity, sample_goods_attr, attr_priority, hard_constrains):
-        sample_entity = [self.kb_helper.find_entity(int(re.findall(r"\d+", entity)[0])) for entity in sample_entity]
+        sample_entity = [self.kb_helper.find_entity(entity) for entity in sample_entity]
 
         # for each attr, which entities meet the constrain or which entity is the best one
         attr_entity_table = dict.fromkeys(sample_goods_attr, None)
