@@ -82,7 +82,8 @@ class EpisodeGenerator(object):
             price = random.randint(100, 200) * 10
             upper = price + PRICE_NOISE
             lower = price - PRICE_NOISE
-            candidate_entity = self.kb_helper.search_kb(attr='price', dtype='int', compare='~', upper=upper, lower=lower)
+            candidate_entity = self.kb_helper.search_kb(attr='price', dtype='int', compare='~', upper=upper,
+                                                        lower=lower)
 
         # sample entities
         entity_num = random.choice([2, 3])
@@ -142,7 +143,9 @@ class EpisodeGenerator(object):
                     reverse = True
 
                 if GOODS_ATTRIBUTE_DEFINITION[attr]['dtype'] in ['int', 'float']:
-                    entity_id = sorted(entity_attr_value.items(), key=lambda item: item[1], reverse=reverse)[0][0]
+                    entity_id = sorted(entity_attr_value.items(),
+                                       key=lambda item: item[1] if item[1] is not None else 1,
+                                       reverse=reverse)[0][0]
                 elif GOODS_ATTRIBUTE_DEFINITION[attr]['dtype'] in ['str', 'bool']:
                     value_range = GOODS_ATTRIBUTE_DEFINITION[attr]['range']
                     entity_id = sorted(entity_attr_value.items(),
@@ -222,11 +225,13 @@ class EpisodeGenerator(object):
 
 
 if __name__ == '__main__':
-    episode_generator = EpisodeGenerator(AVAILABLE_INTENT_1)
+    episode_generator = EpisodeGenerator(AVAILABLE_INTENT_5)
 
     # test our code
-    episode_script = episode_generator.episode_generator()
-    for line in episode_script:
-        for l in list(line.values())[0]:
-            print(l)
-        print('')
+    for _ in range(10000):
+        print('.......................\n')
+        episode_script = episode_generator.episode_generator()
+        for line in episode_script:
+            for l in list(line.values())[0]:
+                print(l)
+            print('')
