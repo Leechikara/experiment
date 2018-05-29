@@ -113,17 +113,16 @@ class EpisodeGenerator(object):
         entity = random.choice(self.kb_helper.kb)
         return entity
 
-    @staticmethod
-    def calculate_desired_entity(sample_entity, sample_goods_attr, attr_priority, hard_constrains):
+    def calculate_desired_entity(self, sample_entity, sample_goods_attr, attr_priority, hard_constrains):
         # for each attr, which entities meet the constrain or which entity is the best one
-        attr_entity_score = dict.fromkeys(sample_goods_attr, None)
+        attr_entity_table = dict.fromkeys(sample_goods_attr, None)
 
         # take all attr into consideration.
         for attr in sample_goods_attr:
-            entity_score = dict()
             # record attr_value of each entity
+            entity_attr_value = dict()
             for entity in sample_entity:
-                entity_score[entity['id']] = entity[attr]
+                entity_attr_value[entity['id']] = entity[attr]
 
             # Now we judge which entity is better
             if 'prefer' in GOODS_ATTRIBUTE_DEFINITION[attr].keys():
@@ -134,43 +133,56 @@ class EpisodeGenerator(object):
                     reverse = True
 
                 if GOODS_ATTRIBUTE_DEFINITION[attr]['dtype'] in ['int', 'float']:
-                    entity = sorted(entity_score.items(), key=lambda item: item[1], reverse=reverse)[0][0]
+                    entity_id = sorted(entity_attr_value.items(), key=lambda item: item[1], reverse=reverse)[0][0]
                 elif GOODS_ATTRIBUTE_DEFINITION[attr]['dtype'] in ['str', 'bool']:
                     value_range = GOODS_ATTRIBUTE_DEFINITION[attr]['range']
-                    entity = \
-                        sorted(entity_score.items(), key=lambda item: value_range.index(item[1]), reverse=reverse)[0][0]
+                    entity_id = sorted(entity_attr_value.items(),
+                                       key=lambda item: value_range.index(item[1]),
+                                       reverse=reverse)[0][0]
                 else:
                     sys.exit("Unconsidered situations happen!")
-                attr_entity_score[attr] = entity
+                attr_entity_table[attr] = entity_id
             else:
                 # We check hard constrains
                 assert attr in hard_constrains.keys()
-                attr_entity_score[attr] = list()
-                for entity, value in entity_score.items():
+                attr_entity_table[attr] = list()
+                for entity_id, value in entity_attr_value.items():
                     if type(value) == list and hard_constrains[attr] in value:
-                        attr_entity_score[attr].append(entity)
+                        attr_entity_table[attr].append(entity_id)
                     elif type(value) == str and hard_constrains[attr] == value:
-                        attr_entity_score[attr].append(entity)
+                        attr_entity_table[attr].append(entity_id)
 
         # Now, we calculate the best entity according to attr_priority
         entity_score = dict()
         for entity in sample_entity:
             score = 0
-            for attr, entity_in_constrain in attr_entity_score.items():
-                if type(entity_in_constrain) == list:
-                    if entity in entity_in_constrain:
-                        score += 1 + 0.2 * attr_priority.index(attr)
+            for attr, entity_id in attr_entity_table.items():
+                if type(entity_id) == list:
+                    if entity['id'] in entity_id:
+                        score += 1 + 0.15 * attr_priority.index(attr)
                 else:
-                    if entity['id'] == entity_in_constrain['id']:
-                        score += 1 + 0.2 * attr_priority.index(attr)
-            entity_score[entity] = score
+                    if entity['id'] == entity_id:
+                        score += 1 + 0.15 * attr_priority.index(attr)
+            entity_score[entity['id']] = score
 
-        entity = sorted(entity_score.items(), key=lambda item: item[1], reverse=True)[0][0]
+        entity_id = sorted(entity_score.items(), key=lambda item: item[1], reverse=True)[0][0]
+        entity = self.kb_helper.find_entity(entity_id)
         return entity
 
     def episode_generator(self):
         # First, we decide which dialog episode to generate
         episode = random.choice(self.available_episode)
+
+        # Next, we decide if sentiment is available
+        if episode == 'sentiment':
+            decorate_sentiment = True
+            self.available_episode.remove('sentiment')
+            episode = random.choice(self.available_episode)
+            self.available_episode.append('sentiment')
+        else:
+            decorate_sentiment = False
+
+        # Then, generate basic script
         if episode == 'pre_sales':
             sample_entity, sample_goods_attr, attr_priority, hard_constrains = self.sample_user()
             episode_script = self.pre_sales.episode_generator(sample_goods_attr, sample_entity)
@@ -188,7 +200,14 @@ class EpisodeGenerator(object):
         else:
             pass
 
+        # And then, we translate some content based on KB results.
+
+        # In the end, we add sentiment factor.
+
         return episode_script
 
-    def decorate_episode_script(self, episode_script):
+    def decorate_sentiment(self, episode_script):
+        pass
+
+    def translate(self, episode_script):
         pass
