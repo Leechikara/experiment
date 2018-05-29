@@ -114,7 +114,8 @@ class EpisodeGenerator(object):
 
     def sample_desired_entity(self):
         entity = random.choice(self.kb_helper.kb)
-        return entity
+        entity_id = entity['id']
+        return entity_id
 
     def calculate_desired_entity(self, sample_entity, sample_goods_attr, attr_priority, hard_constrains):
         # for each attr, which entities meet the constrain or which entity is the best one
@@ -169,8 +170,7 @@ class EpisodeGenerator(object):
             entity_score[entity['id']] = score
 
         entity_id = sorted(entity_score.items(), key=lambda item: item[1], reverse=True)[0][0]
-        entity = self.kb_helper.find_entity(entity_id)
-        return entity
+        return entity_id
 
     def episode_generator(self):
         # First, we decide which dialog episode to generate
