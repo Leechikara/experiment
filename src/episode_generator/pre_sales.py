@@ -4,6 +4,7 @@ import random, math, copy, json, os
 import numpy as np
 from collections import defaultdict
 from utils import random_pick, filter_p_dict
+import sys
 
 
 class PreSales(object):
@@ -324,7 +325,7 @@ class PreSales(object):
                     else:
                         pass
             else:
-                assert True is False, "Unconsidered conditions happen!"
+                sys.exit("Unconsidered situations happen!")
         else:
             if move == 'horizontal_2' and wording == 'lack_attribute' and self.resolve_context(self.attr_list, axis,
                                                                                                concern_list):

@@ -25,26 +25,39 @@ import json
 import copy
 from config import *
 import os
+import sys
 
 
 class EpisodeGenerator(object):
-    def __init__(self, script_file, available_intent, intent_p_dict, grammar_p_dict):
+    def __init__(self, script_file, available_intent, intent_p_dict=INTENT_P_DICT, grammar_p_dict=GRAMMAR_P_DICT):
         # Init basic episode generator
         with open(os.path.join(DATA_ROOT, script_file), 'rb') as f:
             script = json.load(f)
 
-        self.pre_sales = PreSales(script['pre_sales'],
-                                  available_intent['pre_sales'],
-                                  intent_p_dict['pre_sales'],
-                                  grammar_p_dict['pre_sales'])
-        self.in_sales = InSales(script['in_sales'],
-                                available_intent['in_sales'],
-                                intent_p_dict['in_sales'],
-                                grammar_p_dict['in_sales'])
-        self.after_sales = AfterSales(script['after_sales'],
-                                      available_intent['after_sales'],
-                                      intent_p_dict['after_sales'])
-        self.sentiment = Sentiment(script['sentiment'])
+        if 'pre_sales' in available_intent.keys():
+            self.pre_sales = PreSales(script['pre_sales'],
+                                      available_intent['pre_sales'],
+                                      intent_p_dict['pre_sales'],
+                                      grammar_p_dict['pre_sales'])
+        else:
+            self.pre_sales = None
+        if 'in_sales' in available_intent.keys():
+            self.in_sales = InSales(script['in_sales'],
+                                    available_intent['in_sales'],
+                                    intent_p_dict['in_sales'],
+                                    grammar_p_dict['in_sales'])
+        else:
+            self.in_sales = None
+        if 'after_sales' in available_intent.keys():
+            self.after_sales = AfterSales(script['after_sales'],
+                                          available_intent['after_sales'],
+                                          intent_p_dict['after_sales'])
+        else:
+            self.after_sales = None
+        if 'sentiment' in available_intent.keys():
+            self.sentiment = Sentiment(script['sentiment'])
+        else:
+            self.sentiment = None
 
         # Get available episodes
         self.available_episode = list(available_intent.keys())
@@ -100,16 +113,21 @@ class EpisodeGenerator(object):
         entity = random.choice(self.kb_helper.kb)
         return entity
 
-    def calculate_desired_entity(self, sample_entity, sample_goods_attr, attr_priority, hard_constrains):
+    @staticmethod
+    def calculate_desired_entity(sample_entity, sample_goods_attr, attr_priority, hard_constrains):
+        # for each attr, which entities meet the constrain or which entity is the best one
         attr_entity_score = dict.fromkeys(sample_goods_attr, None)
+
+        # take all attr into consideration.
         for attr in sample_goods_attr:
             entity_score = dict()
+            # record attr_value of each entity
             for entity in sample_entity:
                 entity_score[entity['id']] = entity[attr]
 
             # Now we judge which entity is better
             if 'prefer' in GOODS_ATTRIBUTE_DEFINITION[attr].keys():
-                # What kind of value user prefer
+                # What kind of value do user prefer
                 if GOODS_ATTRIBUTE_DEFINITION[attr]['prefer'] == 'low':
                     reverse = False
                 else:
@@ -122,7 +140,7 @@ class EpisodeGenerator(object):
                     entity = \
                         sorted(entity_score.items(), key=lambda item: value_range.index(item[1]), reverse=reverse)[0][0]
                 else:
-                    entity = None
+                    sys.exit("Unconsidered situations happen!")
                 attr_entity_score[attr] = entity
             else:
                 # We check hard constrains
@@ -173,3 +191,4 @@ class EpisodeGenerator(object):
         return episode_script
 
     def decorate_episode_script(self, episode_script):
+        pass

@@ -1,5 +1,5 @@
 # coding = utf-8
-import json, io, random, os
+import json, io, random, os, sys
 from config import *
 
 
@@ -74,7 +74,7 @@ class KnowledgeBase(object):
             entity[attr_name] = value
             return entity
         else:
-            assert True is False, "Unconsidered situations happened!"
+            sys.exit("Unconsidered situations happened!")
 
     @staticmethod
     def make_price(entity):
@@ -182,7 +182,7 @@ class KnowledgeBase(object):
             else:
                 return False
         else:
-            assert True is False, "Unconsidered situations happened!"
+            sys.exit("Unconsidered situations happened!")
 
     def compare(self, entity1_id, entity2_id, attr_name):
         """
@@ -241,7 +241,7 @@ class KnowledgeBase(object):
                 else:
                     return 'Difference', entity1_id, entity2_id
         else:
-            assert True is False, "Unconsidered situations happened!"
+            sys.exit("Unconsidered situations happened!")
 
     def search_kb(self, **kwargs):
         candidates = list()
