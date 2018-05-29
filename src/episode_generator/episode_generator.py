@@ -26,6 +26,7 @@ import copy
 from config import *
 import os
 import sys
+import re
 
 
 class EpisodeGenerator(object):
@@ -81,7 +82,7 @@ class EpisodeGenerator(object):
             price = random.randint(100, 200) * 10
             upper = price + PRICE_NOISE
             lower = price - PRICE_NOISE
-            candidate_entity = self.kb_helper.search_kb(dtype='int', compare='~', upper=upper, lower=lower)
+            candidate_entity = self.kb_helper.search_kb(attr='price', dtype='int', compare='~', upper=upper, lower=lower)
 
         # sample entities
         entity_num = random.choice([2, 3])
@@ -110,6 +111,8 @@ class EpisodeGenerator(object):
             os_list = list(set(os_list))
             hard_constrains['os'] = random.choice(os_list)
 
+        sample_entity = ["entityId=" + str(entity['id']) for entity in sample_entity]
+
         return sample_entity, sample_goods_attr, attr_priority, hard_constrains
 
     def sample_desired_entity(self):
@@ -118,6 +121,8 @@ class EpisodeGenerator(object):
         return entity_id
 
     def calculate_desired_entity(self, sample_entity, sample_goods_attr, attr_priority, hard_constrains):
+        sample_entity = [self.kb_helper.find_entity(int(re.findall(r"\d+", entity)[0])) for entity in sample_entity]
+
         # for each attr, which entities meet the constrain or which entity is the best one
         attr_entity_table = dict.fromkeys(sample_goods_attr, None)
 
@@ -220,7 +225,6 @@ if __name__ == '__main__':
     episode_generator = EpisodeGenerator(AVAILABLE_INTENT_1)
 
     # test our code
-    random.seed(0)
     episode_script = episode_generator.episode_generator()
     for line in episode_script:
         for l in list(line.values())[0]:
