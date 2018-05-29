@@ -220,7 +220,10 @@ class EpisodeGenerator(object):
         pass
 
     def translate(self, episode_script):
-        pass
+        """
+        We translate KB results into NL
+        """
+
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 # coding = utf-8
-import json, io, random, os, sys
+import json, io, random, os, sys, re
 from config import *
 
 
@@ -123,8 +123,19 @@ class KnowledgeBase(object):
             entity = self.generate_entity(entity_id)
             self.kb.append(entity)
 
+    # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     # We define the kb operations below
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     def find_entity(self, entity_id):
+        """
+        Find a entity by the id(type=int or entityId=xx)
+        """
+        if type(entity_id) == str:
+            entity_id = int(re.findall(r"\d+", entity_id)[0])
+
+        if type(entity_id) != int:
+            sys.exit("Illegal data type of entity_id!")
+
         found_entity = False
         for entity in self.kb:
             if entity['id'] == entity_id:
@@ -133,117 +144,123 @@ class KnowledgeBase(object):
         assert found_entity, "Can't find entity given by users!"
         return entity
 
-    def inform(self, entity_id, attr_name):
+    def inform(self, attr_name, *args):
         """
         Inform user some information
-        :param entity_id:
-        :param attr_name:
-        :return: the content asked by users
         """
-        if entity_id is not None:
-            entity = self.find_entity(entity_id)
-            return entity[attr_name]
+        assert 0 <= len(args) < 3
+
+        kb_results = {attr_name: None}
+        if len(args) != 0:
+            kb_results[attr_name] = dict()
+            for entityId in args:
+                entity = self.find_entity(entityId)
+                kb_results[attr_name][entityId] = entity[attr_name]
         else:
-            attr_definition = OTHER_ATTRIBUTE_DEFINITION[attr_name]
-            return attr_definition['value']
+            kb_results[attr_name] = OTHER_ATTRIBUTE_DEFINITION[attr_name]['value']
 
-    def confirm(self, entity_id, attr_name, compare, value):
-        """
-        Confirm if the true value of attribute in entity meets the given condition.
-        :param entity_id:
-        :param attr_name:
-        :param compare:
-        :param value:
-        :return: if entity[attribute] is None, the expression can not be calculated and we return None; else we return
-        the value of bool expression (entity[attribute] compare value ?)
-        """
-        entity = self.find_entity(entity_id)
-        true_value = entity[attr_name]
+        return kb_results
 
-        # some special conditions
-        if true_value is None:
-            return None
-
-        if type(true_value) in [float, int]:
-            if true_value < value and compare == '<' or \
-                                    true_value == value and compare == '=' or \
-                                    true_value > value and compare == '>':
-                return True
-            else:
-                return False
-        elif type(true_value) == list:
-            if value in true_value and compare == 'has':
-                return True
-            else:
-                return False
-        elif type(true_value) in [str, bool]:
-            if true_value == value and compare == 'is':
-                return True
-            else:
-                return False
-        else:
-            sys.exit("Unconsidered situations happened!")
-
-    def compare(self, entity1_id, entity2_id, attr_name):
-        """
-        Compare the attr between entity1 and entity2.
-        :param entity1_id:
-        :param entity2_id:
-        :param attr_name:
-        :return: tuple, the first key is in ['None_1', 'None_2', 'Difference', 'noDifference'],
-        the remain two keys are entity_id sorted according to attr_name.
-        """
-        entity1 = self.find_entity(entity1_id)
-        entity2 = self.find_entity(entity2_id)
-        assert attr_name in GOODS_ATTRIBUTE_DEFINITION.keys(), "Can't find this attribute!"
-        assert 'prefer' in GOODS_ATTRIBUTE_DEFINITION[attr_name].keys(), "This attribute is not comparable!"
-
-        # some special conditions
-        if entity1[attr_name] is None and entity2[attr_name] is not None:
-            return 'None_1', entity2_id, entity1_id
-        if entity1[attr_name] is not None and entity2[attr_name] is None:
-            return 'None_1', entity1_id, entity2_id
-        if entity1[attr_name] is None and entity2[attr_name] is None:
-            return 'None_2', entity1_id, entity2_id
-
-        if type(entity1[attr_name]) == type(entity2[attr_name]) and type(entity1[attr_name]) in [float, int]:
-            if GOODS_ATTRIBUTE_DEFINITION[attr_name]['prefer'] == 'low':
-                if entity1[attr_name] < entity2[attr_name]:
-                    return 'Difference', entity1_id, entity2_id
-                elif entity1[attr_name] == entity2[attr_name]:
-                    return 'noDifference', entity1_id, entity2_id
-                else:
-                    return 'Difference', entity2_id, entity1_id
-            else:
-                if entity1[attr_name] < entity2[attr_name]:
-                    return 'Difference', entity2_id, entity1_id
-                elif entity1[attr_name] == entity2[attr_name]:
-                    return 'noDifference', entity1_id, entity2_id
-                else:
-                    return 'Difference', entity1_id, entity2_id
-        elif type(entity1[attr_name]) == type(entity2[attr_name]) and type(entity1[attr_name]) in [str, bool]:
-            if GOODS_ATTRIBUTE_DEFINITION[attr_name]['prefer'] == 'low':
-                if GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity1[attr_name]) < \
-                        GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity2[attr_name]):
-                    return 'Difference', entity1_id, entity2_id
-                elif GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity1[attr_name]) == \
-                        GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity2[attr_name]):
-                    return 'noDifference', entity1_id, entity2_id
-                else:
-                    return 'Difference', entity2_id, entity1_id
-            else:
-                if GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity1[attr_name]) < \
-                        GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity2[attr_name]):
-                    return 'Difference', entity2_id, entity1_id
-                elif GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity1[attr_name]) == \
-                        GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity2[attr_name]):
-                    return 'noDifference', entity1_id, entity2_id
-                else:
-                    return 'Difference', entity1_id, entity2_id
-        else:
-            sys.exit("Unconsidered situations happened!")
+    # def confirm(self, entity_id, attr_name, compare, value):
+    #     """
+    #     Confirm if the true value of attribute in entity meets the given condition.
+    #     :param entity_id:
+    #     :param attr_name:
+    #     :param compare:
+    #     :param value:
+    #     :return: if entity[attribute] is None, the expression can not be calculated and we return None; else we return
+    #     the value of bool expression (entity[attribute] compare value ?)
+    #     """
+    #     entity = self.find_entity(entity_id)
+    #     true_value = entity[attr_name]
+    #
+    #     # some special conditions
+    #     if true_value is None:
+    #         return None
+    #
+    #     if type(true_value) in [float, int]:
+    #         if true_value < value and compare == '<' or \
+    #                                 true_value == value and compare == '=' or \
+    #                                 true_value > value and compare == '>':
+    #             return True
+    #         else:
+    #             return False
+    #     elif type(true_value) == list:
+    #         if value in true_value and compare == 'has':
+    #             return True
+    #         else:
+    #             return False
+    #     elif type(true_value) in [str, bool]:
+    #         if true_value == value and compare == 'is':
+    #             return True
+    #         else:
+    #             return False
+    #     else:
+    #         sys.exit("Unconsidered situations happened!")
+    #
+    # def compare(self, entity1_id, entity2_id, attr_name):
+    #     """
+    #     Compare the attr between entity1 and entity2.
+    #     :param entity1_id:
+    #     :param entity2_id:
+    #     :param attr_name:
+    #     :return: tuple, the first key is in ['None_1', 'None_2', 'Difference', 'noDifference'],
+    #     the remain two keys are entity_id sorted according to attr_name.
+    #     """
+    #     entity1 = self.find_entity(entity1_id)
+    #     entity2 = self.find_entity(entity2_id)
+    #     assert attr_name in GOODS_ATTRIBUTE_DEFINITION.keys(), "Can't find this attribute!"
+    #     assert 'prefer' in GOODS_ATTRIBUTE_DEFINITION[attr_name].keys(), "This attribute is not comparable!"
+    #
+    #     # some special conditions
+    #     if entity1[attr_name] is None and entity2[attr_name] is not None:
+    #         return 'None_1', entity2_id, entity1_id
+    #     if entity1[attr_name] is not None and entity2[attr_name] is None:
+    #         return 'None_1', entity1_id, entity2_id
+    #     if entity1[attr_name] is None and entity2[attr_name] is None:
+    #         return 'None_2', entity1_id, entity2_id
+    #
+    #     if type(entity1[attr_name]) == type(entity2[attr_name]) and type(entity1[attr_name]) in [float, int]:
+    #         if GOODS_ATTRIBUTE_DEFINITION[attr_name]['prefer'] == 'low':
+    #             if entity1[attr_name] < entity2[attr_name]:
+    #                 return 'Difference', entity1_id, entity2_id
+    #             elif entity1[attr_name] == entity2[attr_name]:
+    #                 return 'noDifference', entity1_id, entity2_id
+    #             else:
+    #                 return 'Difference', entity2_id, entity1_id
+    #         else:
+    #             if entity1[attr_name] < entity2[attr_name]:
+    #                 return 'Difference', entity2_id, entity1_id
+    #             elif entity1[attr_name] == entity2[attr_name]:
+    #                 return 'noDifference', entity1_id, entity2_id
+    #             else:
+    #                 return 'Difference', entity1_id, entity2_id
+    #     elif type(entity1[attr_name]) == type(entity2[attr_name]) and type(entity1[attr_name]) in [str, bool]:
+    #         if GOODS_ATTRIBUTE_DEFINITION[attr_name]['prefer'] == 'low':
+    #             if GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity1[attr_name]) < \
+    #                     GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity2[attr_name]):
+    #                 return 'Difference', entity1_id, entity2_id
+    #             elif GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity1[attr_name]) == \
+    #                     GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity2[attr_name]):
+    #                 return 'noDifference', entity1_id, entity2_id
+    #             else:
+    #                 return 'Difference', entity2_id, entity1_id
+    #         else:
+    #             if GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity1[attr_name]) < \
+    #                     GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity2[attr_name]):
+    #                 return 'Difference', entity2_id, entity1_id
+    #             elif GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity1[attr_name]) == \
+    #                     GOODS_ATTRIBUTE_DEFINITION[attr_name]['range'].index(entity2[attr_name]):
+    #                 return 'noDifference', entity1_id, entity2_id
+    #             else:
+    #                 return 'Difference', entity1_id, entity2_id
+    #     else:
+    #         sys.exit("Unconsidered situations happened!")
 
     def search_kb(self, **kwargs):
+        """
+        search KB based on some constrain conditions
+        """
         candidates = list()
         if kwargs['dtype'] in ['int', 'float']:
             for entity in self.kb:
@@ -272,6 +289,4 @@ class KnowledgeBase(object):
 
 if __name__ == '__main__':
     kb = KnowledgeBase()
-    print(kb.inform(0, 'color'))
-    print(kb.confirm(2, 'material', 'is', '金属'))
-    print(kb.compare(3, 2, 'generation'))
+    print(kb.inform('color', "entityId=0", 1))

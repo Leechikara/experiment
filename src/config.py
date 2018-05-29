@@ -22,7 +22,7 @@ GOODS_ATTRIBUTE_DEFINITION = {'price': {'dtype': 'int', 'min': 1000, 'max': 2000
                                             'expensive': 'low', 'prefer': 'low'},
                               'size': {'dtype': 'float', 'range': [0.1 * x for x in range(90, 100)],
                                        'expensive': 'high', 'prefer': 'high'},
-                              'material': {'dtype': 'str', 'range': ['塑料', '木', '金属'], 'expensive': 'high',
+                              'material': {'dtype': 'str', 'range': ['塑料', '木头', '金属'], 'expensive': 'high',
                                            'prefer': 'high'},
                               'network': {'dtype': 'str', 'range': ['3g', '4g'], 'expensive': 'high',
                                           'prefer': 'high'},
@@ -33,9 +33,9 @@ GOODS_ATTRIBUTE_DEFINITION = {'price': {'dtype': 'int', 'min': 1000, 'max': 2000
 
 # global attribute definitions
 OTHER_ATTRIBUTE_DEFINITION = {
-    'payment': {'dtype': 'constantList', 'value': ['weChat', 'Alipay', 'creditCard', 'debitCard']},
+    'payment': {'dtype': 'constantList', 'value': ['微信', '支付宝', '信用卡']},
     'expressTime': {'dtype': 'constantInt', 'value': 3},
-    'expressName': {'dtype': 'constantList', 'value': ['顺丰', '韵达', '菜鸟', '中通']}}
+    'expressName': {'dtype': 'constantList', 'value': '顺丰'}}
 
 # simulate noise in price
 PRICE_NOISE = 300
