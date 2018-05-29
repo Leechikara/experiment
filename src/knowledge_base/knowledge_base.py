@@ -144,16 +144,16 @@ class KnowledgeBase(object):
         assert found_entity, "Can't find entity given by users!"
         return entity
 
-    def inform(self, attr_name, *args):
+    def inform(self, attr_name, entity_list):
         """
         Inform user some information
         """
-        assert 0 <= len(args) < 3
+        assert 0 <= len(entity_list) < 3
 
         kb_results = {attr_name: None}
-        if len(args) != 0:
+        if len(entity_list) != 0:
             kb_results[attr_name] = dict()
-            for entityId in args:
+            for entityId in entity_list:
                 entity = self.find_entity(entityId)
                 kb_results[attr_name][entityId] = entity[attr_name]
         else:
