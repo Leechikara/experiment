@@ -113,13 +113,13 @@ class Translator(object):
                         information = ",".join(information)
                     else:
                         information = str(information)
-                    nl = re.sub(r"\$entity1_\S+\$", information, nl)
+                    nl = re.sub(r"\$entity1_\S+?\$", information, nl)
                     information = kb_results[attr][kb_query_keys['entity2']]
                     if type(information) == list:
                         information = ",".join(information)
                     else:
                         information = str(information)
-                    nl = re.sub(r"\$entity2_\S+\$", information, nl)
+                    nl = re.sub(r"\$entity2_\S+?\$", information, nl)
                 else:
                     if kb_results[attr][kb_query_keys['entity1']] is not None and \
                                     kb_results[attr][kb_query_keys['entity2']] is not None:
@@ -142,17 +142,17 @@ class Translator(object):
                             information = ",".join(information)
                         else:
                             information = str(information)
-                        nl = re.sub(r"\$entity1_\S+\$", information, nl)
+                        nl = re.sub(r"\$entity1_\S+?\$", information, nl)
                     if kb_results[attr][kb_query_keys['entity2']] is not None:
                         information = kb_results[attr][kb_query_keys['entity2']]
                         if type(information) == list:
                             information = ",".join(information)
                         else:
                             information = str(information)
-                        nl = re.sub(r"\$entity2_\S+\$", information, nl)
+                        nl = re.sub(r"\$entity2_\S+?\$", information, nl)
         return nl
 
 
 if __name__ == "__main__":
     translator = Translator()
-    print(translator.translate('$entityId=5_discountValue$'))
+    print(translator.translate('$entityId=1_entityId=2_price$'))
