@@ -10,7 +10,7 @@ NEW_ADD_ENTITY = 0
 
 # attribute definition of goods
 GOODS_ATTRIBUTE_DEFINITION = {'price': {'dtype': 'int', 'min': 1000, 'max': 2000, 'prefer': 'low'},
-                              'discountValue': {'dtype': 'float', 'range': [0.1 * x for x in range(6, 10)],
+                              'discountValue': {'dtype': 'int', 'range': [x for x in range(6, 10)],
                                                 'acceptNone': True, 'prefer': 'low'},
                               'discountURL': {'dtype': 'str', 'prefix': 'https://activity/', 'entity_id': None,
                                               'discountValue': None, 'postfix': '.html', 'correlate': 'discountValue'},
