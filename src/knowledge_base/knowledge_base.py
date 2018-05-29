@@ -50,7 +50,10 @@ class KnowledgeBase(object):
             entity[attr_name] = round(value, 1) if value is not None else value
             return entity
         elif attr_definition['dtype'] == 'int':
-            value = random.choice(attr_definition['range'])
+            if attr_definition.get('acceptNone', False) and random.random() < 0.5:
+                value = None
+            else:
+                value = random.choice(attr_definition['range'])
             entity[attr_name] = value
             return entity
         elif attr_definition['dtype'] == 'str':
