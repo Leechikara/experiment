@@ -218,8 +218,8 @@ class EpisodeGenerator(object):
             sys.exit("Unconsidered situations happen!")
 
         # And then, we add sentiment factor.
-        # if decorate_sentiment:
-        #     episode_script = self.sentiment.decorate_sentiment(episode_script)
+        if decorate_sentiment:
+            episode_script = self.sentiment.decorate_sentiment(episode_script, episode)
 
         # In the end, we translate some content based on KB results.
 

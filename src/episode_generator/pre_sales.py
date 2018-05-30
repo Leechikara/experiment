@@ -136,7 +136,7 @@ class PreSales(object):
             else:
                 bonus2 = 0
             amplify = math.exp(
-                (self.matrix.shape[1] - i_spare[i] + self.matrix.shape[0] - j_spare[j] + bonus1 * 2 + bonus2) / 2)
+                (self.matrix.shape[1] - i_spare[i] + self.matrix.shape[0] - j_spare[j] + bonus1 + bonus2) / 2)
             p_amplify_list.append(amplify)
 
         p_list = [p * multi for p, multi in zip(p_list, p_amplify_list)]
@@ -195,21 +195,8 @@ class PreSales(object):
         p_list_in_row = [math.exp(5 * p) for p in p_list_in_row]
 
         # choose the entity to compare
-        entity_num = len(self.user_concern_entity)
-        all_entity = list(range(entity_num))
-        for coordinate in available_coordinate_in_row:
-            all_entity.remove(coordinate[1])
-        all_entity.remove(self.coordinate[1])
-
-        if len(all_entity) == 0 or len(available_coordinate_in_row) > 1 and random.random() < 0.5:
-            explored_new = True
-            compared_coordinate = random_pick(available_coordinate_in_row, p_list_in_row)
-        else:
-            explored_new = False
-            compared_coordinate_j = random_pick(all_entity, [1] * len(all_entity))
-            compared_coordinate = (row, compared_coordinate_j)
-
-        return compared_coordinate, explored_new
+        compared_coordinate = random_pick(available_coordinate_in_row, p_list_in_row)
+        return compared_coordinate
 
     def qa_generator(self, available_script, wording_list, p_list, axis, concern_list):
         """
@@ -273,7 +260,7 @@ class PreSales(object):
 
         return scene_name, scene_content
 
-    def compare_generator(self, available_script, wording_list, p_list, axis, concern_list, move, explored_new):
+    def compare_generator(self, available_script, wording_list, p_list, axis, concern_list, move):
         """
         Get a confirm scene based on dialog history
         """
@@ -299,37 +286,9 @@ class PreSales(object):
         scene_content = [turn.replace('entity2', str(entity2)) for turn in scene_content]
 
         # Now we make context important
-        if explored_new is False:
-            if move == 'diagonal_1':
-                if wording == 'lack_entity' and self.resolve_context(self.entity_list, axis, concern_list):
-                    scene_content = [scene_content[0], scene_content[-1]]
-                else:
-                    pass
-            elif move == 'horizontal_1':
-                if wording == 'lack_entity' and self.resolve_context(self.entity_list, axis, concern_list):
-                    scene_content = [scene_content[0], scene_content[-1]]
-                elif wording == 'lack_attribute' and self.resolve_context(self.attr_list, axis, concern_list):
-                    scene_content = [scene_content[0], scene_content[-1]]
-                elif wording == 'lack_attribute_entity':
-                    if self.resolve_context(self.entity_list, axis, concern_list) and self.resolve_context(
-                            self.attr_list, axis, concern_list):
-                        scene_content = [scene_content[0], scene_content[-1]]
-                    elif self.resolve_context(self.entity_list, axis, concern_list) and not self.resolve_context(
-                            self.attr_list, axis, concern_list):
-                        scene_content = [scene_content[0], scene_content[1], scene_content[2], scene_content[-1]]
-                    elif not self.resolve_context(self.entity_list, axis, concern_list) and self.resolve_context(
-                            self.attr_list, axis, concern_list):
-                        scene_content = [scene_content[0], scene_content[3], scene_content[4], scene_content[-1]]
-                    else:
-                        pass
-            else:
-                sys.exit("Unconsidered situations happen!")
-        else:
-            if move == 'horizontal_2' and wording == 'lack_attribute' and self.resolve_context(self.attr_list, axis,
-                                                                                               concern_list):
-                scene_content = [scene_content[0], scene_content[-1]]
-            else:
-                pass
+        if move == 'horizontal_2' and wording == 'lack_attribute' and \
+                self.resolve_context(self.attr_list, axis, concern_list):
+            scene_content = [scene_content[0], scene_content[-1]]
 
         return scene_name, scene_content
 
@@ -355,7 +314,11 @@ class PreSales(object):
             if self.user_concern_attr[self.coordinate[0]] not in COMPARE_PERMITTED_ATTR \
                     and 'compare' in current_available_intent:
                 current_available_intent.remove('compare')
-            if sum(self.matrix[self.coordinate[0]]) == 1 and 'confirm' in current_available_intent:
+            if np.sum(self.matrix[self.coordinate[0]]) == len(user_concern_entity) \
+                    and 'compare' in current_available_intent:
+                current_available_intent.remove('compare')
+            if sum(self.matrix[self.coordinate[0]]) == 1 \
+                    and 'confirm' in current_available_intent:
                 current_available_intent.remove('confirm')
             if 'confirm' in current_available_intent:
                 del_confirm = True
@@ -405,13 +368,10 @@ class PreSales(object):
                 self.previous_coordinate2 = self.previous_coordinate1
                 self.previous_coordinate1 = self.coordinate
             else:
-                compared_coordinate, explored_new = self.get_compared_coordinate(available_coordinate, p_list)
-
-                if explored_new is False:
-                    move = self.calculate_move()
-                else:
-                    move = self.calculate_move(compared_coordinate=compared_coordinate)
-                    self.matrix[compared_coordinate] = 1
+                # Get the compared coordinate
+                compared_coordinate = self.get_compared_coordinate(available_coordinate, p_list)
+                move = self.calculate_move(compared_coordinate=compared_coordinate)
+                self.matrix[compared_coordinate] = 1
 
                 available_grammar_p_dict = copy.deepcopy(self.grammar_p_dict[self.intent][move])
                 available_grammar_p_dict = filter_p_dict(
@@ -442,8 +402,8 @@ class PreSales(object):
                 scene_name, scene_content = self.compare_generator(available_script,
                                                                    list(available_grammar_p_dict.keys()),
                                                                    list(available_grammar_p_dict.values()),
-                                                                   axis, concern_list, move, explored_new)
-                self.previous_coordinate2 = self.previous_coordinate1
+                                                                   axis, concern_list, move)
+                self.previous_coordinate2 = compared_coordinate
                 self.previous_coordinate1 = self.coordinate
 
             self.episode_script[scene_name] = scene_content
