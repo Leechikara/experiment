@@ -230,7 +230,7 @@ if __name__ == '__main__':
     episode_generator = EpisodeGenerator(AVAILABLE_INTENT_5)
 
     # test our code
-    random.seed(2)
+    random.seed(0)
     for _ in range(2):
         print('.......................\n')
         episode_script = episode_generator.episode_generator()
