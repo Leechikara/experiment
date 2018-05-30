@@ -222,7 +222,7 @@ class PreSales(object):
         attr = self.attr_list[-1]
         entity = self.entity_list[-1]
         wording = random_pick(wording_list, p_list)
-        scene_name = ' '.join(['qa', str(entity), attr, wording])
+        scene_name = ' '.join(['qa', str(entity), "attr=" + attr, wording])
         scene_content = list()
 
         for turn in available_script[attr][wording]:
@@ -254,7 +254,7 @@ class PreSales(object):
         attr = self.attr_list[-1]
         entity = self.entity_list[-1]
         wording = random_pick(wording_list, p_list)
-        scene_name = ' '.join(['confirm', str(entity), attr, wording])
+        scene_name = ' '.join(['confirm', str(entity), "attr=" + attr, wording])
         scene_content = list()
 
         for turn in available_script[attr][wording]:
@@ -286,7 +286,7 @@ class PreSales(object):
         entity1 = self.entity_list[-1]
         entity2 = self.entity_list[-2]
         wording = random_pick(wording_list, p_list)
-        scene_name = ' '.join(['compare', str(entity1), str(entity2), attr, wording])
+        scene_name = ' '.join(['compare', str(entity1), str(entity2), "attr=" + attr, wording])
         scene_content = list()
 
         for turn in available_script[attr][wording]:
