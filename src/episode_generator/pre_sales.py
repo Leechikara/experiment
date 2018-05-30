@@ -2,7 +2,7 @@
 from config import *
 import random, math, copy, json, os
 import numpy as np
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from utils import random_pick, filter_p_dict
 import sys
 
@@ -39,7 +39,7 @@ class PreSales(object):
         self.previous_coordinate2 = None
         self.coordinate = None
         self.intent = None
-        self.episode_script = list()
+        self.episode_script = OrderedDict()
 
     def resolve_context(self, some_list, axis, user_concern_list):
         """
@@ -241,8 +241,7 @@ class PreSales(object):
         else:
             pass
 
-        scene = {scene_name: scene_content}
-        return scene
+        return scene_name, scene_content
 
     def confirm_generator(self, available_script, wording_list, p_list, axis, concern_list):
         """
@@ -272,8 +271,7 @@ class PreSales(object):
         else:
             pass
 
-        scene = {scene_name: scene_content}
-        return scene
+        return scene_name, scene_content
 
     def compare_generator(self, available_script, wording_list, p_list, axis, concern_list, move, explored_new):
         """
@@ -333,8 +331,7 @@ class PreSales(object):
             else:
                 pass
 
-        scene = {scene_name: scene_content}
-        return scene
+        return scene_name, scene_content
 
     def episode_generator(self, user_concern_attr, user_concern_entity):
         """
@@ -396,15 +393,15 @@ class PreSales(object):
                     concern_list = None
 
                 if self.intent == 'qa':
-                    scene = self.qa_generator(available_script,
-                                              list(available_grammar_p_dict.keys()),
-                                              list(available_grammar_p_dict.values()),
-                                              axis, concern_list)
+                    scene_name, scene_content = self.qa_generator(available_script,
+                                                                  list(available_grammar_p_dict.keys()),
+                                                                  list(available_grammar_p_dict.values()),
+                                                                  axis, concern_list)
                 else:
-                    scene = self.confirm_generator(available_script,
-                                                   list(available_grammar_p_dict.keys()),
-                                                   list(available_grammar_p_dict.values()),
-                                                   axis, concern_list)
+                    scene_name, scene_content = self.confirm_generator(available_script,
+                                                                       list(available_grammar_p_dict.keys()),
+                                                                       list(available_grammar_p_dict.values()),
+                                                                       axis, concern_list)
                 self.previous_coordinate2 = self.previous_coordinate1
                 self.previous_coordinate1 = self.coordinate
             else:
@@ -442,14 +439,14 @@ class PreSales(object):
                         if key.find('complete') != -1:
                             available_grammar_p_dict[key] = value * 2
 
-                scene = self.compare_generator(available_script,
-                                               list(available_grammar_p_dict.keys()),
-                                               list(available_grammar_p_dict.values()),
-                                               axis, concern_list, move, explored_new)
+                scene_name, scene_content = self.compare_generator(available_script,
+                                                                   list(available_grammar_p_dict.keys()),
+                                                                   list(available_grammar_p_dict.values()),
+                                                                   axis, concern_list, move, explored_new)
                 self.previous_coordinate2 = self.previous_coordinate1
                 self.previous_coordinate1 = self.coordinate
 
-            self.episode_script.append(scene)
+            self.episode_script[scene_name] = scene_content
             if np.sum(self.matrix) == self.matrix.shape[0] * self.matrix.shape[1]:
                 terminal = True
 
@@ -472,8 +469,8 @@ if __name__ == "__main__":
     # test our code
     random.seed(0)
     pre_sales_script = pre_sales.episode_generator(user_concern_attr, user_concern_entity)
-    for line in pre_sales_script:
-        for l in list(line.values())[0]:
+    for line in pre_sales_script.values():
+        for l in line:
             print(l)
         print('')
 
@@ -481,8 +478,8 @@ if __name__ == "__main__":
 
     random.seed(1)
     pre_sales_script = pre_sales.episode_generator(user_concern_attr, user_concern_entity)
-    for line in pre_sales_script:
-        for l in list(line.values())[0]:
+    for line in pre_sales_script.values():
+        for l in line:
             print(l)
         print('')
 
@@ -490,7 +487,7 @@ if __name__ == "__main__":
 
     random.seed(2)
     pre_sales_script = pre_sales.episode_generator(user_concern_attr, user_concern_entity)
-    for line in pre_sales_script:
-        for l in list(line.values())[0]:
+    for line in pre_sales_script.values():
+        for l in line:
             print(l)
         print('')

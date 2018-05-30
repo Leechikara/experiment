@@ -2,6 +2,7 @@
 import random, copy, os, json
 from utils import filter_p_dict, random_pick
 from config import *
+from collections import OrderedDict
 
 
 class AfterSales(object):
@@ -13,7 +14,7 @@ class AfterSales(object):
         self.episode_script = None
 
     def init_episode(self):
-        self.episode_script = list()
+        self.episode_script = OrderedDict()
 
     def scene_generator(self, *args):
         available_script = copy.deepcopy(self.script)
@@ -41,9 +42,8 @@ class AfterSales(object):
             else:
                 scene_content.append(turn)
 
-        scene_name = ' '.join(scene_name)
-        scene = {scene_name: scene_content}
-        return scene
+        scene_name = ' '.join(list(args) + scene_name)
+        return scene_name, scene_content
 
     def episode_generator(self):
         self.init_episode()
@@ -54,23 +54,24 @@ class AfterSales(object):
 
         if len(intent_list) == 1:
             intent = intent_list[0]
-            scene = self.scene_generator(intent)
-            self.episode_script.append(scene)
+            scene_name, scene_content = self.scene_generator(intent)
+            self.episode_script[scene_name] = scene_content
         else:
             intent1 = intent_list[0]
             intent2 = intent_list[1]
-            scene1 = self.scene_generator(intent1)
+            scene_name1, scene_content1 = self.scene_generator(intent1)
             if intent1 == 'consult' and intent2 == 'refund':
-                scene2 = self.scene_generator(intent2, 'withConsult')
+                scene_name2, scene_content2 = self.scene_generator(intent2, 'withConsult')
             else:
-                scene2 = self.scene_generator(intent2, 'color', 'withExchange')
-            self.episode_script.append(scene1)
-            self.episode_script.append(scene2)
+                scene_name2, scene_content2 = self.scene_generator(intent2, 'color', 'withExchange')
+            self.episode_script[scene_name1] = scene_content1
+            self.episode_script[scene_name2] = scene_content2
 
             # In such case, we should delete exchange scene
-            if intent1 == 'exchange' and intent2 == 'exchange' and list(scene1.keys())[0].find('verbose') != -1 \
-                    and list(scene1.keys())[0].find('3') == -1 or list(scene1.keys())[0].find('color') != -1:
-                del self.episode_script[-1]
+            if intent1 == 'exchange' and intent2 == 'exchange' and scene_name1.find('verbose') != -1 \
+                    and scene_name1.find('3') == -1 or scene_name1.find('color') != -1:
+                key = list(self.episode_script.keys())[-1]
+                del self.episode_script[key]
 
         return self.episode_script
 
@@ -87,8 +88,8 @@ if __name__ == "__main__":
 
     random.seed(0)
     after_sales_script = after_sales.episode_generator()
-    for line in after_sales_script:
-        for l in list(line.values())[0]:
+    for line in after_sales_script.values():
+        for l in line:
             print(l)
         print('')
 
@@ -96,7 +97,7 @@ if __name__ == "__main__":
 
     random.seed(1)
     after_sales_script = after_sales.episode_generator()
-    for line in after_sales_script:
-        for l in list(line.values())[0]:
+    for line in after_sales_script.values():
+        for l in line:
             print(l)
         print('')

@@ -2,6 +2,7 @@
 import random, os, json
 from utils import random_pick, filter_p_dict
 from config import *
+from collections import OrderedDict
 
 
 class InSales(object):
@@ -31,7 +32,7 @@ class InSales(object):
         else:
             self.picked_intents = picked_intents
 
-        self.episode_script = list()
+        self.episode_script = OrderedDict()
 
     def scene_generator(self, intent):
         current_grammar_p_dict = self.grammar_p_dict[intent]
@@ -56,8 +57,7 @@ class InSales(object):
             else:
                 self.given_entity = True
 
-        scene = {scene_name: scene_content}
-        return scene
+        return scene_name, scene_content
 
     def episode_generator(self, desired_entity):
         self.init_episode(desired_entity)
@@ -80,8 +80,8 @@ class InSales(object):
 
         # generate episode
         for intent in picked_intents:
-            scene = self.scene_generator(intent)
-            self.episode_script.append(scene)
+            scene_name, scene_content = self.scene_generator(intent)
+            self.episode_script[scene_name] = scene_content
 
         return self.episode_script
 
@@ -100,8 +100,8 @@ if __name__ == "__main__":
 
     random.seed(0)
     in_sales_script = in_sales.episode_generator(desired_entity)
-    for line in in_sales_script:
-        for l in list(line.values())[0]:
+    for line in in_sales_script.values():
+        for l in line:
             print(l)
         print('')
 
@@ -109,8 +109,8 @@ if __name__ == "__main__":
 
     random.seed(1)
     in_sales_script = in_sales.episode_generator(desired_entity)
-    for line in in_sales_script:
-        for l in list(line.values())[0]:
+    for line in in_sales_script.values():
+        for l in line:
             print(l)
         print('')
 
@@ -118,7 +118,7 @@ if __name__ == "__main__":
 
     random.seed(2)
     in_sales_script = in_sales.episode_generator(desired_entity)
-    for line in in_sales_script:
-        for l in list(line.values())[0]:
+    for line in in_sales_script.values():
+        for l in line:
             print(l)
         print('')

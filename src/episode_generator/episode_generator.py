@@ -20,6 +20,7 @@ from in_sales import InSales
 from after_sales import AfterSales
 from sentiment import Sentiment
 from src.knowledge_base.knowledge_base import KnowledgeBase
+from src.translator.translator import Translator
 import random
 import json
 import copy
@@ -70,6 +71,9 @@ class EpisodeGenerator(object):
         # Knowledge Base
         self.kb_helper = KnowledgeBase()
 
+        # translate agent dialog action according to KB results
+        self.translator = Translator()
+
     def sample_user(self):
         """
         Sample 2~3 candidate entities and 2~3 user concern attributes.
@@ -96,7 +100,7 @@ class EpisodeGenerator(object):
         attr_priority = copy.deepcopy(sample_goods_attr)
         random.shuffle(attr_priority)
 
-        # define those hard constrains: color and os
+        # define incommensurable constrains: color and os
         hard_constrains = dict()
         if 'color' in sample_goods_attr:
             color_list = list()
@@ -154,7 +158,7 @@ class EpisodeGenerator(object):
                     sys.exit("Unconsidered situations happen!")
                 attr_entity_table[attr] = entity_id
             else:
-                # We check hard constrains
+                # We check incommensurable constrains
                 assert attr in hard_constrains.keys()
                 attr_entity_table[attr] = list()
                 for entity_id, value in entity_attr_value.items():
@@ -210,19 +214,15 @@ class EpisodeGenerator(object):
         else:
             sys.exit("Unconsidered situations happen!")
 
-        # And then, we translate some content based on KB results.
+        # And then, we add sentiment factor.
+        if decorate_sentiment:
+            episode_script = self.decorate_sentiment(episode_script)
 
-        # In the end, we add sentiment factor.
+        # In the end, we translate some content based on KB results.
 
         return episode_script
 
     def decorate_sentiment(self, episode_script):
-        pass
-
-    def translate(self, episode_script):
-        """
-        We translate KB results into NL
-        """
 
 
 
