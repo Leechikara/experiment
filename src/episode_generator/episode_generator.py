@@ -88,12 +88,15 @@ class EpisodeGenerator(object):
             candidate_entity = self.kb_helper.search_kb(attr='price', dtype='int', compare='~', upper=upper,
                                                         lower=lower)
 
-        # sample entities
+        # sample entities and attr
         entity_num = random.choice([2, 3])
-        sample_entity = random.sample(candidate_entity, entity_num)
-
-        # sample attr
         attr_num = random.choice([2, 3])
+        if entity_num == 3 and attr_num == 3:
+            if random.random() < 0.5:
+                entity_num -= 1
+            else:
+                attr_num -= 1
+        sample_entity = random.sample(candidate_entity, entity_num)
         sample_goods_attr = random.sample(PRE_SALES_ATTR, attr_num)
 
         # get the priority of attr
@@ -210,30 +213,28 @@ class EpisodeGenerator(object):
             episode_script = self.pre_sales.episode_generator(sample_goods_attr, sample_entity)
             desired_entity = self.calculate_desired_entity(sample_entity, sample_goods_attr,
                                                            attr_priority, hard_constrains)
-            episode_script.extend(self.in_sales.episode_generator(desired_entity))
+            episode_script.update(self.in_sales.episode_generator(desired_entity))
         else:
             sys.exit("Unconsidered situations happen!")
 
         # And then, we add sentiment factor.
-        if decorate_sentiment:
-            episode_script = self.decorate_sentiment(episode_script)
+        # if decorate_sentiment:
+        #     episode_script = self.sentiment.decorate_sentiment(episode_script)
 
         # In the end, we translate some content based on KB results.
 
         return episode_script
-
-    def decorate_sentiment(self, episode_script):
-
 
 
 if __name__ == '__main__':
     episode_generator = EpisodeGenerator(AVAILABLE_INTENT_5)
 
     # test our code
-    for _ in range(10000):
+    random.seed(2)
+    for _ in range(2):
         print('.......................\n')
         episode_script = episode_generator.episode_generator()
-        for line in episode_script:
-            for l in list(line.values())[0]:
+        for line in episode_script.values():
+            for l in line:
                 print(l)
             print('')
