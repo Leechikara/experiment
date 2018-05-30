@@ -93,12 +93,14 @@ GRAMMAR_P_DICT = {'pre_sales': {'qa': {'init': {'complete': 1 / 30, 'lack_attrib
                                             'diagonal_1': {'complete': 1 / 10}},
                                 'compare': {'init': {'complete': 1 / 40, 'lack_entity': 1 / 4,
                                                      'lack_attribute': 1 / 4, 'lack_attribute_entity': 1 / 4},
-                                            'horizontal_1': {'complete': 1 / 40, 'lack_entity': 1 / 4,
-                                                             'lack_attribute': 1 / 4, 'lack_attribute_entity': 1 / 4},
-                                            'diagonal_1': {'complete': 1 / 20},
                                             'horizontal_2': {'complete': 1 / 20, 'lack_attribute': 1 / 2},
                                             'diagonal_2': {'complete': 1 / 10}}},
                   'in_sales': {'discountURL': {'complete': 1 / 2, 'lack_entity': 1 / 2},
                                'payment': {'complete': 1},
                                'expressTime': {'complete': 1},
                                'expressName': {'complete': 1}}}
+
+# all sentiment target
+SENTIMENT_TARGET = ["general", "price", "color", "size", "discountValue",
+                    "discountURL", "material", "weight", "thickness",
+                    "expressTime", "expressInfo", "network", "nfc", "os"]
