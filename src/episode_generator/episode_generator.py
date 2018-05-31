@@ -239,10 +239,9 @@ if __name__ == '__main__':
 
     # test our code
     random.seed(0)
-    for _ in range(2):
-        print('.......................\n')
-        episode_script = episode_generator.episode_generator()
-        for line in episode_script.values():
-            for l in line:
-                print(l)
-            print('')
+    print('.......................\n')
+    episode_script = episode_generator.episode_generator()
+    for line in episode_script.values():
+        for l in line:
+            print(l)
+        print('')
