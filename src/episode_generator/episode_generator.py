@@ -203,6 +203,7 @@ class EpisodeGenerator(object):
         if episode == 'pre_sales':
             sample_entity, sample_goods_attr, attr_priority, hard_constrains = self.sample_user()
             episode_script = self.pre_sales.episode_generator(sample_goods_attr, sample_entity)
+            attr_entity_table = None
         elif episode == 'in_sales':
             desired_entity = self.sample_desired_entity()
             episode_script = self.in_sales.episode_generator(desired_entity)
@@ -219,12 +220,16 @@ class EpisodeGenerator(object):
 
         # And then, we add sentiment factor.
         if decorate_sentiment:
-            if episode == 'pre_sales':
-                _, attr_entity_table = self.calculate_desired_entity(sample_entity, sample_goods_attr,
-                                                                     attr_priority, hard_constrains)
-            episode_script = self.sentiment.decorate_sentiment(episode_script, episode)
-
-        # In the end, we translate some content based on KB results.
+            if episode.find('pre_sales') != -1:
+                if attr_entity_table is None:
+                    _, attr_entity_table = self.calculate_desired_entity(sample_entity, sample_goods_attr,
+                                                                         attr_priority, hard_constrains)
+                episode_script = self.sentiment.episode_generator(episode_script, episode,
+                                                                  sample_entity=sample_entity,
+                                                                  sample_goods_attr=sample_goods_attr,
+                                                                  attr_entity_table=attr_entity_table)
+            else:
+                episode_script = self.sentiment.episode_generator(episode_script, episode)
 
         return episode_script
 

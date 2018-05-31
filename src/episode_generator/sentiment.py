@@ -146,7 +146,8 @@ class Sentiment(object):
                         assert key.find("discount") != -1
                         kb_results = self.kb_helper.inform(attr, [entity])
                         if kb_results[attr][entity] is not None:
-                            if kwargs["attr_entity_table"][attr] == entity:
+                            if "attr_entity_table" in kwargs.keys() and kwargs["attr_entity_table"][attr] == entity \
+                                    or "attr_entity_table" not in kwargs.keys() and random.random() < 0.5:
                                 candidate_sentiment[key] = {k: v for k, v in value.items()
                                                             if k.find("notNone") != -1 and k.find("positive") != -1}
                                 polarity_list.append("positive")
@@ -167,7 +168,7 @@ class Sentiment(object):
                         polarity_list.append("negative")
                 elif "pre_sales_end" in scene_element:
                     # make sentiment coherent
-                    if len(set(polarity_list)) == 0 and set(polarity_list) == set(["positive"]):
+                    if len(set(polarity_list)) == 0 and set(polarity_list) == {"positive"}:
                         candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("positive") != -1}
                         polarity_list.append("positive")
                     else:
@@ -222,12 +223,12 @@ class Sentiment(object):
                         if rule == "append":
                             sentiment_script[new_scene_name] = \
                                 episode_script[scene_name].extend(sentiment_scene_content)
-                            # user have given the refund reason
-                            if sentiment_scene_name.find("refund") != -1:
-                                del sentiment_script[new_scene_name][3:5]
                         elif rule == "prefix":
                             sentiment_script[new_scene_name] = \
                                 sentiment_scene_content.extend(episode_script[scene_name])
+                            # user have given the refund reason
+                            if sentiment_scene_name.find("refund") != -1:
+                                del sentiment_script[new_scene_name][3:5]
                         elif rule == "insert":
                             if sentiment_scene_name.find("refund") != -1:
                                 # in this situation, we can only replace $refundReason$
