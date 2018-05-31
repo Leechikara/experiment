@@ -235,7 +235,7 @@ class EpisodeGenerator(object):
 
 
 if __name__ == '__main__':
-    episode_generator = EpisodeGenerator(AVAILABLE_INTENT_5)
+    episode_generator = EpisodeGenerator(AVAILABLE_INTENT_6)
 
     # test our code
     random.seed(0)
