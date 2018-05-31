@@ -235,10 +235,10 @@ class EpisodeGenerator(object):
 
 
 if __name__ == '__main__':
+    random.seed(0)
     episode_generator = EpisodeGenerator(AVAILABLE_INTENT_6)
 
     # test our code
-    random.seed(0)
     print('.......................\n')
     episode_script = episode_generator.episode_generator()
     for line in episode_script.values():
