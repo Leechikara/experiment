@@ -408,6 +408,7 @@ class PreSales(object):
 
             self.episode_script[scene_name] = scene_content
             if np.sum(self.matrix) == self.matrix.shape[0] * self.matrix.shape[1]:
+                self.episode_script["pre_sales_end"] = []
                 terminal = True
 
         return self.episode_script

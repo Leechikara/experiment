@@ -2,12 +2,16 @@
 import random
 import copy
 import sys
+import re
 from config import *
+from src.knowledge_base.knowledge_base import KnowledgeBase
+from collections import OrderedDict
 
 
 class Sentiment(object):
     def __init__(self, script):
         self.script = self._flatten(script)
+        self.kb_helper = KnowledgeBase()
 
     # Roll out the content of a dictionary
     def _flatten(self, dictionary, prefix=""):
@@ -21,7 +25,8 @@ class Sentiment(object):
 
     def candidate_scene_generator(self, scene):
         """
-        Find all possible sentiment scene for current scene
+        Find all possible sentiment scene for current basic scene.
+        scene is the name of basic script.
         """
         scene_element = scene.split(" ")
 
@@ -45,8 +50,8 @@ class Sentiment(object):
         sentiment_scene = dict()
         for key, value in self.script.items():
             match = True
-            for element in sentiment_element:
-                if key.find(element) == -1:
+            for ele in sentiment_element:
+                if key.find(ele) == -1:
                     match = False
                     break
             if match:
@@ -54,9 +59,35 @@ class Sentiment(object):
 
         return sentiment_scene
 
-    def decorate_sentiment(self, episode_script, episode, **kwargs):
+    @staticmethod
+    def find_attr_entity(scene_element):
+        if "compare" in scene_element:
+            entity = list()
+        else:
+            entity = None
+        attr = None
+
+        for ele in scene_element:
+            if ele.find("attr=") != -1:
+                attr = ele.strip("attr=")
+            if ele.find("entityId=") != -1:
+                if type(entity) != list:
+                    entity = int(ele.strip("entityId="))
+                else:
+                    entity.append(int(ele.strip("entityId=")))
+
+        if type(entity) == list:
+            assert len(entity) == 2
+            entity = random.choice(entity)
+        else:
+            assert entity is not None
+        assert attr is not None
+
+        return entity, attr
+
+    def episode_generator(self, episode_script, episode, **kwargs):
         """
-        Given a generated episode_script from basic 4 scene. We add sentiment factor into them.
+        We create a sentiment script based on generated episode script from basic 4 scene.
         """
         scene_list = list(episode_script.keys())
         candidate_sentiment = dict.fromkeys(scene_list)
@@ -66,20 +97,17 @@ class Sentiment(object):
 
         ###############################################################
         # Now, we add rules to keep the meaning sentiment scene.
-        # (1) We need delete some sentiment.
-        # (2) User may not praise or
-        # (2) Make sentiment coherent with content.
         ###############################################################
 
-        # sample some sentiment scene
+        # We need delete some sentiment.
         if episode == "pre_sales":
-            max_sentiment = len(kwargs['sample_entity']) * len(kwargs['sample_goods_attr']) / 2 - 1
+            max_sentiment = len(kwargs['sample_entity']) * len(kwargs['sample_goods_attr']) / 2
         elif episode == "in_sales":
             max_sentiment = 2
         elif episode == "after_sales":
             max_sentiment = 2
         elif episode == "pre_sales in_sales":
-            max_sentiment = len(kwargs['sample_entity']) * len(kwargs['sample_goods_attr']) / 2
+            max_sentiment = len(kwargs['sample_entity']) * len(kwargs['sample_goods_attr']) / 2 + 1
         else:
             sys.exit("Undefined episode!")
         sentiment_num = random.randint(1, max_sentiment)
@@ -92,18 +120,220 @@ class Sentiment(object):
             if key not in sampled_scene:
                 candidate_sentiment[key] = None
 
-        # keep only a sentiment scene that is meaningful
+        # Make sentiment coherent with content.
+        polarity_list = list()
         for key, value in candidate_sentiment.items():
-            if value is None or len(value) == 1:
+            if value is None:
                 continue
-            else:
+
+            if len(value) > 1:
                 scene_element = key.split(" ")
-                if "qa" in scene_element or "confirm" in scene_element:
+                if "qa" in scene_element or "confirm" in scene_element \
+                        or "compare" in scene_element or "discountURL" in scene_element:
+                    # find current entity and attr
+                    entity, attr = self.find_attr_entity(scene_element)
 
+                    # given the true polarity
+                    if kwargs["attr_entity_table"][attr] == entity:
+                        candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("positive") != -1}
+                        polarity_list.append("positive")
+                    else:
+                        candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("negative") != -1}
+                        polarity_list.append("negative")
 
+                    # Deal with the discount
+                    if len(candidate_sentiment[key]) != 1:
+                        assert key.find("discount") != -1
+                        kb_results = self.kb_helper.inform(attr, [entity])
+                        if kb_results[attr][entity] is not None:
+                            if kwargs["attr_entity_table"][attr] == entity:
+                                candidate_sentiment[key] = {k: v for k, v in value.items()
+                                                            if k.find("notNone") != -1 and k.find("positive") != -1}
+                                polarity_list.append("positive")
+                            else:
+                                candidate_sentiment[key] = {k: v for k, v in value.items()
+                                                            if k.find("notNone") != -1 and k.find("negative") != -1}
+                                polarity_list.append("negative")
+                        else:
+                            candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("notNone") == -1}
+                            polarity_list.append("negative")
+                elif "expressTime" in scene_element:
+                    # random give a sentiment polarity
+                    if random.random() < 0.5:
+                        candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("positive") != -1}
+                        polarity_list.append("positive")
+                    else:
+                        candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("negative") != -1}
+                        polarity_list.append("negative")
+                elif "pre_sales_end" in scene_element:
+                    # make sentiment coherent
+                    if len(set(polarity_list)) == 0 and set(polarity_list) == set(["positive"]):
+                        candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("positive") != -1}
+                        polarity_list.append("positive")
+                    else:
+                        candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("negative") != -1}
+                        polarity_list.append("negative")
+                else:
+                    sys.exit("Unconsidered situations happen!")
 
+            # replace entity
+            assert len(candidate_sentiment[key]) == 1
+            scene_content = list()
+            for scene_name, turn in list(candidate_sentiment[key].items())[0]:
+                if type(turn) == list:
+                    scene_content.append(random.choice(turn))
+                else:
+                    scene_content.append(turn)
+            scene_content = [re.sub(r"\$entity\$", "$entityId=" + str(entity) + "$", turn)
+                             for turn in scene_content]
+            candidate_sentiment[key][scene_name] = scene_content
 
+            episode_script = self.organize_script(episode_script, candidate_sentiment)
+            return episode_script
 
+    @staticmethod
+    def organize_script(episode_script, candidate_sentiment):
+        sentiment_script = OrderedDict()
+        for scene_name in episode_script.keys():
+            if candidate_sentiment[scene_name] is None:
+                sentiment_script[scene_name] = episode_script[scene_name]
+            else:
+                sentiment_scene_name = list(candidate_sentiment[scene_name].keys())[0]
+                sentiment_scene_content = list(candidate_sentiment[scene_name].values())[0]
+                # what's the polarity
+                if sentiment_scene_name.find("positive") != -1:
+                    polarity = "positive"
+                else:
+                    polarity = "negative"
 
-    def reorganize_sentiment(self):
-        pass
+                new_scene_name = " ".join([polarity, scene_name])
+                if episode_script[scene_name] is None:
+                    # replace rule
+                    sentiment_script[new_scene_name] = sentiment_scene_content
+                else:
+                    if sentiment_scene_name.find("pre_sales") != -1 or sentiment_scene_name.find("express") != -1 \
+                            or sentiment_scene_name.find("URL") != -1:
+                        # extend rule
+                        sentiment_script[new_scene_name] = \
+                            episode_script[scene_name].extend(sentiment_scene_content)
+                    elif sentiment_scene_name.find("refund") != -1 or sentiment_scene_name.find("consult") != -1:
+                        # choice a rule from feasible rule set
+                        rule = random.choice(SENTIMENT_RULES)
+                        if rule == "append":
+                            sentiment_script[new_scene_name] = \
+                                episode_script[scene_name].extend(sentiment_scene_content)
+                            # user have given the refund reason
+                            if sentiment_scene_name.find("refund") != -1:
+                                del sentiment_script[new_scene_name][3:5]
+                        elif rule == "prefix":
+                            sentiment_script[new_scene_name] = \
+                                sentiment_scene_content.extend(episode_script[scene_name])
+                        elif rule == "insert":
+                            if sentiment_scene_name.find("refund") != -1:
+                                # in this situation, we can only replace $refundReason$
+                                episode_script[scene_name].remove("$refundReason$")
+                                episode_script[scene_name].remove("麻烦您提供一下您的订单号")
+                                episode_script[scene_name].insert(2, sentiment_scene_content[0])
+                                episode_script[scene_name].insert(3, " ".join([sentiment_scene_content[1],
+                                                                               "麻烦您提供一下您的订单号"]))
+                                sentiment_script[new_scene_name] = episode_script[scene_name]
+                            else:
+                                if scene_name.find("verbose1") != -1:
+                                    sentiment_script[new_scene_name] = \
+                                        episode_script[scene_name].extend(sentiment_scene_content)
+                                elif scene_name.find("verbose2") != -1:
+                                    if random.random() < 0.5:
+                                        sentiment_script[new_scene_name] = \
+                                            episode_script[scene_name].extend(sentiment_scene_content)
+                                    else:
+                                        episode_script[scene_name].insert(2, sentiment_scene_content[0])
+                                        episode_script[scene_name].insert(3, sentiment_scene_content[1])
+                                        sentiment_script[new_scene_name] = episode_script[scene_name]
+                                else:
+                                    if len(episode_script[scene_name]) == 4:
+                                        if random.random() < 0.5:
+                                            sentiment_script[new_scene_name] = \
+                                                episode_script[scene_name].extend(sentiment_scene_content)
+                                        else:
+                                            episode_script[scene_name].insert(2, sentiment_scene_content[0])
+                                            episode_script[scene_name].insert(3, sentiment_scene_content[1])
+                                            sentiment_script[new_scene_name] = episode_script[scene_name]
+                                    else:
+                                        if random.random() < 0.5:
+                                            episode_script[scene_name].insert(2, sentiment_scene_content[0])
+                                            episode_script[scene_name].insert(3, sentiment_scene_content[1])
+                                            sentiment_script[new_scene_name] = episode_script[scene_name]
+                                        else:
+                                            episode_script[scene_name].insert(4, sentiment_scene_content[0])
+                                            del episode_script[scene_name][5]
+                                            episode_script[scene_name].insert(5, " ".join([sentiment_scene_content[1],
+                                                                                           "麻烦您提供一下姓名"]))
+                                            sentiment_script[new_scene_name] = episode_script[scene_name]
+                        else:
+                            if sentiment_scene_name.find("refund") != -1:
+                                temp_list = list()
+                                temp_list.append(episode_script[scene_name][0])
+                                temp_list.append(sentiment_scene_content[0])
+                                random.shuffle(temp_list)
+                                del episode_script[scene_name][0:4]
+                                episode_script[scene_name].insert(0, " ".join(temp_list))
+                                episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
+                                                                               "麻烦您提供一下您的订单号"]))
+                                sentiment_script[new_scene_name] = episode_script[scene_name]
+                            else:
+                                if scene_name.find("verbose1") != -1:
+                                    temp_list = list()
+                                    temp_list.append(episode_script[scene_name][0])
+                                    temp_list.append(sentiment_scene_content[0])
+                                    random.shuffle(temp_list)
+                                    del episode_script[scene_name][0:2]
+                                    episode_script[scene_name].insert(0, " ".join(temp_list))
+                                    episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
+                                                                                   "您可以尝试更新到最新的系统"]))
+                                    sentiment_script[new_scene_name] = episode_script[scene_name]
+                                elif scene_name.find("verbose2") != -1:
+                                    if random.random() < 0.5:
+                                        temp_list = list()
+                                        temp_list.append(episode_script[scene_name][0])
+                                        temp_list.append(sentiment_scene_content[0])
+                                        random.shuffle(temp_list)
+                                        del episode_script[scene_name][0:2]
+                                        episode_script[scene_name].insert(0, " ".join(temp_list))
+                                        episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
+                                                                                       "您可以尝试更新到最新的系统"]))
+                                        sentiment_script[new_scene_name] = episode_script[scene_name]
+                                    else:
+                                        temp_list = list()
+                                        temp_list.append(episode_script[scene_name][2])
+                                        temp_list.append(sentiment_scene_content[0])
+                                        random.shuffle(temp_list)
+                                        del episode_script[scene_name][2:4]
+                                        episode_script[scene_name].insert(2, " ".join(temp_list))
+                                        episode_script[scene_name].insert(3, " ".join([sentiment_scene_content[1],
+                                                                                       "$osUpdate$"]))
+                                        sentiment_script[new_scene_name] = episode_script[scene_name]
+                                else:
+                                    if random.random() < 0.5:
+                                        temp_list = list()
+                                        temp_list.append(episode_script[scene_name][0])
+                                        temp_list.append(sentiment_scene_content[0])
+                                        random.shuffle(temp_list)
+                                        del episode_script[scene_name][0:2]
+                                        episode_script[scene_name].insert(0, " ".join(temp_list))
+                                        episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
+                                                                                       "您可以尝试更新到最新的系统"]))
+                                        sentiment_script[new_scene_name] = episode_script[scene_name]
+                                    else:
+                                        temp_list = list()
+                                        temp_list.append(episode_script[scene_name][2])
+                                        temp_list.append(sentiment_scene_content[0])
+                                        random.shuffle(temp_list)
+                                        del episode_script[scene_name][2:4]
+                                        episode_script[scene_name].insert(2, " ".join(temp_list))
+                                        episode_script[scene_name].insert(3, " ".join([sentiment_scene_content[1],
+                                                                                       "$osUpdate$"]))
+                                        sentiment_script[new_scene_name] = episode_script[scene_name]
+
+                    else:
+                        sys.exit("Unconsidered situations happened!")
+        return sentiment_script

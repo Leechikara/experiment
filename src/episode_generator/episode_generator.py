@@ -184,7 +184,7 @@ class EpisodeGenerator(object):
             entity_score[entity['id']] = score
 
         entity_id = "entityId=" + str(sorted(entity_score.items(), key=lambda item: item[1], reverse=True)[0][0])
-        return entity_id
+        return entity_id, attr_entity_table
 
     def episode_generator(self):
         # First, we decide which dialog episode to generate
@@ -211,14 +211,17 @@ class EpisodeGenerator(object):
         elif episode == 'pre_sales in_sales':
             sample_entity, sample_goods_attr, attr_priority, hard_constrains = self.sample_user()
             episode_script = self.pre_sales.episode_generator(sample_goods_attr, sample_entity)
-            desired_entity = self.calculate_desired_entity(sample_entity, sample_goods_attr,
-                                                           attr_priority, hard_constrains)
+            desired_entity, attr_entity_table = self.calculate_desired_entity(sample_entity, sample_goods_attr,
+                                                                              attr_priority, hard_constrains)
             episode_script.update(self.in_sales.episode_generator(desired_entity))
         else:
             sys.exit("Unconsidered situations happen!")
 
         # And then, we add sentiment factor.
         if decorate_sentiment:
+            if episode == 'pre_sales':
+                _, attr_entity_table = self.calculate_desired_entity(sample_entity, sample_goods_attr,
+                                                                     attr_priority, hard_constrains)
             episode_script = self.sentiment.decorate_sentiment(episode_script, episode)
 
         # In the end, we translate some content based on KB results.
