@@ -139,7 +139,7 @@ class Sentiment(object):
             if key not in sampled_scene:
                 candidate_sentiment[key] = None
 
-        # Make sentiment coherent with content.
+        # Make sentiment coherent with content. Keep only a sentiment script from the candidate.
         polarity_list = list()
         for key, value in candidate_sentiment.items():
             if value is None:
@@ -209,10 +209,18 @@ class Sentiment(object):
                     else:
                         candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("negative") != -1}
                         polarity_list.append("negative")
+                elif "refund" in scene_element:
+                    # random choice one
+                    random_reason = random.choice(list(value.items()))
+                    candidate_sentiment[key] = {random_reason[0]: random_reason[1]}
+                    polarity_list.append("negative")
                 else:
                     sys.exit("Unconsidered situations happen!")
 
-            assert len(candidate_sentiment[key]) == 1
+            try:
+                assert len(candidate_sentiment[key]) == 1
+            except:
+                print(1)
             scene_content = list()
             scene_name = list(candidate_sentiment[key].items())[0][0]
             for turn in list(candidate_sentiment[key].items())[0][1]:

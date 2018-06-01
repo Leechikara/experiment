@@ -199,6 +199,7 @@ class EpisodeGenerator(object):
         else:
             decorate_sentiment = False
 
+        decorate_sentiment = True
         # Then, generate basic script
         if episode == 'pre_sales':
             sample_entity, sample_goods_attr, attr_priority, hard_constrains = self.sample_user()
@@ -238,10 +239,11 @@ if __name__ == '__main__':
     episode_generator = EpisodeGenerator(AVAILABLE_INTENT_6)
 
     # test our code
-    random.seed(2)
-    print('.......................\n')
-    episode_script = episode_generator.episode_generator()
-    for line in episode_script.values():
-        for l in line:
-            print(l)
-        print('')
+    random.seed(0)
+    for _ in range(10000):
+        print('.......................\n')
+        episode_script = episode_generator.episode_generator()
+        for line in episode_script.values():
+            for l in line:
+                print(l)
+            print('')
