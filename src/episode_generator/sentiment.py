@@ -81,6 +81,9 @@ class Sentiment(object):
             entity = random.choice(entity)
         else:
             assert entity is not None
+
+        if attr is None and "discountURL" in scene_element:
+            attr = "discountURL"
         assert attr is not None
 
         return entity, attr
@@ -133,17 +136,18 @@ class Sentiment(object):
                     # find current entity and attr
                     entity, attr = self.find_attr_entity(scene_element)
 
-                    # given the true polarity
-                    if kwargs["attr_entity_table"][attr] == entity:
-                        candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("positive") != -1}
-                        polarity_list.append("positive")
+                    # find a true polarity for current attr and entity
+                    if attr.find("discount") == -1:
+                        # for attr not discountURL and discountValue
+                        if kwargs["attr_entity_table"][attr] == entity:
+                            candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("positive") != -1}
+                            polarity_list.append("positive")
+                        else:
+                            candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("negative") != -1}
+                            polarity_list.append("negative")
                     else:
-                        candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("negative") != -1}
-                        polarity_list.append("negative")
-
-                    # Deal with the discount
-                    if len(candidate_sentiment[key]) != 1:
-                        assert key.find("discount") != -1
+                        # discountURL and discountValue is special
+                        assert len(candidate_sentiment[key]) != 1
                         kb_results = self.kb_helper.inform(attr, [entity])
                         if kb_results[attr][entity] is not None:
                             if "attr_entity_table" in kwargs.keys() and kwargs["attr_entity_table"][attr] == entity \
@@ -156,7 +160,8 @@ class Sentiment(object):
                                                             if k.find("notNone") != -1 and k.find("negative") != -1}
                                 polarity_list.append("negative")
                         else:
-                            candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("notNone") == -1}
+                            candidate_sentiment[key] = {k: v for k, v in value.items()
+                                                        if k.find("notNone") == -1 and k.find("negative") != -1}
                             polarity_list.append("negative")
                 elif "expressTime" in scene_element:
                     # random give a sentiment polarity
