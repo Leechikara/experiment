@@ -23,7 +23,7 @@ class Sentiment(object):
                 flatten_dict.update(self._flatten(value, " ".join([prefix, str(key)]).strip()))
         return flatten_dict
 
-    def candidate_scene_generator(self, scene):
+    def candidate_scene_generator(self, scene, last_scene):
         """
         Find all possible sentiment scene for current basic scene.
         scene is the name of basic script.
@@ -33,6 +33,17 @@ class Sentiment(object):
 
         # Get all keys for sentiment scene
         sentiment_element = list()
+
+        # A special case for refund, explict declare the attr!
+        if "refund" in scene_element and "withConsult" in scene_element and last_scene is not None:
+            last_scene_element = last_scene.split(" ")
+            attr = None
+            for ele in last_scene_element:
+                if ele in SENTIMENT_TARGET:
+                    attr = ele
+                    break
+            sentiment_element.append(attr)
+
         if "qa" in scene_element or "confirm" in scene_element or "compare" in scene_element:
             sentiment_element.append("pre_sales")
         elif "refund" in scene_element:
@@ -94,9 +105,11 @@ class Sentiment(object):
         """
         scene_list = list(episode_script.keys())
         candidate_sentiment = OrderedDict.fromkeys(scene_list)
+        last_scene = None
         for scene in scene_list:
-            sentiment_scene = self.candidate_scene_generator(scene)
+            sentiment_scene = self.candidate_scene_generator(scene, last_scene)
             candidate_sentiment[scene] = sentiment_scene
+            last_scene = scene
 
         ###############################################################
         # Now, we add rules to keep the meaning sentiment scene.
