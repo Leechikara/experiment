@@ -29,6 +29,7 @@ class Sentiment(object):
         scene is the name of basic script.
         """
         scene_element = scene.split(" ")
+        scene_element = [ele.replace("attr=", "") for ele in scene_element]
 
         # Get all keys for sentiment scene
         sentiment_element = list()
@@ -47,16 +48,15 @@ class Sentiment(object):
             return None
 
         # Get all script meet the keys
+        sentiment_element = set(sentiment_element)
         sentiment_scene = dict()
         for key, value in self.script.items():
-            match = True
-            for ele in sentiment_element:
-                if key.find(ele) == -1:
-                    match = False
-                    break
-            if match:
+            if sentiment_element <= set(key.split(" ")):
                 sentiment_scene[key] = copy.deepcopy(value)
 
+        # No pre-defined script, for example os in pre_sales
+        if len(sentiment_scene) == 0:
+            return None
         return sentiment_scene
 
     @staticmethod
@@ -69,12 +69,12 @@ class Sentiment(object):
 
         for ele in scene_element:
             if ele.find("attr=") != -1:
-                attr = ele.strip("attr=")
+                attr = ele.replace("attr=", "")
             if ele.find("entityId=") != -1:
                 if type(entity) != list:
-                    entity = int(ele.strip("entityId="))
+                    entity = int(ele.replace("entityId=", ""))
                 else:
-                    entity.append(int(ele.strip("entityId=")))
+                    entity.append(int(ele.replace("entityId=", "")))
 
         if type(entity) == list:
             assert len(entity) == 2
@@ -90,7 +90,7 @@ class Sentiment(object):
         We create a sentiment script based on generated episode script from basic 4 scene.
         """
         scene_list = list(episode_script.keys())
-        candidate_sentiment = dict.fromkeys(scene_list)
+        candidate_sentiment = OrderedDict.fromkeys(scene_list)
         for scene in scene_list:
             sentiment_scene = self.candidate_scene_generator(scene)
             candidate_sentiment[scene] = sentiment_scene
@@ -180,7 +180,8 @@ class Sentiment(object):
             # replace entity
             assert len(candidate_sentiment[key]) == 1
             scene_content = list()
-            for scene_name, turn in list(candidate_sentiment[key].items())[0]:
+            scene_name = list(candidate_sentiment[key].items())[0][0]
+            for turn in list(candidate_sentiment[key].items())[0][1]:
                 if type(turn) == list:
                     scene_content.append(random.choice(turn))
                 else:
@@ -189,8 +190,8 @@ class Sentiment(object):
                              for turn in scene_content]
             candidate_sentiment[key][scene_name] = scene_content
 
-            episode_script = self.organize_script(episode_script, candidate_sentiment)
-            return episode_script
+        episode_script = self.organize_script(episode_script, candidate_sentiment)
+        return episode_script
 
     @staticmethod
     def organize_script(episode_script, candidate_sentiment):
@@ -215,17 +216,17 @@ class Sentiment(object):
                     if sentiment_scene_name.find("pre_sales") != -1 or sentiment_scene_name.find("express") != -1 \
                             or sentiment_scene_name.find("URL") != -1:
                         # extend rule
-                        sentiment_script[new_scene_name] = \
-                            episode_script[scene_name].extend(sentiment_scene_content)
+                        episode_script[scene_name].extend(sentiment_scene_content)
+                        sentiment_script[new_scene_name] = episode_script[scene_name]
                     elif sentiment_scene_name.find("refund") != -1 or sentiment_scene_name.find("consult") != -1:
                         # choice a rule from feasible rule set
                         rule = random.choice(SENTIMENT_RULES)
                         if rule == "append":
-                            sentiment_script[new_scene_name] = \
-                                episode_script[scene_name].extend(sentiment_scene_content)
+                            episode_script[scene_name].extend(sentiment_scene_content)
+                            sentiment_script[new_scene_name] = episode_script[scene_name]
                         elif rule == "prefix":
-                            sentiment_script[new_scene_name] = \
-                                sentiment_scene_content.extend(episode_script[scene_name])
+                            sentiment_scene_content.extend(episode_script[scene_name])
+                            sentiment_script[new_scene_name] = sentiment_scene_content
                             # user have given the refund reason
                             if sentiment_scene_name.find("refund") != -1:
                                 del sentiment_script[new_scene_name][3:5]
@@ -240,12 +241,12 @@ class Sentiment(object):
                                 sentiment_script[new_scene_name] = episode_script[scene_name]
                             else:
                                 if scene_name.find("verbose1") != -1:
-                                    sentiment_script[new_scene_name] = \
-                                        episode_script[scene_name].extend(sentiment_scene_content)
+                                    episode_script[scene_name].extend(sentiment_scene_content)
+                                    sentiment_script[new_scene_name] = episode_script[scene_name]
                                 elif scene_name.find("verbose2") != -1:
                                     if random.random() < 0.5:
-                                        sentiment_script[new_scene_name] = \
-                                            episode_script[scene_name].extend(sentiment_scene_content)
+                                        episode_script[scene_name].extend(sentiment_scene_content)
+                                        sentiment_script[new_scene_name] = episode_script[scene_name]
                                     else:
                                         episode_script[scene_name].insert(2, sentiment_scene_content[0])
                                         episode_script[scene_name].insert(3, sentiment_scene_content[1])
@@ -253,8 +254,8 @@ class Sentiment(object):
                                 else:
                                     if len(episode_script[scene_name]) == 4:
                                         if random.random() < 0.5:
-                                            sentiment_script[new_scene_name] = \
-                                                episode_script[scene_name].extend(sentiment_scene_content)
+                                            episode_script[scene_name].extend(sentiment_scene_content)
+                                            sentiment_script[new_scene_name] = episode_script[scene_name]
                                         else:
                                             episode_script[scene_name].insert(2, sentiment_scene_content[0])
                                             episode_script[scene_name].insert(3, sentiment_scene_content[1])

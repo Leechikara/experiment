@@ -47,7 +47,8 @@ COMPARE_PERMITTED_ATTR = ['price', 'discountValue', 'weight', 'thickness', 'size
                           'network', 'generation']
 CONFIRM_PERMITTED_ATTR = ['price', 'discountValue', 'weight', 'os', 'color', 'thickness', 'size', 'material',
                           'network', 'nfc', 'generation']
-PRE_SALES_ATTR = list(set(QA_PERMITTED_ATTR) | set(COMPARE_PERMITTED_ATTR) | set(CONFIRM_PERMITTED_ATTR))
+PRE_SALES_ATTR = ['price', 'discountValue', 'weight', 'os', 'color', 'thickness', 'size', 'material',
+                  'network', 'nfc', 'generation']
 
 # we simulate the size of Hypothesis Space
 AVAILABLE_INTENT_1 = {'pre_sales': ['qa'],
