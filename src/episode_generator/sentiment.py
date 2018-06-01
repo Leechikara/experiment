@@ -129,6 +129,7 @@ class Sentiment(object):
             if value is None:
                 continue
 
+            entity = None
             if len(value) > 1:
                 scene_element = key.split(" ")
                 if "qa" in scene_element or "confirm" in scene_element \
@@ -182,7 +183,6 @@ class Sentiment(object):
                 else:
                     sys.exit("Unconsidered situations happen!")
 
-            # replace entity
             assert len(candidate_sentiment[key]) == 1
             scene_content = list()
             scene_name = list(candidate_sentiment[key].items())[0][0]
@@ -191,8 +191,11 @@ class Sentiment(object):
                     scene_content.append(random.choice(turn))
                 else:
                     scene_content.append(turn)
-            scene_content = [re.sub(r"\$entity\$", "$entityId=" + str(entity) + "$", turn)
-                             for turn in scene_content]
+
+            # Replace entity. Note in some case the entity can not be replace!
+            if entity is not None:
+                scene_content = [re.sub(r"\$entity\$", "$entityId=" + str(entity) + "$", turn)
+                                 for turn in scene_content]
             candidate_sentiment[key][scene_name] = scene_content
 
         episode_script = self.organize_script(episode_script, candidate_sentiment)
