@@ -193,7 +193,7 @@ class Sentiment(object):
                                                         if k.find("notNone") == -1
                                                         and k.find("negative") != -1}
                             polarity_list.append("negative")
-                elif "expressTime" in scene_element:
+                elif "expressTime" in scene_element or "expressInfo" in scene_element:
                     # random give a sentiment polarity
                     if random.random() < 0.5:
                         candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("positive") != -1}
@@ -217,10 +217,7 @@ class Sentiment(object):
                 else:
                     sys.exit("Unconsidered situations happen!")
 
-            try:
-                assert len(candidate_sentiment[key]) == 1
-            except:
-                print(1)
+            assert len(candidate_sentiment[key]) == 1
             scene_content = list()
             scene_name = list(candidate_sentiment[key].items())[0][0]
             for turn in list(candidate_sentiment[key].items())[0][1]:
@@ -260,7 +257,7 @@ class Sentiment(object):
                 else:
                     if sentiment_scene_name.find("pre_sales") != -1 or sentiment_scene_name.find("express") != -1 \
                             or sentiment_scene_name.find("URL") != -1:
-                        # extend rule
+                        # append rule
                         episode_script[scene_name].extend(sentiment_scene_content)
                         sentiment_script[new_scene_name] = episode_script[scene_name]
                     elif sentiment_scene_name.find("refund") != -1 or sentiment_scene_name.find("consult") != -1:
@@ -276,31 +273,52 @@ class Sentiment(object):
                             if sentiment_scene_name.find("refund") != -1:
                                 del sentiment_script[new_scene_name][3:5]
                         elif rule == "insert":
+                            # insert must happen after agent turn
                             if sentiment_scene_name.find("refund") != -1:
-                                # in this situation, we can only replace $refundReason$
-                                episode_script[scene_name].remove("$refundReason$")
-                                episode_script[scene_name].remove("麻烦您提供一下您的订单号")
-                                episode_script[scene_name].insert(2, sentiment_scene_content[0])
-                                episode_script[scene_name].insert(3, " ".join([sentiment_scene_content[1],
-                                                                               "麻烦您提供一下您的订单号"]))
-                                sentiment_script[new_scene_name] = episode_script[scene_name]
-                            else:
-                                if scene_name.find("verbose1") != -1:
-                                    episode_script[scene_name].extend(sentiment_scene_content)
+                                if scene_name.find("withConsult") == -1:
+                                    # in this situation, we can only replace $refundReason$
+                                    episode_script[scene_name].remove("$refundReason$")
+                                    episode_script[scene_name].remove("麻烦您提供一下您的订单号")
+                                    episode_script[scene_name].insert(2, sentiment_scene_content[0])
+                                    episode_script[scene_name].insert(3, " ".join([sentiment_scene_content[1],
+                                                                                   "麻烦您提供一下您的订单号"]))
                                     sentiment_script[new_scene_name] = episode_script[scene_name]
-                                elif scene_name.find("verbose2") != -1:
+                                else:
                                     if random.random() < 0.5:
                                         episode_script[scene_name].extend(sentiment_scene_content)
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
+                                    else:
+                                        sentiment_scene_content.extend(episode_script[scene_name])
+                                        sentiment_script[new_scene_name] = sentiment_scene_content
+                            else:
+                                if scene_name.find("verbose1") != -1:
+                                    if random.random() < 0.5:
+                                        episode_script[scene_name].extend(sentiment_scene_content)
+                                        sentiment_script[new_scene_name] = episode_script[scene_name]
+                                    else:
+                                        sentiment_scene_content.extend(episode_script[scene_name])
+                                        sentiment_script[new_scene_name] = sentiment_scene_content
+                                elif scene_name.find("verbose2") != -1:
+                                    p = random.random()
+                                    if p < 1 / 3:
+                                        episode_script[scene_name].extend(sentiment_scene_content)
+                                        sentiment_script[new_scene_name] = episode_script[scene_name]
+                                    elif p < 2 / 3:
+                                        sentiment_scene_content.extend(episode_script[scene_name])
+                                        sentiment_script[new_scene_name] = sentiment_scene_content
                                     else:
                                         episode_script[scene_name].insert(2, sentiment_scene_content[0])
                                         episode_script[scene_name].insert(3, sentiment_scene_content[1])
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
                                 else:
                                     if len(episode_script[scene_name]) == 4:
-                                        if random.random() < 0.5:
+                                        p = random.random()
+                                        if p < 1 / 3:
                                             episode_script[scene_name].extend(sentiment_scene_content)
                                             sentiment_script[new_scene_name] = episode_script[scene_name]
+                                        elif p < 2 / 3:
+                                            sentiment_scene_content.extend(episode_script[scene_name])
+                                            sentiment_script[new_scene_name] = sentiment_scene_content
                                         else:
                                             episode_script[scene_name].insert(2, sentiment_scene_content[0])
                                             episode_script[scene_name].insert(3, sentiment_scene_content[1])
