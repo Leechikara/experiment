@@ -131,7 +131,8 @@ class Sentiment(object):
         for key, value in candidate_sentiment.items():
             if value is not None:
                 available_scene.append(key)
-        sampled_scene = random.sample(available_scene, sentiment_num)
+        sampled_scene = random.sample(available_scene,
+                                      sentiment_num if len(available_scene) > sentiment_num else len(available_scene))
         for key in candidate_sentiment.keys():
             if key not in sampled_scene:
                 candidate_sentiment[key] = None
@@ -162,20 +163,33 @@ class Sentiment(object):
                     else:
                         # discountURL and discountValue is special
                         assert len(candidate_sentiment[key]) != 1
-                        kb_results = self.kb_helper.inform(attr, [entity])
-                        if kb_results[attr][entity] is not None:
-                            if "attr_entity_table" in kwargs.keys() and kwargs["attr_entity_table"][attr] == entity \
-                                    or "attr_entity_table" not in kwargs.keys() and random.random() < 0.5:
-                                candidate_sentiment[key] = {k: v for k, v in value.items()
-                                                            if k.find("notNone") != -1 and k.find("positive") != -1}
-                                polarity_list.append("positive")
+                        kb_results = self.kb_helper.inform("discountValue", [entity])
+                        if kb_results["discountValue"][entity] is not None:
+                            if "attr_entity_table" in kwargs.keys() and \
+                                            "discountValue" in kwargs["attr_entity_table"].keys():
+                                if kwargs["attr_entity_table"]["discountValue"] == entity:
+                                    candidate_sentiment[key] = {k: v for k, v in value.items()
+                                                                if k.find("positive") != -1}
+                                    polarity_list.append("positive")
+                                else:
+                                    candidate_sentiment[key] = {k: v for k, v in value.items()
+                                                                if k.find("notNone") != -1
+                                                                and k.find("negative") != -1}
+                                    polarity_list.append("negative")
                             else:
-                                candidate_sentiment[key] = {k: v for k, v in value.items()
-                                                            if k.find("notNone") != -1 and k.find("negative") != -1}
-                                polarity_list.append("negative")
+                                if random.randint(6, 9) > kb_results["discountValue"][entity]:
+                                    candidate_sentiment[key] = {k: v for k, v in value.items()
+                                                                if k.find("positive") != -1}
+                                    polarity_list.append("positive")
+                                else:
+                                    candidate_sentiment[key] = {k: v for k, v in value.items()
+                                                                if k.find("notNone") != -1
+                                                                and k.find("negative") != -1}
+                                    polarity_list.append("negative")
                         else:
                             candidate_sentiment[key] = {k: v for k, v in value.items()
-                                                        if k.find("notNone") == -1 and k.find("negative") != -1}
+                                                        if k.find("notNone") == -1
+                                                        and k.find("negative") != -1}
                             polarity_list.append("negative")
                 elif "expressTime" in scene_element:
                     # random give a sentiment polarity
