@@ -50,6 +50,8 @@ class Sentiment(object):
             sentiment_element.append("refund")
         elif "consult" in scene_element:
             sentiment_element.append("consult")
+        elif "exchange" in scene_element:
+            sentiment_element.append("exchange")
         for target in SENTIMENT_TARGET:
             if target in scene_element:
                 sentiment_element.append(target)
