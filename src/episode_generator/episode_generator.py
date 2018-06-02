@@ -28,6 +28,7 @@ from config import *
 import os
 import sys
 import io
+import re
 
 
 class EpisodeGenerator(object):
@@ -256,4 +257,4 @@ if __name__ == '__main__':
             episode_script = episode_generator.episode_generator()
             for line in episode_script.values():
                 for l in line:
-                    f.write(l+'\n')
+                    f.write(l + '\n')
