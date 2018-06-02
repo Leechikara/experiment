@@ -359,7 +359,6 @@ class Sentiment(object):
                                 temp_list = list()
                                 temp_list.append(episode_script[scene_name][0])
                                 temp_list.append(sentiment_scene_content[0])
-                                random.shuffle(temp_list)
                                 del episode_script[scene_name][0:4]
                                 episode_script[scene_name].insert(0, " ".join(temp_list))
                                 episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
@@ -370,7 +369,6 @@ class Sentiment(object):
                                     temp_list = list()
                                     temp_list.append(episode_script[scene_name][0])
                                     temp_list.append(sentiment_scene_content[0])
-                                    random.shuffle(temp_list)
                                     del episode_script[scene_name][0:2]
                                     episode_script[scene_name].insert(0, " ".join(temp_list))
                                     episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
@@ -381,7 +379,6 @@ class Sentiment(object):
                                         temp_list = list()
                                         temp_list.append(episode_script[scene_name][0])
                                         temp_list.append(sentiment_scene_content[0])
-                                        random.shuffle(temp_list)
                                         del episode_script[scene_name][0:2]
                                         episode_script[scene_name].insert(0, " ".join(temp_list))
                                         episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
@@ -391,7 +388,6 @@ class Sentiment(object):
                                         temp_list = list()
                                         temp_list.append(episode_script[scene_name][2])
                                         temp_list.append(sentiment_scene_content[0])
-                                        random.shuffle(temp_list)
                                         del episode_script[scene_name][2:4]
                                         episode_script[scene_name].insert(2, " ".join(temp_list))
                                         episode_script[scene_name].insert(3, " ".join([sentiment_scene_content[1],
@@ -402,7 +398,6 @@ class Sentiment(object):
                                         temp_list = list()
                                         temp_list.append(episode_script[scene_name][0])
                                         temp_list.append(sentiment_scene_content[0])
-                                        random.shuffle(temp_list)
                                         del episode_script[scene_name][0:2]
                                         episode_script[scene_name].insert(0, " ".join(temp_list))
                                         episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
@@ -412,7 +407,6 @@ class Sentiment(object):
                                         temp_list = list()
                                         temp_list.append(episode_script[scene_name][2])
                                         temp_list.append(sentiment_scene_content[0])
-                                        random.shuffle(temp_list)
                                         del episode_script[scene_name][2:4]
                                         episode_script[scene_name].insert(2, " ".join(temp_list))
                                         episode_script[scene_name].insert(3, " ".join([sentiment_scene_content[1],
