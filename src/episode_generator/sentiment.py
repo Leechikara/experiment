@@ -5,7 +5,7 @@ import sys
 import re
 from config import *
 from src.knowledge_base.knowledge_base import KnowledgeBase
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 
 class Sentiment(object):
@@ -156,7 +156,10 @@ class Sentiment(object):
                     # find a true polarity for current attr and entity
                     if attr.find("discount") == -1:
                         # for attr not discountURL and discountValue
-                        if kwargs["attr_entity_table"][attr] == entity:
+                        if type(kwargs["attr_entity_table"][attr]) != list \
+                                and kwargs["attr_entity_table"][attr] == entity \
+                                or type(kwargs["attr_entity_table"][attr]) == list \
+                                        and entity in kwargs["attr_entity_table"][attr]:
                             candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("positive") != -1}
                             polarity_list.append("positive")
                         else:
@@ -234,6 +237,20 @@ class Sentiment(object):
                 scene_content = [re.sub(r"\$entity\$", "$entityId=" + str(entity) + "$", turn)
                                  for turn in scene_content]
             candidate_sentiment[key][scene_name] = scene_content
+
+        # keep only sentiment scene for the same attr and polarity
+        sentiment_dict = defaultdict(list)
+        for key, value in candidate_sentiment.items():
+            if candidate_sentiment[key] is None:
+                continue
+            else:
+                sentiment_dict[list(value.keys())[0]].append(key)
+        for key, value in sentiment_dict.items():
+            if len(value) > 1:
+                keep_scene = random.choice(value)
+                for scene in value:
+                    if scene != keep_scene:
+                        candidate_sentiment[scene] = None
 
         episode_script = self.organize_script(episode_script, candidate_sentiment)
         return episode_script
