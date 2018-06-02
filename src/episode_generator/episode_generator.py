@@ -27,6 +27,7 @@ import copy
 from config import *
 import os
 import sys
+import io
 
 
 class EpisodeGenerator(object):
@@ -248,11 +249,11 @@ if __name__ == '__main__':
 
     # test our code
     random.seed(1)
-    for _ in range(10000):
-        print(_)
-        print('.......................\n')
-        episode_script = episode_generator.episode_generator()
-        for line in episode_script.values():
-            for l in line:
-                print(l)
-            print('')
+    with io.open(os.path.join(DATA_ROOT, "log.txt"), 'w', encoding='utf-8') as f:
+        for _ in range(10000):
+            f.write(str(_))
+            f.write('.......................\n')
+            episode_script = episode_generator.episode_generator()
+            for line in episode_script.values():
+                for l in line:
+                    f.write(l+'\n')

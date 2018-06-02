@@ -1,6 +1,6 @@
 # coding = utf-8
 from config import *
-import random, math, copy, json, os
+import random, math, copy, json, os, re
 import numpy as np
 from collections import defaultdict, OrderedDict
 from utils import random_pick, filter_p_dict
@@ -224,7 +224,7 @@ class PreSales(object):
         if wording == 'lack_entity' and self.resolve_context(self.entity_list, axis, concern_list):
             scene_content = [scene_content[0], scene_content[-1]]
         elif wording == 'lack_attribute' and self.resolve_context(self.attr_list, axis, concern_list):
-            scene_content = [scene_content[0], scene_content[-1]]
+            scene_content = [re.sub(r"如何|怎么样|咋样", "", scene_content[0]), scene_content[-1]]
         else:
             pass
 
