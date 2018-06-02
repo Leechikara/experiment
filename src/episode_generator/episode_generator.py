@@ -234,12 +234,20 @@ class EpisodeGenerator(object):
 
         return episode_script
 
+    def reorganize(self):
+        # reorganize the dialog flow, make it more diversity
+        pass
+
+    def translate(self):
+        # instantiation all unknown content
+        pass
+
 
 if __name__ == '__main__':
     episode_generator = EpisodeGenerator(AVAILABLE_INTENT_6)
 
     # test our code
-    random.seed(0)
+    random.seed(1)
     for _ in range(10000):
         print(_)
         print('.......................\n')
