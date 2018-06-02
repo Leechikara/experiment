@@ -236,7 +236,7 @@ class EpisodeGenerator(object):
         return episode_script
 
     def reorganize(self):
-        # reorganize the dialog flow, make it more diversity
+        # reorganize the dialog flow, make it more diversity, special for consult and refund
         pass
 
     def translate(self):

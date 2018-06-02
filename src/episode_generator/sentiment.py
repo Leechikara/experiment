@@ -123,7 +123,7 @@ class Sentiment(object):
         elif episode == "in_sales":
             max_sentiment = 2
         elif episode == "after_sales":
-            max_sentiment = 2
+            max_sentiment = 1
         elif episode == "pre_sales in_sales":
             max_sentiment = len(kwargs['sample_entity']) * len(kwargs['sample_goods_attr']) / 2 + 1
         else:
