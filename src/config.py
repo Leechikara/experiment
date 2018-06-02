@@ -101,8 +101,8 @@ GRAMMAR_P_DICT = {'pre_sales': {'qa': {'init': {'complete': 1 / 30, 'lack_attrib
                                'expressTime': {'complete': 1},
                                'expressName': {'complete': 1}}}
 
-# all sentiment target
-SENTIMENT_TARGET = ["general", "price", "color", "size", "discountValue",
+# all possible sentiment target. Define first, but some are not existing, for example "generation".
+SENTIMENT_TARGET = ["general", "price", "color", "size", "discountValue", "generation",
                     "discountURL", "material", "weight", "thickness", "pre_sales_end",
                     "expressTime", "expressInfo", "network", "nfc", "os", "payment", "expressName"]
 SENTIMENT_RULES = ["append", "prefix", "insert", "mix"]
