@@ -203,7 +203,10 @@ class Sentiment(object):
                         polarity_list.append("negative")
                 elif "pre_sales_end" in scene_element:
                     # make sentiment coherent
-                    if len(set(polarity_list)) == 0 and random.random() < 0.5 or set(polarity_list) == {"positive"}:
+                    if len(set(polarity_list)) == 2:
+                        candidate_sentiment[key] = None
+                        continue
+                    elif len(set(polarity_list)) == 0 and random.random() < 0.5 or set(polarity_list) == {"positive"}:
                         candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("positive") != -1}
                         polarity_list.append("positive")
                     else:
