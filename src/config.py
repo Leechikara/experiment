@@ -16,7 +16,7 @@ GOODS_ATTRIBUTE_DEFINITION = {"price": {"dtype": "int", "min": 1000, "max": 2000
                                               "discountValue": None, "postfix": ".html", "correlate": "discountValue"},
                               "weight": {"dtype": "int", "range": range(80, 100), "expensive": "low",
                                          "prefer": "low", "unit": "克"},
-                              "os": {"dtype": "str", "range": ["Android", "iOS"]},
+                              "os": {"dtype": "str", "range": ["安卓", "苹果"]},
                               "color": {"dtype": "list", "range": ["蓝色", "黑色", "黄色", "红色"]},
                               "thickness": {"dtype": "float", "range": [0.1 * x for x in range(5, 21)],
                                             "expensive": "low", "prefer": "low", "unit": "厘米"},
