@@ -45,7 +45,7 @@ class PreSales(object):
         """
         Judge if the agent can resolve context and don't request users
         """
-        assert self.intent in ['qa', 'confirm', 'compare']
+        assert self.intent in ["qa", "confirm", "compare"]
         intent_size = len(self.history_intent)
         if intent_size > 2:
             concern_intent = self.history_intent[-3:]
@@ -54,16 +54,16 @@ class PreSales(object):
         else:
             return False
         if len(concern_intent) == 3:
-            if 'compare' in concern_intent and 'compare' != concern_intent[-1] or 'compare' not in concern_intent:
+            if "compare" in concern_intent and "compare" != concern_intent[-1] or "compare" not in concern_intent:
                 del concern_intent[0]
-            if 'compare' == concern_intent[-1] and 'compare' not in concern_intent[:-1] and intent_size > 3:
+            if "compare" == concern_intent[-1] and "compare" not in concern_intent[:-1] and intent_size > 3:
                 concern_intent.insert(0, self.history_intent[-4])
 
         position = -1
         concern_some_list = list()
         concern_intent.reverse()
         for intent in concern_intent:
-            if intent == 'compare':
+            if intent == "compare":
                 concern_some_list.append((some_list[position - 1], some_list[position]))
                 position -= 2
             else:
@@ -72,10 +72,10 @@ class PreSales(object):
         concern_some_list.reverse()
         concern_intent.reverse()
 
-        if self.intent in ['qa', 'confirm']:
+        if self.intent in ["qa", "confirm"]:
             target = concern_some_list[-1]
             for item, intent in zip(concern_some_list[:-1], concern_intent[:-1]):
-                if intent == 'compare':
+                if intent == "compare":
                     if item[0] != item[1]:
                         return False
                     else:
@@ -153,7 +153,7 @@ class PreSales(object):
         In witch style the user explores the candidate entities in the matrix
         """
         if self.previous_coordinate1 is None:
-            return 'init'
+            return "init"
 
         if compared_coordinate is not None:
             step = 2
@@ -161,23 +161,23 @@ class PreSales(object):
             assert self.coordinate[1] != compared_coordinate[1], "This is only for compare!"
 
             if self.coordinate[0] == self.previous_coordinate1[0]:
-                action = 'horizontal'
+                action = "horizontal"
             else:
-                action = 'diagonal'
+                action = "diagonal"
         else:
             step = 1
-            if self.intent in ['qa', 'confirm']:
+            if self.intent in ["qa", "confirm"]:
                 if self.coordinate[0] == self.previous_coordinate1[0]:
-                    action = 'horizontal'
+                    action = "horizontal"
                 elif self.coordinate[1] == self.previous_coordinate1[1]:
-                    action = 'vertical'
+                    action = "vertical"
                 else:
-                    action = 'diagonal'
+                    action = "diagonal"
             else:
                 if self.coordinate[0] == self.previous_coordinate1[0]:
-                    action = 'horizontal'
+                    action = "horizontal"
                 else:
-                    action = 'diagonal'
+                    action = "diagonal"
 
         return "_".join([action, str(step)])
 
@@ -209,7 +209,7 @@ class PreSales(object):
         attr = self.attr_list[-1]
         entity = self.entity_list[-1]
         wording = random_pick(wording_list, p_list)
-        scene_name = ' '.join(['qa', str(entity), "attr=" + attr, wording])
+        scene_name = " ".join(["qa", str(entity), "attr=" + attr, wording])
         scene_content = list()
 
         for turn in available_script[attr][wording]:
@@ -218,12 +218,12 @@ class PreSales(object):
             else:
                 scene_content.append(turn)
 
-        scene_content = [turn.replace('entity', str(entity)) for turn in scene_content]
+        scene_content = [turn.replace("entity", str(entity)) for turn in scene_content]
 
         # Now we make context important
-        if wording == 'lack_entity' and self.resolve_context(self.entity_list, axis, concern_list):
+        if wording == "lack_entity" and self.resolve_context(self.entity_list, axis, concern_list):
             scene_content = [scene_content[0], scene_content[-1]]
-        elif wording == 'lack_attribute' and self.resolve_context(self.attr_list, axis, concern_list):
+        elif wording == "lack_attribute" and self.resolve_context(self.attr_list, axis, concern_list):
             scene_content = [re.sub(r"如何|怎么样|咋样", "", scene_content[0]), scene_content[-1]]
         else:
             pass
@@ -241,7 +241,7 @@ class PreSales(object):
         attr = self.attr_list[-1]
         entity = self.entity_list[-1]
         wording = random_pick(wording_list, p_list)
-        scene_name = ' '.join(['confirm', str(entity), "attr=" + attr, wording])
+        scene_name = " ".join(["confirm", str(entity), "attr=" + attr, wording])
         scene_content = list()
 
         for turn in available_script[attr][wording]:
@@ -250,10 +250,10 @@ class PreSales(object):
             else:
                 scene_content.append(turn)
 
-        scene_content = [turn.replace('entity', str(entity)) for turn in scene_content]
+        scene_content = [turn.replace("entity", str(entity)) for turn in scene_content]
 
         # Now we make context important
-        if wording == 'lack_entity' and self.resolve_context(self.entity_list, axis, concern_list):
+        if wording == "lack_entity" and self.resolve_context(self.entity_list, axis, concern_list):
             scene_content = [scene_content[0], scene_content[-1]]
         else:
             pass
@@ -273,7 +273,7 @@ class PreSales(object):
         entity1 = self.entity_list[-1]
         entity2 = self.entity_list[-2]
         wording = random_pick(wording_list, p_list)
-        scene_name = ' '.join(['compare', str(entity1), str(entity2), "attr=" + attr, wording])
+        scene_name = " ".join(["compare", str(entity1), str(entity2), "attr=" + attr, wording])
         scene_content = list()
 
         for turn in available_script[attr][wording]:
@@ -282,11 +282,11 @@ class PreSales(object):
             else:
                 scene_content.append(turn)
 
-        scene_content = [turn.replace('entity1', str(entity1)) for turn in scene_content]
-        scene_content = [turn.replace('entity2', str(entity2)) for turn in scene_content]
+        scene_content = [turn.replace("entity1", str(entity1)) for turn in scene_content]
+        scene_content = [turn.replace("entity2", str(entity2)) for turn in scene_content]
 
         # Now we make context important
-        if move == 'horizontal_2' and wording == 'lack_attribute' and \
+        if move == "horizontal_2" and wording == "lack_attribute" and \
                 self.resolve_context(self.attr_list, axis, concern_list):
             scene_content = [scene_content[0], scene_content[-1]]
 
@@ -312,22 +312,22 @@ class PreSales(object):
             # todo: if new attributes are added in KB, this part may need rewrite!
             current_available_intent = copy.deepcopy(self.available_intent)
             if self.user_concern_attr[self.coordinate[0]] not in COMPARE_PERMITTED_ATTR \
-                    and 'compare' in current_available_intent:
-                current_available_intent.remove('compare')
+                    and "compare" in current_available_intent:
+                current_available_intent.remove("compare")
             if np.sum(self.matrix[self.coordinate[0]]) == len(user_concern_entity) \
-                    and 'compare' in current_available_intent:
-                current_available_intent.remove('compare')
+                    and "compare" in current_available_intent:
+                current_available_intent.remove("compare")
             if sum(self.matrix[self.coordinate[0]]) == 1 \
-                    and 'confirm' in current_available_intent:
-                current_available_intent.remove('confirm')
-            if 'confirm' in current_available_intent:
+                    and "confirm" in current_available_intent:
+                current_available_intent.remove("confirm")
+            if "confirm" in current_available_intent:
                 del_confirm = True
-                for qa_coordinate in self.intent_coordinate_dict['qa']:
+                for qa_coordinate in self.intent_coordinate_dict["qa"]:
                     if self.coordinate[0] == qa_coordinate[0]:
                         del_confirm = False
                         break
                 if del_confirm:
-                    current_available_intent.remove('confirm')
+                    current_available_intent.remove("confirm")
 
             # Next we sample a intent and get according dialog script
             available_intent_p_dict = filter_p_dict(current_available_intent, self.intent_p_dict)
@@ -337,7 +337,7 @@ class PreSales(object):
             self.intent_coordinate_dict[self.intent].append(self.coordinate)
 
             # generate specific script
-            if self.intent in ['qa', 'confirm']:
+            if self.intent in ["qa", "confirm"]:
                 move = self.calculate_move()
                 available_grammar_p_dict = copy.deepcopy(self.grammar_p_dict[self.intent][move])
 
@@ -345,17 +345,17 @@ class PreSales(object):
                 self.entity_list.append(self.user_concern_entity[self.coordinate[1]])
 
                 # Get topic target
-                if move.find('horizontal') != -1:
+                if move.find("horizontal") != -1:
                     axis = 1
                     concern_list = self.user_concern_attr
-                elif move.find('vertical') != -1:
+                elif move.find("vertical") != -1:
                     axis = 0
                     concern_list = self.user_concern_entity
                 else:
                     axis = None
                     concern_list = None
 
-                if self.intent == 'qa':
+                if self.intent == "qa":
                     scene_name, scene_content = self.qa_generator(available_script,
                                                                   list(available_grammar_p_dict.keys()),
                                                                   list(available_grammar_p_dict.values()),
@@ -386,17 +386,17 @@ class PreSales(object):
                 # for context resolve and grammar probability bias
                 axis = None
                 concern_list = None
-                if move.find('horizontal') != -1:
+                if move.find("horizontal") != -1:
                     for key, value in available_grammar_p_dict.items():
-                        if key.find('attr') != -1:
+                        if key.find("attr") != -1:
                             available_grammar_p_dict[key] = value * 2
-                elif move.find('vertical') != -1:
+                elif move.find("vertical") != -1:
                     for key, value in available_grammar_p_dict.items():
-                        if key.find('entity') != -1:
+                        if key.find("entity") != -1:
                             available_grammar_p_dict[key] = value * 2
                 else:
                     for key, value in available_grammar_p_dict.items():
-                        if key.find('complete') != -1:
+                        if key.find("complete") != -1:
                             available_grammar_p_dict[key] = value * 2
 
                 scene_name, scene_content = self.compare_generator(available_script,
@@ -415,15 +415,15 @@ class PreSales(object):
 
 
 if __name__ == "__main__":
-    script_f = os.path.join(DATA_ROOT, 'script.txt')
-    with open(script_f, 'rb') as f:
+    script_f = os.path.join(DATA_ROOT, "script.txt")
+    with open(script_f, "rb") as f:
         script = json.load(f)
-    script = script['pre_sales']
-    user_concern_attr = ['price', 'nfc', 'color', 'size']
-    user_concern_entity = ['entityId=1', 'entityId=10', 'entityId=2', 'entityId=5']
-    available_intent = AVAILABLE_INTENT_3['pre_sales']
-    grammar_p_dict = GRAMMAR_P_DICT['pre_sales']
-    intent_p_dict = INTENT_P_DICT['pre_sales']
+    script = script["pre_sales"]
+    user_concern_attr = ["price", "nfc", "color", "size"]
+    user_concern_entity = ["entityId=1", "entityId=10", "entityId=2", "entityId=5"]
+    available_intent = AVAILABLE_INTENT_3["pre_sales"]
+    grammar_p_dict = GRAMMAR_P_DICT["pre_sales"]
+    intent_p_dict = INTENT_P_DICT["pre_sales"]
 
     pre_sales = PreSales(script, available_intent, intent_p_dict, grammar_p_dict)
 
@@ -433,22 +433,22 @@ if __name__ == "__main__":
     for line in pre_sales_script.values():
         for l in line:
             print(l)
-        print('')
+        print("")
 
-    print('.......................\n')
+    print(".......................\n")
 
     random.seed(1)
     pre_sales_script = pre_sales.episode_generator(user_concern_attr, user_concern_entity)
     for line in pre_sales_script.values():
         for l in line:
             print(l)
-        print('')
+        print("")
 
-    print('.......................\n')
+    print(".......................\n")
 
     random.seed(2)
     pre_sales_script = pre_sales.episode_generator(user_concern_attr, user_concern_entity)
     for line in pre_sales_script.values():
         for l in line:
             print(l)
-        print('')
+        print("")

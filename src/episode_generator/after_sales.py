@@ -28,10 +28,10 @@ class AfterSales(object):
         while type(available_script) == dict:
             keys = list(available_script.keys())
             if with_permitted is False:
-                if 'withConsult' in keys:
-                    keys.remove('withConsult')
-                if 'withExchange' in keys:
-                    keys.remove('withExchange')
+                if "withConsult" in keys:
+                    keys.remove("withConsult")
+                if "withExchange" in keys:
+                    keys.remove("withExchange")
             random_key = random.choice(keys)
             scene_name.append(random_key)
             available_script = available_script[random_key]
@@ -42,7 +42,7 @@ class AfterSales(object):
             else:
                 scene_content.append(turn)
 
-        scene_name = ' '.join(list(args) + scene_name)
+        scene_name = " ".join(list(args) + scene_name)
         return scene_name, scene_content
 
     def episode_generator(self):
@@ -50,7 +50,7 @@ class AfterSales(object):
 
         intent = random_pick(list(self.available_intent_p_dict.keys()),
                              list(self.available_intent_p_dict.values()))
-        intent_list = intent.split('_')
+        intent_list = intent.split("_")
 
         if len(intent_list) == 1:
             intent = intent_list[0]
@@ -60,16 +60,16 @@ class AfterSales(object):
             intent1 = intent_list[0]
             intent2 = intent_list[1]
             scene_name1, scene_content1 = self.scene_generator(intent1)
-            if intent1 == 'consult' and intent2 == 'refund':
-                scene_name2, scene_content2 = self.scene_generator(intent2, 'withConsult')
+            if intent1 == "consult" and intent2 == "refund":
+                scene_name2, scene_content2 = self.scene_generator(intent2, "withConsult")
             else:
-                scene_name2, scene_content2 = self.scene_generator(intent2, 'color', 'withExchange')
+                scene_name2, scene_content2 = self.scene_generator(intent2, "color", "withExchange")
             self.episode_script[scene_name1] = scene_content1
             self.episode_script[scene_name2] = scene_content2
 
             # In such case, we should delete exchange scene
-            if intent1 == 'exchange' and intent2 == 'exchange' and scene_name1.find('verbose') != -1 \
-                    and scene_name1.find('3') == -1 or scene_name1.find('color') != -1:
+            if intent1 == "exchange" and intent2 == "exchange" and scene_name1.find("verbose") != -1 \
+                    and scene_name1.find("3") == -1 or scene_name1.find("color") != -1:
                 key = list(self.episode_script.keys())[-1]
                 del self.episode_script[key]
 
@@ -77,12 +77,12 @@ class AfterSales(object):
 
 
 if __name__ == "__main__":
-    script_f = os.path.join(DATA_ROOT, 'script.txt')
-    with open(script_f, 'rb') as f:
+    script_f = os.path.join(DATA_ROOT, "script.txt")
+    with open(script_f, "rb") as f:
         script = json.load(f)
-    script = script['after_sales']
-    available_intent = AVAILABLE_INTENT_5['after_sales']
-    intent_p_dict = INTENT_P_DICT['after_sales']
+    script = script["after_sales"]
+    available_intent = AVAILABLE_INTENT_5["after_sales"]
+    intent_p_dict = INTENT_P_DICT["after_sales"]
 
     after_sales = AfterSales(script, available_intent, intent_p_dict)
 
@@ -91,13 +91,13 @@ if __name__ == "__main__":
     for line in after_sales_script.values():
         for l in line:
             print(l)
-        print('')
+        print("")
 
-    print('.......................\n')
+    print(".......................\n")
 
     random.seed(1)
     after_sales_script = after_sales.episode_generator()
     for line in after_sales_script.values():
         for l in line:
             print(l)
-        print('')
+        print("")

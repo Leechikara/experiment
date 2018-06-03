@@ -46,3 +46,38 @@ def random_pick(some_list, p_list, pick_num=1):
         return picked_item[0]
     else:
         return picked_item
+
+
+def find_attr_entity(scene_element):
+    """
+    Given scene_element describing which topic is, find which one is entity and which one is attr.
+    """
+    if type(scene_element) == str:
+        scene_element = scene_element.split(" ")
+    assert type(scene_element) == list
+
+    if "compare" in scene_element:
+        entity = list()
+    else:
+        entity = None
+    attr = None
+
+    for ele in scene_element:
+        if ele.find("attr=") != -1:
+            attr = ele.replace("attr=", "")
+        if ele.find("entityId=") != -1:
+            if type(entity) != list:
+                entity = int(ele.replace("entityId=", ""))
+            else:
+                entity.append(int(ele.replace("entityId=", "")))
+
+    if type(entity) == list:
+        assert len(entity) == 2
+    else:
+        assert entity is not None
+
+    if attr is None and "discountURL" in scene_element:
+        attr = "discountURL"
+    assert attr is not None
+
+    return entity, attr

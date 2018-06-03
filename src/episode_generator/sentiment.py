@@ -6,6 +6,7 @@ import re
 from config import *
 from src.knowledge_base.knowledge_base import KnowledgeBase
 from collections import OrderedDict, defaultdict
+from utils import find_attr_entity
 
 
 class Sentiment(object):
@@ -72,35 +73,6 @@ class Sentiment(object):
             return None
         return sentiment_scene
 
-    @staticmethod
-    def find_attr_entity(scene_element):
-        if "compare" in scene_element:
-            entity = list()
-        else:
-            entity = None
-        attr = None
-
-        for ele in scene_element:
-            if ele.find("attr=") != -1:
-                attr = ele.replace("attr=", "")
-            if ele.find("entityId=") != -1:
-                if type(entity) != list:
-                    entity = int(ele.replace("entityId=", ""))
-                else:
-                    entity.append(int(ele.replace("entityId=", "")))
-
-        if type(entity) == list:
-            assert len(entity) == 2
-            entity = random.choice(entity)
-        else:
-            assert entity is not None
-
-        if attr is None and "discountURL" in scene_element:
-            attr = "discountURL"
-        assert attr is not None
-
-        return entity, attr
-
     def episode_generator(self, episode_script, episode, **kwargs):
         """
         We create a sentiment script based on generated episode script from basic 4 scene.
@@ -119,13 +91,13 @@ class Sentiment(object):
 
         # We need delete some sentiment.
         if episode == "pre_sales":
-            max_sentiment = len(kwargs['sample_entity']) * len(kwargs['sample_goods_attr']) / 2
+            max_sentiment = len(kwargs["sample_entity"]) * len(kwargs["sample_goods_attr"]) / 2
         elif episode == "in_sales":
             max_sentiment = 2
         elif episode == "after_sales":
             max_sentiment = 1
         elif episode == "pre_sales in_sales":
-            max_sentiment = len(kwargs['sample_entity']) * len(kwargs['sample_goods_attr']) / 2 + 1
+            max_sentiment = len(kwargs["sample_entity"]) * len(kwargs["sample_goods_attr"]) / 2 + 1
         else:
             sys.exit("Undefined episode!")
         sentiment_num = random.randint(1, max_sentiment)
@@ -151,7 +123,9 @@ class Sentiment(object):
                 if "qa" in scene_element or "confirm" in scene_element \
                         or "compare" in scene_element or "discountURL" in scene_element:
                     # find current entity and attr
-                    entity, attr = self.find_attr_entity(scene_element)
+                    entity, attr = find_attr_entity(scene_element)
+                    if type(entity) == list:
+                        entity = random.choice(entity)
 
                     # find a true polarity for current attr and entity
                     if attr.find("discount") == -1:

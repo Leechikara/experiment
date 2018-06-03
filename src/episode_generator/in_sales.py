@@ -40,7 +40,7 @@ class InSales(object):
         wording = random_pick(list(current_grammar_p_dict.keys()), list(current_grammar_p_dict.values()))
 
         # get basic scene
-        scene_name = ' '.join([intent, str(self.desired_entity), wording])
+        scene_name = " ".join([intent, str(self.desired_entity), wording])
         scene_content = list()
 
         for turn in available_script[wording]:
@@ -49,10 +49,10 @@ class InSales(object):
             else:
                 scene_content.append(turn)
 
-        scene_content = [turn.replace('entity', str(self.desired_entity)) for turn in scene_content]
+        scene_content = [turn.replace("entity", str(self.desired_entity)) for turn in scene_content]
 
-        if intent == 'discountURL':
-            if wording == 'lack_entity' and self.given_entity is True:
+        if intent == "discountURL":
+            if wording == "lack_entity" and self.given_entity is True:
                 scene_content = [scene_content[0], scene_content[-1]]
             else:
                 self.given_entity = True
@@ -63,12 +63,12 @@ class InSales(object):
         self.init_episode(desired_entity)
 
         # make topic coherent
-        scene_dict = {'pay': [], 'express': []}
+        scene_dict = {"pay": [], "express": []}
         for intent in self.picked_intents:
-            if intent in ['discountURL', 'payment']:
-                scene_dict['pay'].append(intent)
+            if intent in ["discountURL", "payment"]:
+                scene_dict["pay"].append(intent)
             else:
-                scene_dict['express'].append(intent)
+                scene_dict["express"].append(intent)
         scene_keys = list(scene_dict.keys())
         random.shuffle(scene_keys)
 
@@ -87,14 +87,14 @@ class InSales(object):
 
 
 if __name__ == "__main__":
-    script_f = os.path.join(DATA_ROOT, 'script.txt')
-    with open(script_f, 'rb') as f:
+    script_f = os.path.join(DATA_ROOT, "script.txt")
+    with open(script_f, "rb") as f:
         script = json.load(f)
-    script = script['in_sales']
-    available_intent = AVAILABLE_INTENT_3['in_sales']
-    grammar_p_dict = GRAMMAR_P_DICT['in_sales']
-    intent_p_dict = INTENT_P_DICT['in_sales']
-    desired_entity = 'entityId=10'
+    script = script["in_sales"]
+    available_intent = AVAILABLE_INTENT_3["in_sales"]
+    grammar_p_dict = GRAMMAR_P_DICT["in_sales"]
+    intent_p_dict = INTENT_P_DICT["in_sales"]
+    desired_entity = "entityId=10"
 
     in_sales = InSales(script, available_intent, intent_p_dict, grammar_p_dict)
 
@@ -103,22 +103,22 @@ if __name__ == "__main__":
     for line in in_sales_script.values():
         for l in line:
             print(l)
-        print('')
+        print("")
 
-    print('.......................\n')
+    print(".......................\n")
 
     random.seed(1)
     in_sales_script = in_sales.episode_generator(desired_entity)
     for line in in_sales_script.values():
         for l in line:
             print(l)
-        print('')
+        print("")
 
-    print('.......................\n')
+    print(".......................\n")
 
     random.seed(2)
     in_sales_script = in_sales.episode_generator(desired_entity)
     for line in in_sales_script.values():
         for l in line:
             print(l)
-        print('')
+        print("")
