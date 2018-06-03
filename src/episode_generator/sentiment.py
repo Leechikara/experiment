@@ -290,7 +290,7 @@ class Sentiment(object):
                             sentiment_scene_content.extend(episode_script[scene_name])
                             sentiment_script[new_scene_name] = sentiment_scene_content
                             # user have given the refund reason
-                            if sentiment_scene_name.find("refund") != -1:
+                            if sentiment_scene_name.find("refund") != -1 and scene_name.find("complete") != -1:
                                 del sentiment_script[new_scene_name][3:5]
                         elif rule == "insert":
                             # insert must happen after agent turn
@@ -350,16 +350,19 @@ class Sentiment(object):
                                             sentiment_script[new_scene_name] = episode_script[scene_name]
                                         else:
                                             episode_script[scene_name].insert(4, sentiment_scene_content[0])
-                                            del episode_script[scene_name][5]
+                                            del episode_script[scene_name][5:7]
                                             episode_script[scene_name].insert(5, " ".join([sentiment_scene_content[1],
                                                                                            "麻烦您提供一下姓名"]))
                                             sentiment_script[new_scene_name] = episode_script[scene_name]
                         else:
                             if sentiment_scene_name.find("refund") != -1:
                                 temp_list = list()
-                                temp_list.append(episode_script[scene_name][0])
                                 temp_list.append(sentiment_scene_content[0])
-                                del episode_script[scene_name][0:4]
+                                temp_list.append(episode_script[scene_name][0])
+                                if new_scene_name.find("withConsult") == -1:
+                                    del episode_script[scene_name][0:4]
+                                else:
+                                    del episode_script[scene_name][0:2]
                                 episode_script[scene_name].insert(0, " ".join(temp_list))
                                 episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
                                                                                "麻烦您提供一下您的订单号"]))
@@ -367,8 +370,8 @@ class Sentiment(object):
                             else:
                                 if scene_name.find("verbose1") != -1:
                                     temp_list = list()
-                                    temp_list.append(episode_script[scene_name][0])
                                     temp_list.append(sentiment_scene_content[0])
+                                    temp_list.append(episode_script[scene_name][0])
                                     del episode_script[scene_name][0:2]
                                     episode_script[scene_name].insert(0, " ".join(temp_list))
                                     episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
@@ -377,8 +380,8 @@ class Sentiment(object):
                                 elif scene_name.find("verbose2") != -1:
                                     if random.random() < 0.5:
                                         temp_list = list()
-                                        temp_list.append(episode_script[scene_name][0])
                                         temp_list.append(sentiment_scene_content[0])
+                                        temp_list.append(episode_script[scene_name][0])
                                         del episode_script[scene_name][0:2]
                                         episode_script[scene_name].insert(0, " ".join(temp_list))
                                         episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
@@ -386,8 +389,8 @@ class Sentiment(object):
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
                                     else:
                                         temp_list = list()
-                                        temp_list.append(episode_script[scene_name][2])
                                         temp_list.append(sentiment_scene_content[0])
+                                        temp_list.append(episode_script[scene_name][2])
                                         del episode_script[scene_name][2:4]
                                         episode_script[scene_name].insert(2, " ".join(temp_list))
                                         episode_script[scene_name].insert(3, " ".join([sentiment_scene_content[1],
@@ -396,8 +399,8 @@ class Sentiment(object):
                                 else:
                                     if random.random() < 0.5:
                                         temp_list = list()
-                                        temp_list.append(episode_script[scene_name][0])
                                         temp_list.append(sentiment_scene_content[0])
+                                        temp_list.append(episode_script[scene_name][0])
                                         del episode_script[scene_name][0:2]
                                         episode_script[scene_name].insert(0, " ".join(temp_list))
                                         episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
@@ -405,12 +408,12 @@ class Sentiment(object):
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
                                     else:
                                         temp_list = list()
-                                        temp_list.append(episode_script[scene_name][2])
                                         temp_list.append(sentiment_scene_content[0])
+                                        temp_list.append(episode_script[scene_name][2])
                                         del episode_script[scene_name][2:4]
                                         episode_script[scene_name].insert(2, " ".join(temp_list))
                                         episode_script[scene_name].insert(3, " ".join([sentiment_scene_content[1],
-                                                                                       "$osUpdate$"]))
+                                                                                       "我帮您返厂维修一下行吗"]))
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
 
                     else:
