@@ -21,7 +21,7 @@ class Translator(object):
         Translate an agent action into a NL
         """
         # Some agent actions do not need translate.
-        if not agent_action[0] == "$" and agent_action[-1] == "$":
+        if not (agent_action[0] == "$" and agent_action[-1] == "$"):
             return agent_action
 
         # Get the basic key words to query KB.
