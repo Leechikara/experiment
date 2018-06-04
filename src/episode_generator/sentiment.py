@@ -156,7 +156,7 @@ class Sentiment(object):
                                                                 and k.find("negative") != -1}
                                     polarity_list.append("negative")
                             else:
-                                if random.randint(6, 9) > kb_results["discountValue"][entity]:
+                                if random.randint(8, 9) > kb_results["discountValue"][entity]:
                                     candidate_sentiment[key] = {k: v for k, v in value.items()
                                                                 if k.find("positive") != -1}
                                     polarity_list.append("positive")
