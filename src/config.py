@@ -35,7 +35,9 @@ GOODS_ATTRIBUTE_DEFINITION = {"price": {"dtype": "int", "min": 1000, "max": 2000
 OTHER_ATTRIBUTE_DEFINITION = {
     "payment": {"dtype": "constantList", "value": ["微信", "支付宝", "信用卡"]},
     "expressTime": {"dtype": "constantInt", "value": 3},
-    "expressName": {"dtype": "constantList", "value": "顺丰"}}
+    "expressName": {"dtype": "constantStr", "value": "顺丰"},
+    "osUpdate": {"dtype": "constantStr", "value": "https://osUpdate.html"}
+}
 
 # simulate noise in price
 PRICE_NOISE = 300

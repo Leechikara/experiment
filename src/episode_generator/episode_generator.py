@@ -299,8 +299,8 @@ class EpisodeGenerator(object):
                         episode_script[key][i] = episode_script[key][i].replace("$color$", candidate_color)
         return episode_script
 
-    def show(self):
-        # Print the episode script to screen.
+    def translate(self):
+        # Translate part of agent actions into NL
         episode_script = OrderedDict()
         for key, content in self.episode_script.items():
             temp_content = list()
@@ -311,11 +311,11 @@ class EpisodeGenerator(object):
                     temp_content.append(turn)
             episode_script[key] = temp_content
         episode_script = json.dumps(episode_script, ensure_ascii=False, indent=2)
-        print(episode_script)
+        return episode_script
 
 
 if __name__ == "__main__":
-    episode_generator = EpisodeGenerator(AVAILABLE_INTENT_3)
+    episode_generator = EpisodeGenerator(AVAILABLE_INTENT_6)
 
     # test our code
     random.seed(1)
@@ -327,3 +327,5 @@ if __name__ == "__main__":
             for line in episode_script.values():
                 for l in line:
                     f.write(l + "\n")
+            f.write(episode_generator.translate())
+            f.write("\n")
