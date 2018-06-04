@@ -41,23 +41,17 @@ class PreSales(object):
         self.intent = None
         self.episode_script = OrderedDict()
 
-    def resolve_context(self, some_list, axis, user_concern_list):
+    def resolve_context(self, some_list):
         """
         Judge if the agent can resolve context and don't request users
         """
         assert self.intent in ["qa", "confirm", "compare"]
+        # Get local context
         history_intent_size = len(self.history_intent)
-        if history_intent_size > 2:
-            concern_intent = self.history_intent[-3:]
-        elif history_intent_size == 2:
-            concern_intent = self.history_intent[0:]
+        if history_intent_size >= 2:
+            concern_intent = self.history_intent[-2:]
         else:
             return False
-        if len(concern_intent) == 3:
-            if "compare" in concern_intent and "compare" != concern_intent[-1] or "compare" not in concern_intent:
-                del concern_intent[0]
-            if "compare" == concern_intent[-1] and "compare" not in concern_intent[:-1] and history_intent_size > 3:
-                concern_intent.insert(0, self.history_intent[-4])
 
         position = -1
         concern_some_list = list()
@@ -72,39 +66,22 @@ class PreSales(object):
         concern_some_list.reverse()
         concern_intent.reverse()
 
+        # Get current default topic
         if self.intent in ["qa", "confirm"]:
-            target = concern_some_list[-1]
-            for item, intent in zip(concern_some_list[:-1], concern_intent[:-1]):
-                if intent == "compare":
-                    if item[0] != item[1]:
-                        return False
-                    else:
-                        item = item[0]
-                if target != item:
-                    if axis == 0 and self.matrix[self.coordinate[axis], user_concern_list.index(item)] != 1:
-                        return False
-                    if axis == 1 and self.matrix[user_concern_list.index(item), self.coordinate[axis]] != 1:
-                        return False
-            return True
+            topic = concern_some_list[-1]
         else:
-            candidate_set = [concern_some_list[-1][0]]
-            for item in concern_some_list[:-1]:
-                if type(item) == tuple:
-                    candidate_set.append(item[0])
-                    candidate_set.append(item[1])
+            assert concern_some_list[-1][0] == concern_some_list[-1][1]
+            topic = concern_some_list[-1][0]
+
+        for previous_topic, intent in zip(concern_some_list[:-1], concern_intent[:-1]):
+            if intent == "compare":
+                # only work for attr
+                if previous_topic[0] != previous_topic[1]:
+                    return False
                 else:
-                    candidate_set.append(item)
-            if concern_some_list[-1][0] not in candidate_set[1:]:
-                return False
-
-            candidate_set = set(candidate_set)
-            if concern_some_list[-1][-1] in candidate_set:
-                candidate_set.remove(concern_some_list[-1][-1])
-
-            if len(candidate_set) == 1 or len(candidate_set) == 0:
-                return True
-
-            return False
+                    previous_topic = previous_topic[0]
+            assert topic == previous_topic
+        return True
 
     def coordinate_p(self):
         """
@@ -198,7 +175,7 @@ class PreSales(object):
         compared_coordinate = random_pick(available_coordinate_in_row, p_list_in_row)
         return compared_coordinate
 
-    def qa_generator(self, available_script, wording_list, p_list, axis, concern_list):
+    def qa_generator(self, available_script, wording_list, p_list):
         """
         Get a qa scene based on dialog history
         """
@@ -221,16 +198,16 @@ class PreSales(object):
         scene_content = [turn.replace("entity", str(entity)) for turn in scene_content]
 
         # Now we make context important
-        if wording == "lack_entity" and self.resolve_context(self.entity_list, axis, concern_list):
+        if wording == "lack_entity" and self.resolve_context(self.entity_list):
             scene_content = [scene_content[0], scene_content[-1]]
-        elif wording == "lack_attribute" and self.resolve_context(self.attr_list, axis, concern_list):
+        elif wording == "lack_attribute" and self.resolve_context(self.attr_list):
             scene_content = [re.sub(r"如何|怎么样|咋样", "", scene_content[0]), scene_content[-1]]
         else:
             pass
 
         return scene_name, scene_content
 
-    def confirm_generator(self, available_script, wording_list, p_list, axis, concern_list):
+    def confirm_generator(self, available_script, wording_list, p_list):
         """
         Get a confirm scene based on dialog history
         """
@@ -253,14 +230,14 @@ class PreSales(object):
         scene_content = [turn.replace("entity", str(entity)) for turn in scene_content]
 
         # Now we make context important
-        if wording == "lack_entity" and self.resolve_context(self.entity_list, axis, concern_list):
+        if wording == "lack_entity" and self.resolve_context(self.entity_list):
             scene_content = [scene_content[0], scene_content[-1]]
         else:
             pass
 
         return scene_name, scene_content
 
-    def compare_generator(self, available_script, wording_list, p_list, axis, concern_list, move):
+    def compare_generator(self, available_script, wording_list, p_list):
         """
         Get a confirm scene based on dialog history
         """
@@ -286,9 +263,11 @@ class PreSales(object):
         scene_content = [turn.replace("entity2", str(entity2)) for turn in scene_content]
 
         # Now we make context important
-        if move == "horizontal_2" and wording == "lack_attribute" and \
-                self.resolve_context(self.attr_list, axis, concern_list):
-            scene_content = [scene_content[0], scene_content[-1]]
+        if wording == "lack_attribute":
+            if self.resolve_context(self.attr_list):
+                scene_content = [scene_content[0], scene_content[-1]]
+            else:
+                scene_content[0] = re.sub(r"[那么]", "", scene_content[0])
 
         return scene_name, scene_content
 
@@ -344,27 +323,14 @@ class PreSales(object):
                 self.attr_list.append(self.user_concern_attr[self.coordinate[0]])
                 self.entity_list.append(self.user_concern_entity[self.coordinate[1]])
 
-                # Get topic target
-                if move.find("horizontal") != -1:
-                    axis = 1
-                    concern_list = self.user_concern_attr
-                elif move.find("vertical") != -1:
-                    axis = 0
-                    concern_list = self.user_concern_entity
-                else:
-                    axis = None
-                    concern_list = None
-
                 if self.intent == "qa":
                     scene_name, scene_content = self.qa_generator(available_script,
                                                                   list(available_grammar_p_dict.keys()),
-                                                                  list(available_grammar_p_dict.values()),
-                                                                  axis, concern_list)
+                                                                  list(available_grammar_p_dict.values()))
                 else:
                     scene_name, scene_content = self.confirm_generator(available_script,
                                                                        list(available_grammar_p_dict.keys()),
-                                                                       list(available_grammar_p_dict.values()),
-                                                                       axis, concern_list)
+                                                                       list(available_grammar_p_dict.values()))
                 self.previous_coordinate2 = self.previous_coordinate1
                 self.previous_coordinate1 = self.coordinate
             else:
@@ -383,26 +349,9 @@ class PreSales(object):
                 self.entity_list.append(self.user_concern_entity[compared_coordinate[1]])
                 self.entity_list.append(self.user_concern_entity[self.coordinate[1]])
 
-                # for context resolve and grammar probability bias
-                axis = None
-                concern_list = None
-                if move.find("horizontal") != -1:
-                    for key, value in available_grammar_p_dict.items():
-                        if key.find("attr") != -1:
-                            available_grammar_p_dict[key] = value * 2
-                elif move.find("vertical") != -1:
-                    for key, value in available_grammar_p_dict.items():
-                        if key.find("entity") != -1:
-                            available_grammar_p_dict[key] = value * 2
-                else:
-                    for key, value in available_grammar_p_dict.items():
-                        if key.find("complete") != -1:
-                            available_grammar_p_dict[key] = value * 2
-
                 scene_name, scene_content = self.compare_generator(available_script,
                                                                    list(available_grammar_p_dict.keys()),
-                                                                   list(available_grammar_p_dict.values()),
-                                                                   axis, concern_list, move)
+                                                                   list(available_grammar_p_dict.values()))
                 self.previous_coordinate2 = compared_coordinate
                 self.previous_coordinate1 = self.coordinate
 
