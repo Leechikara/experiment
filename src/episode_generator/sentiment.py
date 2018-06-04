@@ -256,7 +256,10 @@ class Sentiment(object):
                         sentiment_script[new_scene_name] = episode_script[scene_name]
                     elif sentiment_scene_name.find("refund") != -1 or sentiment_scene_name.find("consult") != -1:
                         # choice a rule from feasible rule set
-                        rule = random.choice(SENTIMENT_RULES)
+                        sentiment_rules = copy.deepcopy(SENTIMENT_RULES)
+                        if scene_name.find("refund") != -1:
+                            sentiment_rules.remove("append")
+                        rule = random.choice(sentiment_rules)
                         if rule == "append":
                             episode_script[scene_name].extend(sentiment_scene_content)
                             sentiment_script[new_scene_name] = episode_script[scene_name]

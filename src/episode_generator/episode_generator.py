@@ -234,16 +234,10 @@ class EpisodeGenerator(object):
             else:
                 episode_script = self.sentiment.episode_generator(episode_script, episode)
 
-        # Next, we Instantiate all free content.
+        # In the end, we Instantiate all free content.
         episode_script = self.instantiation(episode_script)
 
-        # In the end, we can reorganize part of content to make our simulation more variable.
-
         return episode_script
-
-    def reorganize(self):
-        # reorganize the dialog flow, make it more diversity, special for consult & refund, exchange & exchange
-        pass
 
     def instantiation(self, episode_script):
         # instantiation all unknown content

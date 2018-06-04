@@ -73,6 +73,12 @@ class AfterSales(object):
                 key = list(self.episode_script.keys())[-1]
                 del self.episode_script[key]
 
+            # In such case, we should delete refund
+            if intent1 == "consult" and intent2 == "refund" and scene_name1.find("verbose3") != -1 \
+                    and "os" not in scene_name1.split(" "):
+                key = list(self.episode_script.keys())[-1]
+                del self.episode_script[key]
+
         return self.episode_script
 
 
