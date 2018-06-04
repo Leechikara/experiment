@@ -9,7 +9,7 @@ There are five principles:
 2. The context is important. Some turns can be resolved according to context.
 3. Defining reasonable episodes is non-trivial. We must verify the rationalisation.
 4. Dialog flows based on entity, attribute, intent.
-5. Not all basic scenes are available. We hold a switch to control that.
+5. In our experiment, not all basic scenes are available. We hold a switch to control that.
 
 We think such episodes are reasonable:
     pre_sales, in_sales, after_sales, pre_sales + in_sales, sentiment + all combinations aforementioned
@@ -21,14 +21,15 @@ from after_sales import AfterSales
 from sentiment import Sentiment
 from src.knowledge_base.knowledge_base import KnowledgeBase
 from src.translator.translator import Translator
+from config import *
+from utils import find_attr_entity
+from collections import OrderedDict
 import random
 import json
 import copy
-from config import *
 import os
 import sys
 import io
-from utils import find_attr_entity
 
 
 class EpisodeGenerator(object):
@@ -36,6 +37,8 @@ class EpisodeGenerator(object):
                  script_file="script.txt",
                  intent_p_dict=INTENT_P_DICT,
                  grammar_p_dict=GRAMMAR_P_DICT):
+        self.episode_script = None
+
         # Init basic episode generator
         with open(os.path.join(DATA_ROOT, script_file), "rb") as f:
             script = json.load(f)
@@ -76,6 +79,9 @@ class EpisodeGenerator(object):
         # translate agent dialog action according to KB results
         self.translator = Translator()
 
+    def init_episode(self):
+        self.episode_script = None
+
     def sample_user(self):
         """
         Sample 2~3 candidate entities and 2~3 user concern attributes.
@@ -90,7 +96,7 @@ class EpisodeGenerator(object):
             candidate_entity = self.kb_helper.search_kb(attr="price", dtype="int", compare="~", upper=upper,
                                                         lower=lower)
 
-        # sample entities and attr
+        # Sample entities and attr. We restrict it in a range!
         entity_num = random.choice([2, 3])
         attr_num = random.choice([2, 3])
         if entity_num == 3 and attr_num == 3:
@@ -98,14 +104,14 @@ class EpisodeGenerator(object):
                 entity_num -= 1
             else:
                 attr_num -= 1
-        sample_entity = random.sample(candidate_entity, entity_num)
-        sample_goods_attr = random.sample(PRE_SALES_ATTR, attr_num)
+        sample_entity = random.sample(candidate_entity, min(entity_num, len(candidate_entity)))
+        sample_goods_attr = random.sample(PRE_SALES_ATTR, min(attr_num, len(PRE_SALES_ATTR)))
 
-        # get the priority of attr
+        # Get the priority of attr
         attr_priority = copy.deepcopy(sample_goods_attr)
         random.shuffle(attr_priority)
 
-        # define incommensurable constrains: color and os
+        # Define incommensurable constrains: color and os
         hard_constrains = dict()
         if "color" in sample_goods_attr:
             color_list = list()
@@ -132,12 +138,12 @@ class EpisodeGenerator(object):
     def calculate_desired_entity(self, sample_entity, sample_goods_attr, attr_priority, hard_constrains):
         sample_entity = [self.kb_helper.find_entity(entity) for entity in sample_entity]
 
-        # for each attr, which entities meet the constrain or which entity is the best one
+        # For each attr, which entities meet the constrain or which entity is the best one
         attr_entity_table = dict.fromkeys(sample_goods_attr, None)
 
-        # take all attr into consideration.
+        # Take all attr into consideration.
         for attr in sample_goods_attr:
-            # record attr_value of each entity
+            # Record attr_value of each entity
             entity_attr_value = dict()
             for entity in sample_entity:
                 entity_attr_value[entity["id"]] = entity[attr]
@@ -189,6 +195,8 @@ class EpisodeGenerator(object):
         return entity_id, attr_entity_table
 
     def episode_generator(self):
+        self.init_episode()
+
         # First, we decide which dialog episode to generate
         episode = random.choice(self.available_episode)
 
@@ -201,7 +209,6 @@ class EpisodeGenerator(object):
         else:
             decorate_sentiment = False
 
-        decorate_sentiment = True
         # Then, generate basic script
         if episode == "pre_sales":
             sample_entity, sample_goods_attr, attr_priority, hard_constrains = self.sample_user()
@@ -234,10 +241,10 @@ class EpisodeGenerator(object):
             else:
                 episode_script = self.sentiment.episode_generator(episode_script, episode)
 
-        # In the end, we Instantiate all free content.
-        episode_script = self.instantiation(episode_script)
+        # In the end, we Instantiate all free content. We use this script to train our model!
+        self.episode_script = self.instantiation(episode_script)
 
-        return episode_script
+        return self.episode_script
 
     def instantiation(self, episode_script):
         # instantiation all unknown content
@@ -292,9 +299,23 @@ class EpisodeGenerator(object):
                         episode_script[key][i] = episode_script[key][i].replace("$color$", candidate_color)
         return episode_script
 
+    def show(self):
+        # Print the episode script to screen.
+        episode_script = OrderedDict()
+        for key, content in self.episode_script.items():
+            temp_content = list()
+            for i, turn in enumerate(content):
+                if i % 2 == 1:
+                    temp_content.append(self.translator.translate(turn))
+                else:
+                    temp_content.append(turn)
+            episode_script[key] = temp_content
+        episode_script = json.dumps(episode_script, ensure_ascii=False, indent=2)
+        print(episode_script)
+
 
 if __name__ == "__main__":
-    episode_generator = EpisodeGenerator(AVAILABLE_INTENT_6)
+    episode_generator = EpisodeGenerator(AVAILABLE_INTENT_3)
 
     # test our code
     random.seed(1)
