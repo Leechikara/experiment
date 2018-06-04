@@ -46,17 +46,17 @@ class PreSales(object):
         Judge if the agent can resolve context and don't request users
         """
         assert self.intent in ["qa", "confirm", "compare"]
-        intent_size = len(self.history_intent)
-        if intent_size > 2:
+        history_intent_size = len(self.history_intent)
+        if history_intent_size > 2:
             concern_intent = self.history_intent[-3:]
-        elif intent_size == 2:
+        elif history_intent_size == 2:
             concern_intent = self.history_intent[0:]
         else:
             return False
         if len(concern_intent) == 3:
             if "compare" in concern_intent and "compare" != concern_intent[-1] or "compare" not in concern_intent:
                 del concern_intent[0]
-            if "compare" == concern_intent[-1] and "compare" not in concern_intent[:-1] and intent_size > 3:
+            if "compare" == concern_intent[-1] and "compare" not in concern_intent[:-1] and history_intent_size > 3:
                 concern_intent.insert(0, self.history_intent[-4])
 
         position = -1
