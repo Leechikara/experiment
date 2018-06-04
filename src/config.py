@@ -106,3 +106,6 @@ SENTIMENT_TARGET = ["general", "price", "color", "size", "discountValue", "gener
                     "discountURL", "material", "weight", "thickness", "pre_sales_end",
                     "expressTime", "expressInfo", "network", "nfc", "os", "payment", "expressName"]
 SENTIMENT_RULES = ["append", "prefix", "insert", "mix"]
+
+# rule for reorganize exchange&exchange
+REORGANIZE_RULES = ["None", "insert", "mix"]

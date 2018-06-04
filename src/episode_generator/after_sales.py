@@ -79,6 +79,39 @@ class AfterSales(object):
                 key = list(self.episode_script.keys())[-1]
                 del self.episode_script[key]
 
+            # We can reorganize the exchange&exchange script to get more variable dialog flow
+            if len(self.episode_script) == 2 and intent1 == "exchange" and intent2 == "exchange":
+                a_index = list()
+                for i, turn in enumerate(scene_content1):
+                    if turn in ["$name$", "$phone$", "$address$", "orderNumber"]:
+                        a_index.append(i)
+                rule = random.choice(REORGANIZE_RULES)
+                if rule == "mix":
+                    i = random.choice(a_index)
+                    self.episode_script[scene_name1][i] = " ".join([self.episode_script[scene_name1][i],
+                                                                    self.episode_script[scene_name2][0]])
+                    remain_len = len(self.episode_script[scene_name2]) - 1
+                    for x in range(i + 1, i + remain_len):
+                        self.episode_script[scene_name1].insert(x, self.episode_script[scene_name2][x - i])
+                    self.episode_script[scene_name1][i + remain_len] = " ".join(
+                        [self.episode_script[scene_name2][remain_len],
+                         self.episode_script[scene_name1][i + remain_len]])
+                    key = list(self.episode_script.keys())[-1]
+                    del self.episode_script[key]
+                    self.episode_script[" ".join([scene_name1, scene_name2])] = self.episode_script[scene_name1]
+                    del self.episode_script[scene_name1]
+                elif rule == "insert":
+                    i = random.choice(a_index)
+                    remain_len = len(self.episode_script[scene_name2])
+                    for x in range(i, i + remain_len - 1):
+                        self.episode_script[scene_name1].insert(x, self.episode_script[scene_name2][x - i])
+                    self.episode_script[scene_name1].insert(i + remain_len - 1, " ".join(
+                        [self.episode_script[scene_name2][remain_len - 1], self.episode_script[scene_name1][i - 1]]))
+                    key = list(self.episode_script.keys())[-1]
+                    del self.episode_script[key]
+                    self.episode_script[" ".join([scene_name1, scene_name2])] = self.episode_script[scene_name1]
+                    del self.episode_script[scene_name1]
+
         return self.episode_script
 
 
