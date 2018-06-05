@@ -130,9 +130,23 @@ class Sentiment(object):
                     # find a true polarity for current attr and entity
                     if attr.find("discount") == -1:
                         # for attr not discountURL and discountValue
-                        if entity in kwargs["attr_entity_table"][attr]:
+                        # todo: If GOODS_ATTRIBUTE_DEFINITION changes, this part will need rewritten.
+                        if attr not in ["nfc", "network"] and entity in kwargs["attr_entity_table"][attr]:
                             candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("positive") != -1}
                             polarity_list.append("positive")
+                        elif attr in ["nfc", "network"]:
+                            # A special rules for nfc and network.
+                            kb_results = self.kb_helper.inform(attr, [entity])
+                            attr_result = kb_results[attr][entity]
+                            prefer = GOODS_ATTRIBUTE_DEFINITION[attr]["prefer"]
+                            attr_range = GOODS_ATTRIBUTE_DEFINITION[attr]["range"]
+                            if prefer == "high" and attr_result == attr_range[-1] \
+                                    or prefer == "low" and attr_result == attr_range[0]:
+                                candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("positive") != -1}
+                                polarity_list.append("positive")
+                            else:
+                                candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("negative") != -1}
+                                polarity_list.append("negative")
                         else:
                             candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("negative") != -1}
                             polarity_list.append("negative")
