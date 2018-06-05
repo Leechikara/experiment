@@ -30,6 +30,7 @@ import copy
 import os
 import sys
 import io
+import re
 
 
 class EpisodeGenerator(object):
@@ -225,6 +226,17 @@ class EpisodeGenerator(object):
             desired_entity, attr_entity_table = self.calculate_desired_entity(sample_entity, sample_goods_attr,
                                                                               attr_priority, hard_constrains)
             episode_script.update(self.in_sales.episode_generator(desired_entity))
+
+            # A special logic to deal with discountURL.
+            # If user knows there is no discount, they will not require discountURL.
+            entity = None
+            for key in episode_script.keys():
+                if key.find("discountURL") != -1:
+                    entity_id = int(re.findall(r"\d+", key)[0])
+                    entity = self.kb_helper.find_entity(entity_id)
+                    break
+            if entity is not None and entity['discountValue'] is None:
+                del episode_script[key]
         else:
             sys.exit("Unconsidered situations happen!")
 
