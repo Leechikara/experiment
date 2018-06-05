@@ -280,26 +280,33 @@ class Sentiment(object):
                 else:
                     if sentiment_scene_name.find("pre_sales") != -1 or sentiment_scene_name.find("express") != -1 \
                             or sentiment_scene_name.find("URL") != -1:
-                        # append rule
+                        # On such conditions, only append rule is available.
                         episode_script[scene_name].extend(sentiment_scene_content)
                         sentiment_script[new_scene_name] = episode_script[scene_name]
                     elif sentiment_scene_name.find("refund") != -1 or sentiment_scene_name.find("consult") != -1:
-                        # choice a rule from feasible rule set
+                        # Choice a rule from feasible rule set
                         sentiment_rules = copy.deepcopy(SENTIMENT_RULES)
                         if scene_name.find("refund") != -1:
                             sentiment_rules.remove("append")
                         rule = random.choice(sentiment_rules)
                         if rule == "append":
+                            # Only consult can user append rules.
+                            # Pure sentiment, No fact. It will be more coherent.
+                            sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
                             episode_script[scene_name].extend(sentiment_scene_content)
                             sentiment_script[new_scene_name] = episode_script[scene_name]
                         elif rule == "prefix":
                             sentiment_scene_content.extend(episode_script[scene_name])
                             sentiment_script[new_scene_name] = sentiment_scene_content
-                            # user have given the refund reason
-                            if sentiment_scene_name.find("refund") != -1 and scene_name.find("complete") != -1:
+                            # In sentiment scene, users give the complain reason.
+                            # They will do not need retell consult target.
+                            if scene_name.find("consult") != -1:
+                                sentiment_script[new_scene_name][2] = sentiment_script[new_scene_name][2].split(",")[-1]
+                            # And the refund reason
+                            if scene_name.find("refund") != -1 and scene_name.find("complete") != -1:
                                 del sentiment_script[new_scene_name][3:5]
                         elif rule == "insert":
-                            # insert must happen after agent turn
+                            # insert rule must happen after agent turn
                             if sentiment_scene_name.find("refund") != -1:
                                 if scene_name.find("withConsult") == -1:
                                     # in this situation, we can only replace $refundReason$
@@ -310,46 +317,78 @@ class Sentiment(object):
                                                                                    "麻烦您提供一下您的订单号"]))
                                     sentiment_script[new_scene_name] = episode_script[scene_name]
                                 else:
+                                    # Pure sentiment, No fact. It will be more coherent.
+                                    sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
                                     if random.random() < 0.5:
+                                        # Degrade into append rule
                                         episode_script[scene_name].extend(sentiment_scene_content)
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
                                     else:
+                                        # Degrade into prefix rule
                                         sentiment_scene_content.extend(episode_script[scene_name])
                                         sentiment_script[new_scene_name] = sentiment_scene_content
                             else:
                                 if scene_name.find("verbose1") != -1:
                                     if random.random() < 0.5:
+                                        # Degrade into append rule
+                                        # Pure sentiment, No fact. It will be more coherent.
+                                        sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
                                         episode_script[scene_name].extend(sentiment_scene_content)
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
                                     else:
+                                        # Degrade into prefix rule
+                                        # In sentiment scene, users give the complain reason.
+                                        # They will do not need retell consult target.
+                                        episode_script[scene_name][0] = episode_script[scene_name][0].split(",")[-1]
                                         sentiment_scene_content.extend(episode_script[scene_name])
                                         sentiment_script[new_scene_name] = sentiment_scene_content
                                 elif scene_name.find("verbose2") != -1:
                                     p = random.random()
                                     if p < 1 / 3:
+                                        # Degrade into append rule
+                                        # Pure sentiment, No fact. It will be more coherent.
+                                        sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
                                         episode_script[scene_name].extend(sentiment_scene_content)
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
                                     elif p < 2 / 3:
+                                        # Degrade into prefix rule
+                                        # In sentiment scene, users give the complain reason.
+                                        # They will do not need retell consult target.
+                                        episode_script[scene_name][0] = episode_script[scene_name][0].split(",")[-1]
                                         sentiment_scene_content.extend(episode_script[scene_name])
                                         sentiment_script[new_scene_name] = sentiment_scene_content
                                     else:
+                                        # Pure sentiment, No fact. It will be more coherent.
+                                        sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
                                         episode_script[scene_name].insert(2, sentiment_scene_content[0])
                                         episode_script[scene_name].insert(3, sentiment_scene_content[1])
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
                                 else:
                                     if len(episode_script[scene_name]) == 4:
+                                        # Special for os attr, same logic in verbose2
                                         p = random.random()
                                         if p < 1 / 3:
+                                            # Degrade into append rule
+                                            # Pure sentiment, No fact. It will be more coherent.
+                                            sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
                                             episode_script[scene_name].extend(sentiment_scene_content)
                                             sentiment_script[new_scene_name] = episode_script[scene_name]
                                         elif p < 2 / 3:
+                                            # Degrade into prefix rule
+                                            # In sentiment scene, users give the complain reason.
+                                            # They will do not need retell consult target.
+                                            episode_script[scene_name][0] = episode_script[scene_name][0].split(",")[-1]
                                             sentiment_scene_content.extend(episode_script[scene_name])
                                             sentiment_script[new_scene_name] = sentiment_scene_content
                                         else:
+                                            # Pure sentiment, No fact. It will be more coherent.
+                                            sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
                                             episode_script[scene_name].insert(2, sentiment_scene_content[0])
                                             episode_script[scene_name].insert(3, sentiment_scene_content[1])
                                             sentiment_script[new_scene_name] = episode_script[scene_name]
                                     else:
+                                        # Pure sentiment, No fact. It will be more coherent.
+                                        sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
                                         if random.random() < 0.5:
                                             episode_script[scene_name].insert(2, sentiment_scene_content[0])
                                             episode_script[scene_name].insert(3, sentiment_scene_content[1])
@@ -361,7 +400,12 @@ class Sentiment(object):
                                                                                            "麻烦您提供一下姓名"]))
                                             sentiment_script[new_scene_name] = episode_script[scene_name]
                         else:
+                            # mix rule must happen in the user turn
                             if sentiment_scene_name.find("refund") != -1:
+                                if new_scene_name.find("withConsult") == -1:
+                                    # Pure sentiment, No fact. It will be more coherent.
+                                    sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
+
                                 temp_list = list()
                                 temp_list.append(sentiment_scene_content[0])
                                 temp_list.append(episode_script[scene_name][0])
@@ -377,7 +421,9 @@ class Sentiment(object):
                                 if scene_name.find("verbose1") != -1:
                                     temp_list = list()
                                     temp_list.append(sentiment_scene_content[0])
-                                    temp_list.append(episode_script[scene_name][0])
+                                    # In sentiment scene, users give the complain reason.
+                                    # They will do not need retell consult target.
+                                    temp_list.append(episode_script[scene_name][0].split(",")[-1])
                                     del episode_script[scene_name][0:2]
                                     episode_script[scene_name].insert(0, " ".join(temp_list))
                                     episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
@@ -387,7 +433,9 @@ class Sentiment(object):
                                     if random.random() < 0.5:
                                         temp_list = list()
                                         temp_list.append(sentiment_scene_content[0])
-                                        temp_list.append(episode_script[scene_name][0])
+                                        # In sentiment scene, users give the complain reason.
+                                        # They will do not need retell consult target.
+                                        temp_list.append(episode_script[scene_name][0].split(",")[-1])
                                         del episode_script[scene_name][0:2]
                                         episode_script[scene_name].insert(0, " ".join(temp_list))
                                         episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
@@ -395,6 +443,8 @@ class Sentiment(object):
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
                                     else:
                                         temp_list = list()
+                                        # Pure sentiment, No fact. It will be more coherent.
+                                        sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
                                         temp_list.append(sentiment_scene_content[0])
                                         temp_list.append(episode_script[scene_name][2])
                                         del episode_script[scene_name][2:4]
@@ -406,7 +456,9 @@ class Sentiment(object):
                                     if random.random() < 0.5:
                                         temp_list = list()
                                         temp_list.append(sentiment_scene_content[0])
-                                        temp_list.append(episode_script[scene_name][0])
+                                        # In sentiment scene, users give the complain reason.
+                                        # They will do not need retell consult target.
+                                        temp_list.append(episode_script[scene_name][0].split(",")[-1])
                                         del episode_script[scene_name][0:2]
                                         episode_script[scene_name].insert(0, " ".join(temp_list))
                                         episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
@@ -414,6 +466,8 @@ class Sentiment(object):
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
                                     else:
                                         temp_list = list()
+                                        # Pure sentiment, No fact. It will be more coherent.
+                                        sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
                                         temp_list.append(sentiment_scene_content[0])
                                         temp_list.append(episode_script[scene_name][2])
                                         del episode_script[scene_name][2:4]
