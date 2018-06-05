@@ -118,13 +118,11 @@ class EpisodeGenerator(object):
             color_list = list()
             for entity in sample_entity:
                 color_list.extend(entity["color"])
-            color_list = list(set(color_list))
             hard_constrains["color"] = random.choice(color_list)
         if "os" in sample_goods_attr:
             os_list = list()
             for entity in sample_entity:
                 os_list.append(entity["os"])
-            os_list = list(set(os_list))
             hard_constrains["os"] = random.choice(os_list)
 
         sample_entity = ["entityId=" + str(entity["id"]) for entity in sample_entity]
@@ -139,7 +137,7 @@ class EpisodeGenerator(object):
     def calculate_desired_entity(self, sample_entity, sample_goods_attr, attr_priority, hard_constrains):
         sample_entity = [self.kb_helper.find_entity(entity) for entity in sample_entity]
 
-        # For each attr, which entities meet the constrain or which entity is the best one
+        # For each attr, which entities meet the hard constrain and which entities are the best ones.
         attr_entity_table = dict.fromkeys(sample_goods_attr, None)
 
         # Take all attr into consideration.
@@ -149,7 +147,7 @@ class EpisodeGenerator(object):
             for entity in sample_entity:
                 entity_attr_value[entity["id"]] = entity[attr]
 
-            # Now we judge which entity is better
+            # Now we judge which entities are better
             if "prefer" in GOODS_ATTRIBUTE_DEFINITION[attr].keys():
                 # What kind of value do user prefer
                 if GOODS_ATTRIBUTE_DEFINITION[attr]["prefer"] == "low":
@@ -159,7 +157,7 @@ class EpisodeGenerator(object):
 
                 if GOODS_ATTRIBUTE_DEFINITION[attr]["dtype"] in ["int", "float"]:
                     entity_id = sorted(entity_attr_value.items(),
-                                       key=lambda item: item[1] if item[1] is not None else 1,
+                                       key=lambda item: item[1] if item[1] is not None else 10,
                                        reverse=reverse)[0][0]
                 elif GOODS_ATTRIBUTE_DEFINITION[attr]["dtype"] in ["str", "bool"]:
                     value_range = GOODS_ATTRIBUTE_DEFINITION[attr]["range"]
@@ -168,7 +166,11 @@ class EpisodeGenerator(object):
                                        reverse=reverse)[0][0]
                 else:
                     sys.exit("Unconsidered situations happen!")
-                attr_entity_table[attr] = entity_id
+
+                attr_entity_table[attr] = list()
+                for entity_ in sample_entity:
+                    if entity_["id"] == entity_id or entity_[attr] == entity_attr_value[entity_id]:
+                        attr_entity_table[attr].append(entity_["id"])
             else:
                 # We check incommensurable constrains
                 assert attr in hard_constrains.keys()
@@ -184,12 +186,8 @@ class EpisodeGenerator(object):
         for entity in sample_entity:
             score = 0
             for attr, entity_id in attr_entity_table.items():
-                if type(entity_id) == list:
-                    if entity["id"] in entity_id:
-                        score += 1 + 0.15 * attr_priority.index(attr)
-                else:
-                    if entity["id"] == entity_id:
-                        score += 1 + 0.15 * attr_priority.index(attr)
+                if entity["id"] in entity_id:
+                    score += 1 + 0.15 * attr_priority.index(attr)
             entity_score[entity["id"]] = score
 
         entity_id = "entityId=" + str(sorted(entity_score.items(), key=lambda item: item[1], reverse=True)[0][0])
