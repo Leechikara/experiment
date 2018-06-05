@@ -91,13 +91,13 @@ class Sentiment(object):
 
         # We need delete some sentiment.
         if episode == "pre_sales":
-            max_sentiment = len(kwargs["sample_entity"]) * len(kwargs["sample_goods_attr"]) / 2
+            max_sentiment = len(kwargs["sample_entity"]) * len(kwargs["sample_goods_attr"]) // 2
         elif episode == "in_sales":
             max_sentiment = 2
         elif episode == "after_sales":
             max_sentiment = 1
         elif episode == "pre_sales in_sales":
-            max_sentiment = len(kwargs["sample_entity"]) * len(kwargs["sample_goods_attr"]) / 2 + 1
+            max_sentiment = len(kwargs["sample_entity"]) * len(kwargs["sample_goods_attr"]) // 2 + 1
         else:
             sys.exit("Undefined episode!")
         sentiment_num = random.randint(1, max_sentiment)
@@ -215,7 +215,7 @@ class Sentiment(object):
         # keep only sentiment scene for the same attr and polarity
         sentiment_dict = defaultdict(list)
         for key, value in candidate_sentiment.items():
-            if candidate_sentiment[key] is None:
+            if value is None:
                 continue
             else:
                 sentiment_dict[list(value.keys())[0]].append(key)
@@ -225,6 +225,24 @@ class Sentiment(object):
                 for scene in value:
                     if scene != keep_scene:
                         candidate_sentiment[scene] = None
+
+        # Special for discount
+        discount_scene_list = list()
+        for key, value in candidate_sentiment.items():
+            if key.find("discount") == -1 or value is None:
+                continue
+            discount_scene = list(value.keys())[0]
+            del_flag = False
+            for scene in discount_scene_list:
+                if scene.find("positive") != -1 and discount_scene.find("positive") != -1 or scene.find(
+                        "negative") != -1 and discount_scene.find("negative") != -1 and list(scene.split(" "))[-1] == \
+                        list(discount_scene.split(" "))[-1]:
+                    del_flag = True
+                    break
+            if del_flag is True:
+                candidate_sentiment[key] = None
+            else:
+                discount_scene_list.append(discount_scene)
 
         episode_script = self.organize_script(episode_script, candidate_sentiment)
         return episode_script
