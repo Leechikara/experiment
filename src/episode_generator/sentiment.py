@@ -130,10 +130,7 @@ class Sentiment(object):
                     # find a true polarity for current attr and entity
                     if attr.find("discount") == -1:
                         # for attr not discountURL and discountValue
-                        if type(kwargs["attr_entity_table"][attr]) != list \
-                                and kwargs["attr_entity_table"][attr] == entity \
-                                or type(kwargs["attr_entity_table"][attr]) == list \
-                                        and entity in kwargs["attr_entity_table"][attr]:
+                        if entity in kwargs["attr_entity_table"][attr]:
                             candidate_sentiment[key] = {k: v for k, v in value.items() if k.find("positive") != -1}
                             polarity_list.append("positive")
                         else:
@@ -146,7 +143,7 @@ class Sentiment(object):
                         if kb_results["discountValue"][entity] is not None:
                             if "attr_entity_table" in kwargs.keys() and \
                                             "discountValue" in kwargs["attr_entity_table"].keys():
-                                if kwargs["attr_entity_table"]["discountValue"] == entity:
+                                if entity in kwargs["attr_entity_table"]["discountValue"]:
                                     candidate_sentiment[key] = {k: v for k, v in value.items()
                                                                 if k.find("positive") != -1}
                                     polarity_list.append("positive")
