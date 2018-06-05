@@ -226,7 +226,7 @@ class Sentiment(object):
                     if scene != keep_scene:
                         candidate_sentiment[scene] = None
 
-        # Special for discount
+        # Special for discount, the same sentiment intent can not happen twice.
         discount_scene_list = list()
         for key, value in candidate_sentiment.items():
             if key.find("discount") == -1 or value is None:
