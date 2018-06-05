@@ -395,14 +395,15 @@ class Sentiment(object):
                                             sentiment_script[new_scene_name] = episode_script[scene_name]
                                         else:
                                             episode_script[scene_name].insert(4, sentiment_scene_content[0])
+                                            temp_str = episode_script[scene_name][6]
                                             del episode_script[scene_name][5:7]
                                             episode_script[scene_name].insert(5, " ".join([sentiment_scene_content[1],
-                                                                                           "麻烦您提供一下姓名"]))
+                                                                                           temp_str]))
                                             sentiment_script[new_scene_name] = episode_script[scene_name]
                         else:
                             # mix rule must happen in the user turn
                             if sentiment_scene_name.find("refund") != -1:
-                                if new_scene_name.find("withConsult") == -1:
+                                if new_scene_name.find("withConsult") != -1:
                                     # Pure sentiment, No fact. It will be more coherent.
                                     sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
 
@@ -410,12 +411,13 @@ class Sentiment(object):
                                 temp_list.append(sentiment_scene_content[0])
                                 temp_list.append(episode_script[scene_name][0])
                                 if new_scene_name.find("withConsult") == -1:
+                                    temp_str = episode_script[scene_name][3]
                                     del episode_script[scene_name][0:4]
                                 else:
+                                    temp_str = episode_script[scene_name][1]
                                     del episode_script[scene_name][0:2]
                                 episode_script[scene_name].insert(0, " ".join(temp_list))
-                                episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
-                                                                               "麻烦您提供一下您的订单号"]))
+                                episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1], temp_str]))
                                 sentiment_script[new_scene_name] = episode_script[scene_name]
                             else:
                                 if scene_name.find("verbose1") != -1:
@@ -424,10 +426,11 @@ class Sentiment(object):
                                     # In sentiment scene, users give the complain reason.
                                     # They will do not need retell consult target.
                                     temp_list.append(episode_script[scene_name][0].split(",")[-1])
+                                    temp_str = episode_script[scene_name][1]
                                     del episode_script[scene_name][0:2]
                                     episode_script[scene_name].insert(0, " ".join(temp_list))
                                     episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
-                                                                                   "您可以尝试更新到最新的系统"]))
+                                                                                   temp_str]))
                                     sentiment_script[new_scene_name] = episode_script[scene_name]
                                 elif scene_name.find("verbose2") != -1:
                                     if random.random() < 0.5:
@@ -436,10 +439,11 @@ class Sentiment(object):
                                         # In sentiment scene, users give the complain reason.
                                         # They will do not need retell consult target.
                                         temp_list.append(episode_script[scene_name][0].split(",")[-1])
+                                        temp_str = episode_script[scene_name][1]
                                         del episode_script[scene_name][0:2]
                                         episode_script[scene_name].insert(0, " ".join(temp_list))
                                         episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
-                                                                                       "您可以尝试更新到最新的系统"]))
+                                                                                       temp_str]))
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
                                     else:
                                         temp_list = list()
@@ -447,10 +451,11 @@ class Sentiment(object):
                                         sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
                                         temp_list.append(sentiment_scene_content[0])
                                         temp_list.append(episode_script[scene_name][2])
+                                        temp_str = episode_script[scene_name][3]
                                         del episode_script[scene_name][2:4]
                                         episode_script[scene_name].insert(2, " ".join(temp_list))
                                         episode_script[scene_name].insert(3, " ".join([sentiment_scene_content[1],
-                                                                                       "$osUpdate$"]))
+                                                                                       temp_str]))
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
                                 else:
                                     if random.random() < 0.5:
@@ -459,10 +464,11 @@ class Sentiment(object):
                                         # In sentiment scene, users give the complain reason.
                                         # They will do not need retell consult target.
                                         temp_list.append(episode_script[scene_name][0].split(",")[-1])
+                                        temp_str = episode_script[scene_name][1]
                                         del episode_script[scene_name][0:2]
                                         episode_script[scene_name].insert(0, " ".join(temp_list))
                                         episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
-                                                                                       "您可以尝试更新到最新的系统"]))
+                                                                                       temp_str]))
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
                                     else:
                                         temp_list = list()
@@ -470,10 +476,11 @@ class Sentiment(object):
                                         sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
                                         temp_list.append(sentiment_scene_content[0])
                                         temp_list.append(episode_script[scene_name][2])
+                                        temp_str = episode_script[scene_name][3]
                                         del episode_script[scene_name][2:4]
                                         episode_script[scene_name].insert(2, " ".join(temp_list))
                                         episode_script[scene_name].insert(3, " ".join([sentiment_scene_content[1],
-                                                                                       "我帮您返厂维修一下行吗"]))
+                                                                                       temp_str]))
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
 
                     else:
