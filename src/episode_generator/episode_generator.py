@@ -333,11 +333,13 @@ if __name__ == "__main__":
     random.seed(1)
     with io.open(os.path.join(DATA_ROOT, "log.txt"), "w", encoding="utf-8") as f:
         for _ in range(10000):
-            f.write(str(_))
+            f.write("This is the " + str(_) + "-th episode!\n")
             f.write(".......................\n")
             episode_script = episode_generator.episode_generator()
             for line in episode_script.values():
                 for l in line:
                     f.write(l + "\n")
+            f.write("\n")
             f.write(episode_generator.translate())
             f.write("\n")
+            f.write(".......................\n")
