@@ -196,17 +196,18 @@ class EpisodeGenerator(object):
     def episode_generator(self):
         self.init_episode()
 
-        # First, we decide which dialog episode to generate
-        episode = random.choice(self.available_episode)
-
-        # Next, we decide if sentiment is available
-        if episode == "sentiment":
+        # First, we decide if sentiment is available and which episode to simulate.
+        # Note, we give a bias to sentiment if it is available.
+        if "sentiment" in self.available_episode and random.random() < 0.5:
             decorate_sentiment = True
+        else:
+            decorate_sentiment = False
+        if "sentiment" in self.available_episode:
             self.available_episode.remove("sentiment")
             episode = random.choice(self.available_episode)
             self.available_episode.append("sentiment")
         else:
-            decorate_sentiment = False
+            episode = random.choice(self.available_episode)
 
         # Then, generate basic script
         if episode == "pre_sales":
@@ -238,7 +239,7 @@ class EpisodeGenerator(object):
         else:
             sys.exit("Unconsidered situations happen!")
 
-        # And then, we add sentiment factor.
+        # Next, we add sentiment factor.
         if decorate_sentiment:
             if episode.find("pre_sales") != -1:
                 if attr_entity_table is None:
@@ -337,7 +338,7 @@ if __name__ == "__main__":
         translated_data = OrderedDict()
         episode_generator = EpisodeGenerator(available_intent)
 
-        for episode_id in range(30000):
+        for episode_id in range(10000):
             episode_script = episode_generator.episode_generator()
             episode_content = list()
             for scene_content in episode_script.values():
