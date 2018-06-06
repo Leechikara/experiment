@@ -118,6 +118,7 @@ class Sentiment(object):
                 continue
 
             entity = None
+            keep_entity = None
             if len(value) > 1:
                 scene_element = key.split(" ")
                 if "qa" in scene_element or "confirm" in scene_element \
@@ -126,6 +127,9 @@ class Sentiment(object):
                     entity, attr = find_attr_entity(scene_element)
                     if type(entity) == list:
                         entity = random.choice(entity)
+                        keep_entity = True
+                    else:
+                        keep_entity = False
 
                     # find a true polarity for current attr and entity
                     if attr.find("discount") == -1:
@@ -219,8 +223,12 @@ class Sentiment(object):
 
             # Replace entity. Note in some case the entity can not be replace!
             if entity is not None:
-                scene_content = [re.sub(r"\$entity\$", "$entityId=" + str(entity) + "$", turn)
-                                 for turn in scene_content]
+                if keep_entity is False and random.random() < 0.5:
+                    scene_content = [re.sub(r"\$entity\$", "", turn)
+                                     for turn in scene_content]
+                else:
+                    scene_content = [re.sub(r"\$entity\$", "$entityId=" + str(entity) + "$", turn)
+                                     for turn in scene_content]
             candidate_sentiment[key][scene_name] = scene_content
 
         # keep only sentiment scene for the same attr and polarity
@@ -451,7 +459,7 @@ class Sentiment(object):
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
                                 else:
                                     p = random.random()
-                                    if p < 1/3:
+                                    if p < 1 / 3:
                                         temp_list = list()
                                         temp_list.append(sentiment_scene_content[0])
                                         # In sentiment scene, users give the complain reason.
@@ -464,7 +472,7 @@ class Sentiment(object):
                                         episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
                                                                                        temp_str]))
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
-                                    elif p < 2/3:
+                                    elif p < 2 / 3:
                                         temp_list = list()
                                         # Pure sentiment, No fact. It will be more coherent.
                                         sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
