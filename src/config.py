@@ -36,7 +36,9 @@ OTHER_ATTRIBUTE_DEFINITION = {
     "payment": {"dtype": "constantList", "value": ["微信", "支付宝", "信用卡"]},
     "expressTime": {"dtype": "constantInt", "value": 3},
     "expressName": {"dtype": "constantStr", "value": "顺丰"},
-    "osUpdate": {"dtype": "constantStr", "value": "https://osUpdate.html"}
+    "osUpdate": {"dtype": "constantStr", "value": "https://osUpdate.html"},
+    "networkReset": {"dtype": "constantStr", "value": "https://networkRest.html"},
+    "nfcReset": {"dtype": "constantStr", "value": "https://nfcReset.html"}
 }
 
 # simulate noise in price
