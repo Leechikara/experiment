@@ -258,7 +258,7 @@ class EpisodeGenerator(object):
         else:
             self.episode_script = self.instantiation(episode_script)
 
-        return self.episode_script, episode
+        return self.episode_script
 
     def instantiation(self, episode_script, **kwargs):
         # instantiation all unknown content
@@ -339,20 +339,13 @@ if __name__ == "__main__":
         episode_generator = EpisodeGenerator(available_intent)
 
         for episode_id in range(10000):
-            episode_script, episode = episode_generator.episode_generator()
+            episode_script = episode_generator.episode_generator()
             episode_content = list()
             for scene_content in episode_script.values():
                 episode_content.extend(scene_content)
             data[episode_id] = episode_content
             translated_content = episode_generator.translate()
-            sentiment = False
-            for key in translated_content.keys():
-                if key.find("positive") != -1 or key.find("negative") != -1:
-                    sentiment = True
-                    break
-            translated_data[episode_id] = {"episode": episode,
-                                           "translated_content": translated_content,
-                                           "sentiment": sentiment}
+            translated_data[episode_id] = translated_content
 
         # save data
         with io.open(os.path.join(DATA_ROOT, "public_1", task + ".json"), "w", encoding="utf-8") as f:
