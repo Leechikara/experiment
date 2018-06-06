@@ -342,7 +342,8 @@ class Sentiment(object):
                                         episode_script[scene_name][0] = episode_script[scene_name][0].split(",")[-1]
                                         sentiment_scene_content.extend(episode_script[scene_name])
                                         sentiment_script[new_scene_name] = sentiment_scene_content
-                                elif scene_name.find("verbose2") != -1:
+                                elif scene_name.find("verbose2") != -1 or scene_name.find("verbose3") != -1 \
+                                        and "os" in scene_name.split(" "):
                                     p = random.random()
                                     if p < 1 / 3:
                                         # Degrade into append rule
@@ -364,42 +365,28 @@ class Sentiment(object):
                                         episode_script[scene_name].insert(3, sentiment_scene_content[1])
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
                                 else:
-                                    if len(episode_script[scene_name]) == 4:
-                                        # Special for os attr, same logic in verbose2
-                                        p = random.random()
-                                        if p < 1 / 3:
-                                            # Degrade into append rule
-                                            # Pure sentiment, No fact. It will be more coherent.
-                                            sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
-                                            episode_script[scene_name].extend(sentiment_scene_content)
-                                            sentiment_script[new_scene_name] = episode_script[scene_name]
-                                        elif p < 2 / 3:
-                                            # Degrade into prefix rule
-                                            # In sentiment scene, users give the complain reason.
-                                            # They will do not need retell consult target.
-                                            episode_script[scene_name][0] = episode_script[scene_name][0].split(",")[-1]
-                                            sentiment_scene_content.extend(episode_script[scene_name])
-                                            sentiment_script[new_scene_name] = sentiment_scene_content
-                                        else:
-                                            # Pure sentiment, No fact. It will be more coherent.
-                                            sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
-                                            episode_script[scene_name].insert(2, sentiment_scene_content[0])
-                                            episode_script[scene_name].insert(3, sentiment_scene_content[1])
-                                            sentiment_script[new_scene_name] = episode_script[scene_name]
+                                    # Although degrading into append and prefix rules is available,
+                                    # but we do not do that. It will give bias to append and prefix.
+                                    # Pure sentiment, No fact. It will be more coherent.
+                                    sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
+                                    if random.random() < 0.5:
+                                        episode_script[scene_name].insert(2, sentiment_scene_content[0])
+                                        episode_script[scene_name].insert(3, sentiment_scene_content[1])
+                                        sentiment_script[new_scene_name] = episode_script[scene_name]
                                     else:
-                                        # Pure sentiment, No fact. It will be more coherent.
-                                        sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
-                                        if random.random() < 0.5:
-                                            episode_script[scene_name].insert(2, sentiment_scene_content[0])
-                                            episode_script[scene_name].insert(3, sentiment_scene_content[1])
-                                            sentiment_script[new_scene_name] = episode_script[scene_name]
-                                        else:
-                                            episode_script[scene_name].insert(4, sentiment_scene_content[0])
-                                            temp_str = episode_script[scene_name][6]
-                                            del episode_script[scene_name][5:7]
-                                            episode_script[scene_name].insert(5, " ".join([sentiment_scene_content[1],
-                                                                                           temp_str]))
-                                            sentiment_script[new_scene_name] = episode_script[scene_name]
+                                        # Degrade into mix rule
+                                        temp_str = episode_script[scene_name][4]
+                                        del episode_script[scene_name][4:5]
+                                        temp_list = list()
+                                        temp_list.append(temp_str)
+                                        temp_list.append(sentiment_scene_content[0])
+                                        # A special case: not shuffle temp_list
+                                        episode_script[scene_name].insert(4, " ".join(temp_list))
+                                        temp_str = episode_script[scene_name][5]
+                                        del episode_script[scene_name][5:6]
+                                        episode_script[scene_name].insert(5, " ".join([sentiment_scene_content[1],
+                                                                                       temp_str]))
+                                        sentiment_script[new_scene_name] = episode_script[scene_name]
                         else:
                             # mix rule must happen in the user turn
                             if sentiment_scene_name.find("refund") != -1:
@@ -434,7 +421,8 @@ class Sentiment(object):
                                     episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
                                                                                    temp_str]))
                                     sentiment_script[new_scene_name] = episode_script[scene_name]
-                                elif scene_name.find("verbose2") != -1:
+                                elif scene_name.find("verbose2") != -1 or scene_name.find("verbose3") != -1 \
+                                        and "os" in scene_name.split(" "):
                                     if random.random() < 0.5:
                                         temp_list = list()
                                         temp_list.append(sentiment_scene_content[0])
@@ -462,7 +450,8 @@ class Sentiment(object):
                                                                                        temp_str]))
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
                                 else:
-                                    if random.random() < 0.5:
+                                    p = random.random()
+                                    if p < 1/3:
                                         temp_list = list()
                                         temp_list.append(sentiment_scene_content[0])
                                         # In sentiment scene, users give the complain reason.
@@ -475,7 +464,7 @@ class Sentiment(object):
                                         episode_script[scene_name].insert(1, " ".join([sentiment_scene_content[1],
                                                                                        temp_str]))
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
-                                    else:
+                                    elif p < 2/3:
                                         temp_list = list()
                                         # Pure sentiment, No fact. It will be more coherent.
                                         sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
@@ -486,6 +475,19 @@ class Sentiment(object):
                                         del episode_script[scene_name][2:4]
                                         episode_script[scene_name].insert(2, " ".join(temp_list))
                                         episode_script[scene_name].insert(3, " ".join([sentiment_scene_content[1],
+                                                                                       temp_str]))
+                                        sentiment_script[new_scene_name] = episode_script[scene_name]
+                                    else:
+                                        temp_str = episode_script[scene_name][4]
+                                        del episode_script[scene_name][4:5]
+                                        temp_list = list()
+                                        temp_list.append(temp_str)
+                                        temp_list.append(sentiment_scene_content[0])
+                                        # A special case: not shuffle temp_list
+                                        episode_script[scene_name].insert(4, " ".join(temp_list))
+                                        temp_str = episode_script[scene_name][5]
+                                        del episode_script[scene_name][5:6]
+                                        episode_script[scene_name].insert(5, " ".join([sentiment_scene_content[1],
                                                                                        temp_str]))
                                         sentiment_script[new_scene_name] = episode_script[scene_name]
 
