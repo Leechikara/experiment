@@ -348,7 +348,7 @@ if __name__ == "__main__":
             demo[episode_id] = translated_content
 
         # save data
-        with io.open(os.path.join(DATA_ROOT, "/public", task + ".json"), "w", encoding="utf-8") as f:
+        with io.open(os.path.join(DATA_ROOT, "public", task + ".json"), "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
-        with io.open(os.path.join(DATA_ROOT, "/demo", task + ".json"), "w", encoding="utf-8") as f:
+        with io.open(os.path.join(DATA_ROOT, "demo", task + ".json"), "w", encoding="utf-8") as f:
             json.dump(demo, f, ensure_ascii=False, indent=4)
