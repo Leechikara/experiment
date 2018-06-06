@@ -66,14 +66,10 @@ AVAILABLE_INTENT_3 = {"pre_sales": ["qa", "confirm", "compare"],
 
 AVAILABLE_INTENT_4 = {"pre_sales": ["qa", "confirm", "compare"],
                       "in_sales": ["payment", "discountURL", "expressTime", "expressName"],
-                      "after_sales": ["expressInfo", "invoice", "exchange"]}
-
-AVAILABLE_INTENT_5 = {"pre_sales": ["qa", "confirm", "compare"],
-                      "in_sales": ["payment", "discountURL", "expressTime", "expressName"],
                       "after_sales": ["expressInfo", "invoice", "exchange", "exchange_exchange", "consult", "refund",
                                       "consult_refund"]}
 
-AVAILABLE_INTENT_6 = {"pre_sales": ["qa", "confirm", "compare"],
+AVAILABLE_INTENT_5 = {"pre_sales": ["qa", "confirm", "compare"],
                       "in_sales": ["payment", "discountURL", "expressTime", "expressName"],
                       "after_sales": ["expressInfo", "invoice", "exchange", "exchange_exchange", "consult", "refund",
                                       "consult_refund"],
