@@ -410,6 +410,7 @@ class Sentiment(object):
                                 temp_list = list()
                                 temp_list.append(sentiment_scene_content[0])
                                 temp_list.append(episode_script[scene_name][0])
+                                random.shuffle(temp_list)
                                 if new_scene_name.find("withConsult") == -1:
                                     temp_str = episode_script[scene_name][3]
                                     del episode_script[scene_name][0:4]
@@ -426,6 +427,7 @@ class Sentiment(object):
                                     # In sentiment scene, users give the complain reason.
                                     # They will do not need retell consult target.
                                     temp_list.append(episode_script[scene_name][0].split(",")[-1])
+                                    random.shuffle(temp_list)
                                     temp_str = episode_script[scene_name][1]
                                     del episode_script[scene_name][0:2]
                                     episode_script[scene_name].insert(0, " ".join(temp_list))
@@ -439,6 +441,7 @@ class Sentiment(object):
                                         # In sentiment scene, users give the complain reason.
                                         # They will do not need retell consult target.
                                         temp_list.append(episode_script[scene_name][0].split(",")[-1])
+                                        random.shuffle(temp_list)
                                         temp_str = episode_script[scene_name][1]
                                         del episode_script[scene_name][0:2]
                                         episode_script[scene_name].insert(0, " ".join(temp_list))
@@ -451,6 +454,7 @@ class Sentiment(object):
                                         sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
                                         temp_list.append(sentiment_scene_content[0])
                                         temp_list.append(episode_script[scene_name][2])
+                                        random.shuffle(temp_list)
                                         temp_str = episode_script[scene_name][3]
                                         del episode_script[scene_name][2:4]
                                         episode_script[scene_name].insert(2, " ".join(temp_list))
@@ -464,6 +468,7 @@ class Sentiment(object):
                                         # In sentiment scene, users give the complain reason.
                                         # They will do not need retell consult target.
                                         temp_list.append(episode_script[scene_name][0].split(",")[-1])
+                                        random.shuffle(temp_list)
                                         temp_str = episode_script[scene_name][1]
                                         del episode_script[scene_name][0:2]
                                         episode_script[scene_name].insert(0, " ".join(temp_list))
@@ -476,6 +481,7 @@ class Sentiment(object):
                                         sentiment_scene_content[0] = sentiment_scene_content[0].split(",")[0]
                                         temp_list.append(sentiment_scene_content[0])
                                         temp_list.append(episode_script[scene_name][2])
+                                        random.shuffle(temp_list)
                                         temp_str = episode_script[scene_name][3]
                                         del episode_script[scene_name][2:4]
                                         episode_script[scene_name].insert(2, " ".join(temp_list))
