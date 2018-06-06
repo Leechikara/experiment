@@ -334,7 +334,7 @@ if __name__ == "__main__":
     random.seed(0)
     for task, available_intent in TASKS.items():
         data = OrderedDict()
-        demo = OrderedDict()
+        translated_data = OrderedDict()
         episode_generator = EpisodeGenerator(available_intent)
 
         for episode_id in range(30000):
@@ -343,12 +343,11 @@ if __name__ == "__main__":
             for scene_content in episode_script.values():
                 episode_content.extend(scene_content)
             data[episode_id] = episode_content
-
             translated_content = episode_generator.translate()
-            demo[episode_id] = translated_content
+            translated_data[episode_id] = translated_content
 
         # save data
-        with io.open(os.path.join(DATA_ROOT, "public", task + ".json"), "w", encoding="utf-8") as f:
+        with io.open(os.path.join(DATA_ROOT, "public_1", task + ".json"), "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
-        with io.open(os.path.join(DATA_ROOT, "demo", task + ".json"), "w", encoding="utf-8") as f:
-            json.dump(demo, f, ensure_ascii=False, indent=4)
+        with io.open(os.path.join(DATA_ROOT, "public_2", task + ".json"), "w", encoding="utf-8") as f:
+            json.dump(translated_data, f, ensure_ascii=False, indent=4)
