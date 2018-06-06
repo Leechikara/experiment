@@ -16,17 +16,13 @@ class Translator(object):
             self.nl_pairs = json.load(f)
         self.kb_helper = KnowledgeBase()
 
-    def translate(self, agent_action):
+    def _translate(self, sub_agent_action):
         """
-        Translate an agent action into a NL
+        Translate an sub agent action into NL
         """
-        # Some agent actions do not need translate.
-        if not (agent_action[0] == "$" or agent_action[-1] == "$"):
-            return agent_action
-
         # Get the basic key words to query KB.
-        agent_action = agent_action.strip("$")
-        items = agent_action.split("_")
+        sub_agent_action = sub_agent_action.strip("$")
+        items = sub_agent_action.split("_")
         kb_query_keys = dict()
         order = 0
         entity_list = list()
@@ -150,6 +146,21 @@ class Translator(object):
                         else:
                             information = str(information)
                         nl = re.sub(r"\$entity2_\S+?\$", information, nl)
+        return nl
+
+    def translate(self, agent_action):
+        """
+        Translate an agent action into a NL
+        """
+        # Some agent actions do not need translate.
+        nl_list = list()
+        for sub_agent_action in agent_action.split(" "):
+            if sub_agent_action[0] == "$" and sub_agent_action[-1] == "$":
+                nl = self._translate(sub_agent_action)
+            else:
+                nl = sub_agent_action
+            nl_list.append(nl)
+        nl = " ".join(nl_list)
         return nl
 
 
