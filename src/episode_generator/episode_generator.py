@@ -252,11 +252,14 @@ class EpisodeGenerator(object):
                 episode_script = self.sentiment.episode_generator(episode_script, episode)
 
         # In the end, we Instantiate all free content. We use this script to train our model!
-        self.episode_script = self.instantiation(episode_script)
+        if episode.find("pre_sales") != -1:
+            self.episode_script = self.instantiation(episode_script, hard_constrains=hard_constrains)
+        else:
+            self.episode_script = self.instantiation(episode_script)
 
         return self.episode_script
 
-    def instantiation(self, episode_script):
+    def instantiation(self, episode_script, **kwargs):
         # instantiation all unknown content
         # special for unconstrained entity, compare operation and compare value
         candidate_entity = None
@@ -266,10 +269,13 @@ class EpisodeGenerator(object):
                     if turn.find("$value$") != -1:
                         _, attr = find_attr_entity(key)
                         assert attr in CONFIRM_PERMITTED_ATTR
-                        if "range" in GOODS_ATTRIBUTE_DEFINITION[attr].keys():
+                        if attr == "color" and "hard_constrains" in kwargs.keys():
+                            # confirm color is a special case.
+                            candidate_value = kwargs["hard_constrains"]["color"]
+                        elif "range" in GOODS_ATTRIBUTE_DEFINITION[attr].keys():
                             candidate_value = random.choice(GOODS_ATTRIBUTE_DEFINITION[attr]["range"])
-                        elif "min" in GOODS_ATTRIBUTE_DEFINITION[attr].keys() and \
-                                        "max" in GOODS_ATTRIBUTE_DEFINITION[attr].keys():
+                        elif "min" in GOODS_ATTRIBUTE_DEFINITION[attr].keys() \
+                                and "max" in GOODS_ATTRIBUTE_DEFINITION[attr].keys():
                             candidate_value = random.choice(list(range(GOODS_ATTRIBUTE_DEFINITION[attr]["min"],
                                                                        GOODS_ATTRIBUTE_DEFINITION[attr]["max"])))
                         else:
