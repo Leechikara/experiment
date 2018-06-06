@@ -74,6 +74,8 @@ AVAILABLE_INTENT_5 = {"pre_sales": ["qa", "confirm", "compare"],
                       "after_sales": ["expressInfo", "invoice", "exchange", "exchange_exchange", "consult", "refund",
                                       "consult_refund"],
                       "sentiment": ["positive", "negative"]}
+TASKS = {"task_1": AVAILABLE_INTENT_1, "task_2": AVAILABLE_INTENT_2, "task_3": AVAILABLE_INTENT_3,
+         "task_4": AVAILABLE_INTENT_4, "task_5": AVAILABLE_INTENT_5}
 
 # intent distributions in different scenes
 INTENT_P_DICT = {"pre_sales": {"qa": 1 / 3, "confirm": 1 / 3, "compare": 1 / 3},
