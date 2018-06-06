@@ -4,7 +4,6 @@ import random, math, copy, json, os, re
 import numpy as np
 from collections import defaultdict, OrderedDict
 from utils import random_pick, filter_p_dict
-import sys
 
 
 class PreSales(object):
@@ -249,8 +248,18 @@ class PreSales(object):
         attr = self.attr_list[-1]
         entity1 = self.entity_list[-1]
         entity2 = self.entity_list[-2]
+
+        # A trick to reduce agent response space
+        # Note: we modify scene_name and last turn of current scene only!
+        if int(entity1.replace("entityId=", "")) < int(entity2.replace("entityId=", "")):
+            replace_flag = True
+        else:
+            replace_flag = False
         wording = random_pick(wording_list, p_list)
-        scene_name = " ".join(["compare", str(entity1), str(entity2), "attr=" + attr, wording])
+        if replace_flag is False:
+            scene_name = " ".join(["compare", str(entity1), str(entity2), "attr=" + attr, wording])
+        else:
+            scene_name = " ".join(["compare", str(entity2), str(entity1), "attr=" + attr, wording])
         scene_content = list()
 
         for turn in available_script[attr][wording]:
@@ -258,9 +267,17 @@ class PreSales(object):
                 scene_content.append(random.choice(turn))
             else:
                 scene_content.append(turn)
-
+        last_turn = scene_content[-1]
+        scene_content = scene_content[:-1]
         scene_content = [turn.replace("entity1", str(entity1)) for turn in scene_content]
         scene_content = [turn.replace("entity2", str(entity2)) for turn in scene_content]
+        if replace_flag is False:
+            last_turn = last_turn.replace("entity1", str(entity1))
+            last_turn = last_turn.replace("entity2", str(entity2))
+        else:
+            last_turn = last_turn.replace("entity1", str(entity2))
+            last_turn = last_turn.replace("entity2", str(entity1))
+        scene_content.append(last_turn)
 
         # Now we make context important
         if wording == "lack_attribute":
