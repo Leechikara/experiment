@@ -326,24 +326,29 @@ class EpisodeGenerator(object):
                 else:
                     temp_content.append(turn)
             episode_script[key] = temp_content
-        episode_script = json.dumps(episode_script, ensure_ascii=False, indent=2)
         return episode_script
 
 
 if __name__ == "__main__":
-    episode_generator = EpisodeGenerator(AVAILABLE_INTENT_6)
+    # Generate the simulated Data Set
+    random.seed(0)
+    for task, available_intent in TASKS.items():
+        data = OrderedDict()
+        demo = OrderedDict()
+        episode_generator = EpisodeGenerator(available_intent)
 
-    # test our code
-    random.seed(1)
-    with io.open(os.path.join(DATA_ROOT, "log.txt"), "w", encoding="utf-8") as f:
-        for _ in range(10000):
-            f.write("This is the " + str(_) + "-th episode!\n")
-            f.write(".......................\n")
+        for episode_id in range(30000):
             episode_script = episode_generator.episode_generator()
-            for line in episode_script.values():
-                for l in line:
-                    f.write(l + "\n")
-            f.write("\n")
-            f.write(episode_generator.translate())
-            f.write("\n")
-            f.write(".......................\n\n\n")
+            episode_content = list()
+            for scene_content in episode_script.values():
+                episode_content.extend(scene_content)
+            data[episode_id] = episode_content
+
+            translated_content = episode_generator.translate()
+            demo[episode_id] = translated_content
+
+        # save data
+        with io.open(os.path.join(DATA_ROOT, "/public", task, ".json"), "w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+        with io.open(os.path.join(DATA_ROOT, "/demo", task, ".json"), "w", encoding="utf-8") as f:
+            json.dump(demo, f, ensure_ascii=False, indent=4)
