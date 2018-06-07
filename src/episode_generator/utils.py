@@ -86,7 +86,7 @@ def find_attr_entity(scene_element):
 
 def post_process_data(episode_content):
     """
-    Replace all entity id into the order it occur.
+    Replace all entity id into the entity order it occur.
     """
     entity_to_order = dict()
     order_to_entity = dict()
@@ -94,9 +94,15 @@ def post_process_data(episode_content):
         entity_list = re.findall(r"entityId=\d+", turn)
         for entity in entity_list:
             if entity not in entity_to_order.keys():
-                entity_to_order[entity] = len(entity_to_order)
-        for key, value in entity_to_order.items():
-            episode_content[i] = episode_content[i].replace(key, "entityOrder=" + str(value))
+                entity_to_order[entity] = "entityOrder=" + str(len(entity_to_order))
+        entity_list.append("")
+        temp_turn = ""
+        for sub_turn, entity in zip(re.split(r"entityId=\d+", turn), entity_list):
+            if entity in entity_to_order.keys():
+                temp_turn = temp_turn + sub_turn + entity_to_order[entity]
+            else:
+                temp_turn = temp_turn + sub_turn
+        episode_content[i] = temp_turn
     for key, value in entity_to_order.items():
         order_to_entity[value] = key
 
