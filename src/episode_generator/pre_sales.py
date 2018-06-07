@@ -246,12 +246,12 @@ class PreSales(object):
 
         # obtain basic scene
         attr = self.attr_list[-1]
-        entity1 = self.entity_list[-1]
-        entity2 = self.entity_list[-2]
+        entity1 = self.entity_list[-2]
+        entity2 = self.entity_list[-1]
 
         # A trick to reduce agent response space
         # Note: we modify scene_name and last turn of current scene only!
-        if self.entity_list.index(entity1) > self.entity_list.index(entity2):
+        if entity2 in self.entity_list[:-2] and self.entity_list[:-2].index(entity2) < self.entity_list.index(entity1):
             replace_flag = True
         else:
             replace_flag = False
@@ -363,8 +363,8 @@ class PreSales(object):
 
                 self.attr_list.append(self.user_concern_attr[compared_coordinate[0]])
                 self.attr_list.append(self.user_concern_attr[self.coordinate[0]])
-                self.entity_list.append(self.user_concern_entity[compared_coordinate[1]])
                 self.entity_list.append(self.user_concern_entity[self.coordinate[1]])
+                self.entity_list.append(self.user_concern_entity[compared_coordinate[1]])
 
                 scene_name, scene_content = self.compare_generator(available_script,
                                                                    list(available_grammar_p_dict.keys()),
