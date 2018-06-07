@@ -22,7 +22,7 @@ from sentiment import Sentiment
 from src.knowledge_base.knowledge_base import KnowledgeBase
 from src.translator.translator import Translator
 from config import *
-from utils import find_attr_entity
+from utils import find_attr_entity, post_process_data
 from collections import OrderedDict
 import random
 import json
@@ -343,7 +343,8 @@ if __name__ == "__main__":
             episode_content = list()
             for scene_content in episode_script.values():
                 episode_content.extend(scene_content)
-            data[episode_id] = episode_content
+            processed_data = post_process_data(episode_content)
+            data[episode_id] = processed_data
             translated_content = episode_generator.translate()
             translated_data[episode_id] = translated_content
 
