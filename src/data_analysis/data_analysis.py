@@ -17,8 +17,8 @@ class DataAnalysis(object):
         # Now we just want to know how many different agent response.
         results = {"agent_answer": None}
         agent_answer = list()
-        for episode in data.values():
-            for i, turn in enumerate(episode):
+        for meta_data in data.values():
+            for i, turn in enumerate(meta_data["episode_content"]):
                 if i % 2 == 1 and turn not in agent_answer:
                     agent_answer.append(turn)
         results["agent_answer"] = sorted(agent_answer)
