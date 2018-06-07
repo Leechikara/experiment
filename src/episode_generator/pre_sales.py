@@ -257,6 +257,7 @@ class PreSales(object):
                 scene_content.append(random.choice(turn))
             else:
                 scene_content.append(turn)
+
         scene_content = [turn.replace("entity1", str(entity1)) for turn in scene_content]
         scene_content = [turn.replace("entity2", str(entity2)) for turn in scene_content]
 
