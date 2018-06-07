@@ -1,5 +1,6 @@
 # coding=utf-8
 import copy, random
+import re
 
 
 def filter_p_dict(available_list, p_dict):
@@ -81,3 +82,24 @@ def find_attr_entity(scene_element):
     assert attr is not None
 
     return entity, attr
+
+
+def post_process_data(episode_content):
+    """
+    Replace all entity id into the order it occur.
+    """
+    entity_to_order = dict()
+    order_to_entity = dict()
+    for i, turn in enumerate(episode_content):
+        entity_list = re.findall(r"entityId=\d+", turn)
+        for entity in entity_list:
+            if entity not in entity_to_order.keys():
+                entity_to_order[entity] = len(entity_to_order)
+        for key, value in entity_to_order.items():
+            episode_content[i] = episode_content[i].replace(key, "entityOrder=" + str(value))
+    for key, value in entity_to_order.items():
+        order_to_entity[value] = key
+
+    return {"episode_content": episode_content,
+            "entity_to_order": entity_to_order,
+            "order_to_entity": order_to_entity}
