@@ -198,7 +198,7 @@ class EpisodeGenerator(object):
 
         # First, we decide if sentiment is available and which episode to simulate.
         # Note, we give a bias to sentiment if it is available.
-        if "sentiment" in self.available_episode and random.random() < 0.5:
+        if "sentiment" in self.available_episode:
             decorate_sentiment = True
         else:
             decorate_sentiment = False
