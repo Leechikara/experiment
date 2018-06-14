@@ -333,23 +333,27 @@ class EpisodeGenerator(object):
 if __name__ == "__main__":
     # Generate the simulated Data Set
     random.seed(0)
-    for task, available_intent in TASKS.items():
-        data = OrderedDict()
-        translated_data = OrderedDict()
-        episode_generator = EpisodeGenerator(available_intent)
 
-        for episode_id in range(10000):
-            episode_script = episode_generator.episode_generator()
-            episode_content = list()
-            for scene_content in episode_script.values():
-                episode_content.extend(scene_content)
-            processed_data = post_process_data(episode_content)
-            data[episode_id] = processed_data
-            translated_content = episode_generator.translate()
-            translated_data[episode_id] = translated_content
+    for data_set_name, data_set_size in DATA_SET.items():
+        for task, available_intent in TASKS.items():
+            data = OrderedDict()
+            translated_data = OrderedDict()
+            episode_generator = EpisodeGenerator(available_intent)
 
-        # save data
-        with io.open(os.path.join(DATA_ROOT, "public_1", task + ".json"), "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-        with io.open(os.path.join(DATA_ROOT, "public_2", task + ".json"), "w", encoding="utf-8") as f:
-            json.dump(translated_data, f, ensure_ascii=False, indent=4)
+            for episode_id in range(data_set_size):
+                episode_script = episode_generator.episode_generator()
+                episode_content = list()
+                for scene_content in episode_script.values():
+                    episode_content.extend(scene_content)
+                processed_data = post_process_data(episode_content)
+                data[episode_id] = processed_data
+                translated_content = episode_generator.translate()
+                translated_data[episode_id] = translated_content
+
+            # save data
+            with io.open(os.path.join(DATA_ROOT, "public_1", data_set_name, task + ".json"), "w",
+                         encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=4)
+            with io.open(os.path.join(DATA_ROOT, "public_2", data_set_name, task + ".json"), "w",
+                         encoding="utf-8") as f:
+                json.dump(translated_data, f, ensure_ascii=False, indent=4)
