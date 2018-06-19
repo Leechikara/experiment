@@ -37,7 +37,7 @@ OTHER_ATTRIBUTE_DEFINITION = {
     "expressTime": {"dtype": "constantInt", "value": 3},
     "expressName": {"dtype": "constantStr", "value": "顺丰"},
     "osUpdate": {"dtype": "constantStr", "value": "https://osUpdate.html"},
-    "networkReset": {"dtype": "constantStr", "value": "https://networkRest.html"},
+    "networkReset": {"dtype": "constantStr", "value": "https://networkReset.html"},
     "nfcReset": {"dtype": "constantStr", "value": "https://nfcReset.html"}
 }
 
