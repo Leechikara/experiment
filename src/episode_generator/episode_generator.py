@@ -334,11 +334,11 @@ if __name__ == "__main__":
     # Generate the simulated Data Set
     random.seed(0)
 
-    for data_set_name, data_set_size in DATA_SET.items():
-        for task, available_intent in TASKS.items():
+    for task, available_intent in TASKS.items():
+        episode_generator = EpisodeGenerator(available_intent)
+        for data_set_name, data_set_size in DATA_SET.items():
             data = OrderedDict()
             translated_data = OrderedDict()
-            episode_generator = EpisodeGenerator(available_intent)
 
             for episode_id in range(data_set_size):
                 episode_script = episode_generator.episode_generator()
@@ -351,9 +351,9 @@ if __name__ == "__main__":
                 translated_data[episode_id] = translated_content
 
             # save data
-            with io.open(os.path.join(DATA_ROOT, "public_1", data_set_name, task + ".json"), "w",
+            with io.open(os.path.join(DATA_ROOT, "public_1", task, data_set_name + ".json"), "w",
                          encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=4)
-            with io.open(os.path.join(DATA_ROOT, "public_2", data_set_name, task + ".json"), "w",
+            with io.open(os.path.join(DATA_ROOT, "public_2", task, data_set_name + ".json"), "w",
                          encoding="utf-8") as f:
                 json.dump(translated_data, f, ensure_ascii=False, indent=4)
