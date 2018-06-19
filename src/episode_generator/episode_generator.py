@@ -306,8 +306,8 @@ class EpisodeGenerator(object):
                     if turn.find("$entity$") != -1:
                         candidate_entity = random.choice(self.kb_helper.kb)
                         episode_script[key][i] = episode_script[key][i].replace("$entity$",
-                                                                                "entityId=" + str(
-                                                                                    candidate_entity["id"]))
+                                                                                "$entityId=" + str(
+                                                                                    candidate_entity["id"]) + "$")
                     if turn.find("$color$") != -1:
                         if candidate_entity is not None:
                             candidate_color = random.choice(candidate_entity["color"])
