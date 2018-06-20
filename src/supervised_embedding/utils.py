@@ -3,7 +3,14 @@ import numpy as np
 
 
 def batch_iter(tensor, batch_size, shuffle=False):
-    batches_count = tensor.shape[0] // batch_size
+    if tensor.shape[0] % batch_size > 0:
+        extra_data_num = batch_size - tensor.shape[0] % batch_size
+        extra_tensor = np.random.permutation(tensor)[:extra_data_num]
+        tensor = np.append(tensor, extra_tensor, axis=0)
+        batches_count = tensor.shape[0] // batch_size + 1
+
+    else:
+        batches_count = tensor.shape[0] // batch_size
 
     if shuffle:
         shuffle_indices = np.random.permutation(np.arange(tensor.shape[0]))
@@ -13,12 +20,19 @@ def batch_iter(tensor, batch_size, shuffle=False):
 
     for batch_num in range(batches_count):
         start_index = batch_num * batch_size
-        end_index = min((batch_num + 1) * batch_size, tensor.shape[0])
+        end_index = (batch_num + 1) * batch_size
         yield data[start_index:end_index]
 
 
 def neg_sampling_iter(tensor, batch_size, count, seed=None):
-    batches_count = tensor.shape[0] // batch_size
+    if tensor.shape[0] % batch_size > 0:
+        extra_data_num = batch_size - tensor.shape[0] % batch_size
+        extra_tensor = np.random.permutation(tensor)[:extra_data_num]
+        tensor = np.append(tensor, extra_tensor, axis=0)
+        batches_count = tensor.shape[0] // batch_size + 1
+    else:
+        batches_count = tensor.shape[0] // batch_size
+
     trials = 0
     np.random.seed(seed)
     shuffle_indices = np.random.permutation(np.arange(tensor.shape[0]))
@@ -26,7 +40,7 @@ def neg_sampling_iter(tensor, batch_size, count, seed=None):
     for batch_num in range(batches_count):
         trials += 1
         start_index = batch_num * batch_size
-        end_index = min((batch_num + 1) * batch_size, tensor.shape[0])
+        end_index = (batch_num + 1) * batch_size
         if trials > count:
             return
         else:
