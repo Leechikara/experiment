@@ -13,6 +13,9 @@ class Vectorizer(object):
         self.word2index = vocab["word2index"]
         self.index2word = vocab["index2word"]
 
+    def vocab_dim(self):
+        return len(self.word2index)
+
     def vectorize_utt(self, utt):
         vec = np.zeros(len(self.word2index))
         for w in utt.split(' '):
