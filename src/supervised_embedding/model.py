@@ -54,12 +54,20 @@ class Trainer(object):
         self.optimizer = optim.Adam(self.model.parameters(), lr=config["lr"])
         self.logger = self._setup_logger()
 
+    def tensor_wrapper(self, data):
+        if isinstance(data, list):
+            data = np.asarray(data)
+        data = torch.from_numpy(data)
+        return data.to(self.config["device"])
+
     def _train(self, batch_size, neg_size):
         avg_loss = 0
         for batch in batch_iter(self.train_tensor, batch_size, True):
             for neg_batch in neg_sampling_iter(self.train_tensor, batch_size, neg_size):
                 self.optimizer.zero_grad()
-                _, _, loss = self.model(batch[:, 0, :], batch[:, 1, :], neg_batch[:, 1, :])
+                _, _, loss = self.model(self.tensor_wrapper(batch[:, 0, :]),
+                                        self.tensor_wrapper(batch[:, 1, :]),
+                                        self.tensor_wrapper(neg_batch[:, 1, :]))
                 loss.backward()
                 self.optimizer.step()
                 avg_loss += loss.item()
@@ -70,7 +78,9 @@ class Trainer(object):
         avg_dev_loss = 0
         for batch in batch_iter(self.dev_tensor, 256):
             for neg_batch in neg_sampling_iter(self.dev_tensor, 256, 1, 42):
-                _, _, loss = self.model(batch[:, 0, :], batch[:, 1, :], neg_batch[:, 1, :])
+                _, _, loss = self.model(self.tensor_wrapper(batch[:, 0, :]),
+                                        self.tensor_wrapper(batch[:, 1, :]),
+                                        self.tensor_wrapper(neg_batch[:, 1, :]))
                 avg_dev_loss += loss.item()
         avg_dev_loss = avg_dev_loss / self.dev_tensor.shape[0]
         return avg_dev_loss
@@ -90,7 +100,9 @@ class Trainer(object):
             candidate_responses = batch[:, 0, :]
             context_batch = np.repeat(true_context, candidate_responses.shape[0], axis=0)
 
-            scores, _, _ = self.model(context_batch, candidate_responses, candidate_responses)
+            scores, _, _ = self.model(self.tensor_wrapper(context_batch),
+                                      self.tensor_wrapper(candidate_responses),
+                                      self.tensor_wrapper(candidate_responses))
             scores = scores.numpy()
 
             for ind, score in enumerate(scores):
@@ -106,7 +118,9 @@ class Trainer(object):
         pos = 0
         for row in tqdm(test_tensor):
             true_context = [row[0]]
-            test_score, _, _ = self.model(true_context, [row[1]], [row[1]])
+            test_score, _, _ = self.model(self.tensor_wrapper(true_context),
+                                          self.tensor_wrapper([row[1]]),
+                                          self.tensor_wrapper([row[1]]))
             test_score = test_score.item()
 
             is_pos = self.evaluate_one_row(candidates_tensor, true_context, test_score, row[1])
