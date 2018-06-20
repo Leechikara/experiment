@@ -1,0 +1,145 @@
+# coding = utf-8
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+import numpy as np
+import random
+import logging
+import sys
+from tqdm import tqdm
+from .utils import batch_iter, neg_sampling_iter
+
+
+class EmbeddingModel(nn.Module):
+    def __init__(self, vocab_dim, emb_dim, margin, random_seed=42, share_parameter=True):
+        super(EmbeddingModel, self).__init__()
+        self._vocab_dim = vocab_dim
+        self._emb_dim = emb_dim
+        self._margin = margin
+        self._random_seed = random_seed
+
+        # init the embedding matrix
+        torch.manual_seed(random_seed)
+        context_embedding = torch.rand(emb_dim, vocab_dim) * 2 - 1
+        self.context_embedding = nn.Parameter(context_embedding)
+        if share_parameter:
+            self.response_embedding = self.context_embedding
+        else:
+            response_embedding = torch.rand(emb_dim, vocab_dim) * 2 - 1
+            self.response_embedding = nn.Parameter(response_embedding)
+
+    def forward(self, context_batch, response_batch, neg_response_batch):
+        cont_mult = torch.t(torch.mm(self.context_embedding, torch.t(context_batch)))
+        resp_mult = torch.mm(self.response_embedding, torch.t(response_batch))
+        neg_resp_mult = torch.mm(self.response_embedding, torch.t(neg_response_batch))
+
+        f_pos = torch.diag(torch.mm(cont_mult, resp_mult))
+        f_neg = torch.diag(torch.mm(cont_mult, neg_resp_mult))
+
+        loss = torch.sum(F.relu(f_neg - f_pos + self._margin))
+        return f_pos, f_neg, loss
+
+
+class Trainer(object):
+    def __int__(self, config, model, train_tensor, dev_tensor, candidates_tensor):
+        self.config = config
+        self.model = self.model.to(config["device"])
+        self.train_tensor = train_tensor
+        self.dev_tensor = dev_tensor
+        self.candidates_tensor = candidates_tensor
+        self.optimizer = optim.Adam(self.model.parameters(), lr=config["lr"])
+        self.logger = self._setup_logger()
+
+    def _train(self, batch_size, neg_size):
+        avg_loss = 0
+        for batch in batch_iter(self.train_tensor, batch_size, self.config["device"], True):
+            for neg_batch in neg_sampling_iter(self.train_tensor, batch_size, neg_size, self.config["device"]):
+                self.optimizer.zero_grad()
+                _, _, loss = self.model(batch[:, 0, :], batch[:, 1, :], neg_batch[:, 1, :])
+                loss.backward()
+                self.optimizer.step()
+                avg_loss += loss.item()
+        avg_loss = avg_loss / (self.train_tensor.shape[0] * neg_size)
+        return avg_loss
+
+    def _forward_all(self):
+        avg_dev_loss = 0
+        for batch in batch_iter(self.dev_tensor, 256, self.config["device"]):
+            for neg_batch in neg_sampling_iter(self.dev_tensor, 256, 1, self.config["device"], 42):
+                _, _, loss = self.model(batch[:, 0, :], batch[:, 1, :], neg_batch[:, 1, :])
+                avg_dev_loss += loss.item()
+        avg_dev_loss = avg_dev_loss / self.dev_tensor.shape[0]
+        return avg_dev_loss
+
+    @staticmethod
+    def _setup_logger():
+        logging.basicConfig(
+            format='[%(levelname)s] %(asctime)s: %(message)s (%(pathname)s:%(lineno)d)',
+            datefmt="%Y-%m-%dT%H:%M:%S%z",
+            stream=sys.stdout)
+        logger = logging.getLogger('User Agnostic Dialog System')
+        logger.setLevel(logging.DEBUG)
+        return logger
+
+    def evaluate_one_row(self, candidates_tensor, true_context, test_score, true_response):
+        for batch in batch_iter(candidates_tensor, 512, self.config["device"]):
+            candidate_responses = batch[:, 0, :]
+            context_batch = np.repeat(true_context, candidate_responses.shape[0], axis=0)
+            context_batch = torch.from_numpy(context_batch).to(self.config["device"])
+
+            scores, _, _ = self.model(context_batch, candidate_responses, candidate_responses)
+            scores = scores.numpy()
+
+            for ind, score in enumerate(scores):
+                if score == float('Inf') or score == -float('Inf') or score == float('NaN'):
+                    print(score, ind, scores[ind])
+                    raise ValueError
+                if score >= test_score and not np.array_equal(candidate_responses[ind], true_response):
+                    return False
+        return True
+
+    def evaluate(self, test_tensor, candidates_tensor):
+        test_tensor = torch.from_numpy(test_tensor).to(self.config["device"])
+        candidates_tensor = torch.from_numpy(candidates_tensor).to(self.config["device"])
+
+        neg = 0
+        pos = 0
+        for row in tqdm(test_tensor):
+            true_context = [row[0]]
+            _, test_score, _ = self.model(true_context, [row[1]], [row[1]])
+            test_score = test_score.item()
+
+            is_pos = self.evaluate_one_row(candidates_tensor, true_context, test_score, row[1])
+            if is_pos:
+                pos += 1
+            else:
+                neg += 1
+        return pos, neg, pos / (pos + neg)
+
+    def main(self):
+        self.logger.info('Run main with config {}'.format(self.config))
+
+        epochs = self.config['epochs']
+        batch_size = self.config['batch_size']
+        negative_cand = self.config['negative_cand']
+        save_dir = self.config['save_dir']
+
+        prev_best_accuracy = 0
+
+        for epoch in range(epochs):
+            with torch.set_grad_enabled(True):
+                avg_loss = self._train(batch_size, negative_cand)
+            with torch.set_grad_enabled(False):
+                avg_dev_loss = self._forward_all()
+
+            self.logger.info('Epoch: {}; Train loss: {}; Dev loss: {};'.format(epoch, avg_loss, avg_dev_loss))
+
+            if epoch % 2 == 0:
+                dev_eval = self.evaluate(self.dev_tensor, self.candidates_tensor)
+                self.logger.info('Evaluation: {}'.format(dev_eval))
+                accuracy = dev_eval[2]
+                if accuracy >= prev_best_accuracy:
+                    self.logger.debug('Saving checkpoint')
+                    prev_best_accuracy = accuracy
+                    torch.save(self.model.state_dict(), save_dir)
