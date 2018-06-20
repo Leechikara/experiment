@@ -1,7 +1,6 @@
 # coding=utf-8
-import torch
-from .make_tensor import Vectorizer
-from .model import EmbeddingModel, EmbeddingAgent
+from make_tensor import Vectorizer
+from model import EmbeddingModel, EmbeddingAgent
 import argparse
 import torch
 import os
