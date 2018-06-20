@@ -17,7 +17,7 @@ class Vectorizer(object):
         return len(self.word2index)
 
     def vectorize_utt(self, utt):
-        vec = np.zeros(len(self.word2index))
+        vec = np.zeros(len(self.word2index), dtype=np.float32)
         for w in utt.split(' '):
             # Do not use special symbol features
             w = re.sub(r"<\S+?>", "", w)
@@ -28,7 +28,7 @@ class Vectorizer(object):
         return vec
 
     def vectorize_all(self, context_response_pairs):
-        tensor = np.ndarray((len(context_response_pairs), 2, len(self.word2index)))
+        tensor = np.ndarray((len(context_response_pairs), 2, len(self.word2index)), dtype=np.float32)
 
         for ind, context_response in enumerate(context_response_pairs):
             context, response = context_response
