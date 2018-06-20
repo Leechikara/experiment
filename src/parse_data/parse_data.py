@@ -13,10 +13,12 @@ import re
 
 class ParseData(object):
     def __init__(self, user_dict="specialSign.json"):
+        # parse special symbol like $*$
         with open(os.path.join(DATA_ROOT, user_dict), "rb") as f:
             self.specialSign = json.load(f)
 
     def cut(self, l):
+        # cut a sentence with special symbol
         special_sign = list(re.findall(r"\$\S+?\$", l))
         l = re.sub(r"\$\S+?\$", "PLACEHOLDER", l)
         cut_l = list()
@@ -45,6 +47,9 @@ class ParseData(object):
             for i, word in enumerate(vocab):
                 word2index[word] = i
                 index2word[i] = word
+            # add UNK
+            word2index["UNK"] = i + 1
+            index2word[i + 1] = "UNK"
             with open(os.path.join(DATA_ROOT, "vocab", task + ".json"), "w", encoding="utf-8") as f:
                 json.dump({"word2index": word2index, "index2word": index2word}, f, ensure_ascii=False, indent=2)
 
@@ -57,12 +62,13 @@ class ParseData(object):
                 candidate.extend(data["agent_answer"])
 
             with io.open(os.path.join(DATA_ROOT, "candidate", task + ".txt"), "w", encoding="utf-8") as f:
-                for line in set(candidate):
+                for line in sorted(list(set(candidate))):
                     f.write(self.cut(line) + "\t\n")
 
     @staticmethod
     def decorate_line(line, role):
         # add some feature after cut a line
+        # we add speaker role, digital and entity tag in the form of one-hot feature
         decorated_line = list()
         for word in line.split():
             decorated_word = word
