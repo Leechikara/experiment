@@ -45,9 +45,9 @@ class EmbeddingModel(nn.Module):
 
 
 class Trainer(object):
-    def __int__(self, config, model, train_tensor, dev_tensor, candidates_tensor):
+    def __init__(self, config, model, train_tensor, dev_tensor, candidates_tensor):
         self.config = config
-        self.model = self.model.to(config["device"])
+        self.model = model.to(config["device"])
         self.train_tensor = train_tensor
         self.dev_tensor = dev_tensor
         self.candidates_tensor = candidates_tensor
@@ -88,10 +88,10 @@ class Trainer(object):
     @staticmethod
     def _setup_logger():
         logging.basicConfig(
-            format='[%(levelname)s] %(asctime)s: %(message)s (%(pathname)s:%(lineno)d)',
+            format="[%(levelname)s] %(asctime)s: %(message)s (%(pathname)s:%(lineno)d)",
             datefmt="%Y-%m-%dT%H:%M:%S%z",
             stream=sys.stdout)
-        logger = logging.getLogger('User-Agnostic-Dialog-EmbeddingModel')
+        logger = logging.getLogger("User-Agnostic-Dialog-EmbeddingModel")
         logger.setLevel(logging.DEBUG)
         return logger
 
@@ -106,7 +106,7 @@ class Trainer(object):
             scores = scores.numpy()
 
             for ind, score in enumerate(scores):
-                if score == float('Inf') or score == -float('Inf') or score == float('NaN'):
+                if score == float("Inf") or score == -float("Inf") or score == float("NaN"):
                     print(score, ind, scores[ind])
                     raise ValueError
                 if score >= test_score and not np.array_equal(candidate_responses[ind], true_response):
@@ -131,12 +131,12 @@ class Trainer(object):
         return pos, neg, pos / (pos + neg)
 
     def main(self):
-        self.logger.info('Run main with config {}'.format(self.config))
+        self.logger.info("Run main with config {}".format(self.config))
 
-        epochs = self.config['epochs']
-        batch_size = self.config['batch_size']
-        negative_cand = self.config['negative_cand']
-        save_dir = self.config['save_dir']
+        epochs = self.config["epochs"]
+        batch_size = self.config["batch_size"]
+        negative_cand = self.config["negative_cand"]
+        save_dir = self.config["save_dir"]
 
         prev_best_accuracy = 0
 
@@ -146,13 +146,14 @@ class Trainer(object):
             with torch.set_grad_enabled(False):
                 avg_dev_loss = self._forward_all()
 
-            self.logger.info('Epoch: {}; Train loss: {}; Dev loss: {};'.format(epoch, avg_loss, avg_dev_loss))
+            self.logger.info("Epoch: {}; Train loss: {}; Dev loss: {};".format(epoch, avg_loss, avg_dev_loss))
 
             if epoch % 2 == 0:
                 dev_eval = self.evaluate(self.dev_tensor, self.candidates_tensor)
-                self.logger.info('Evaluation: {}'.format(dev_eval))
+                self.logger.info("Evaluation: {}".format(dev_eval))
                 accuracy = dev_eval[2]
                 if accuracy >= prev_best_accuracy:
-                    self.logger.debug('Saving checkpoint')
+                    self.logger.debug("Saving checkpoint")
                     prev_best_accuracy = accuracy
-                    torch.save(self.model.state_dict(), save_dir)
+                    model_file = "epoch_{} accuracy_{}.pkl".format(epoch, accuracy)
+                    torch.save(self.model.state_dict(), save_dir + "/" + model_file)
