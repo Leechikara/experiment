@@ -1,6 +1,6 @@
 # coding = utf-8
 from .make_tensor import Vectorizer
-from .model import EmbeddingModel, Trainer
+from .model import EmbeddingModel, EmbeddingAgent
 import argparse
 import torch
 import os
@@ -52,5 +52,5 @@ if __name__ == "__main__":
 
     config = {"lr": args.learning_rate, "epochs": args.epochs, "negative_cand": args.negative_cand,
               "device": args.device, "batch_size": args.batch_size, "save_dir": args.save_dir}
-    trainer = Trainer(config, model, train_tensor, dev_tensor, candidates_tensor)
-    trainer.main()
+    agent = EmbeddingAgent(config, model, train_tensor, dev_tensor, None, candidates_tensor)
+    agent.train()

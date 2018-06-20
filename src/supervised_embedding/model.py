@@ -44,12 +44,13 @@ class EmbeddingModel(nn.Module):
         return f_pos, f_neg, loss
 
 
-class Trainer(object):
-    def __init__(self, config, model, train_tensor, dev_tensor, candidates_tensor):
+class EmbeddingAgent(object):
+    def __init__(self, config, model, train_tensor, dev_tensor, test_tensor, candidates_tensor):
         self.config = config
         self.model = model.to(config["device"])
         self.train_tensor = train_tensor
         self.dev_tensor = dev_tensor
+        self.test_tensor = test_tensor
         self.candidates_tensor = candidates_tensor
         self.optimizer = optim.Adam(self.model.parameters(), lr=config["lr"])
         self.logger = self._setup_logger()
@@ -130,7 +131,11 @@ class Trainer(object):
                 neg += 1
         return pos, neg, pos / (pos + neg)
 
-    def main(self):
+    def test(self):
+        pos, neg, rate = self.evaluate(self.test_tensor, self.candidates_tensor)
+        print("pos:{} neg:{} rate:{}".format(pos, neg, rate))
+
+    def train(self):
         self.logger.info("Run main with config {}".format(self.config))
 
         epochs = self.config["epochs"]
@@ -149,7 +154,8 @@ class Trainer(object):
             self.logger.info("Epoch: {}; Train loss: {}; Dev loss: {};".format(epoch, avg_loss, avg_dev_loss))
 
             if epoch % 2 == 0:
-                dev_eval = self.evaluate(self.dev_tensor, self.candidates_tensor)
+                with torch.set_grad_enabled(False):
+                    dev_eval = self.evaluate(self.dev_tensor, self.candidates_tensor)
                 self.logger.info("Evaluation: {}".format(dev_eval))
                 accuracy = dev_eval[2]
                 if accuracy >= prev_best_accuracy:
