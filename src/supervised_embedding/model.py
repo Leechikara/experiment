@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
+from torch.nn.parameter import Parameter
 import numpy as np
 import logging
 import sys
@@ -11,30 +12,33 @@ from .utils import batch_iter, neg_sampling_iter
 
 
 class EmbeddingModel(nn.Module):
-    def __init__(self, vocab_dim, emb_dim, margin, random_seed=42, share_parameter=True):
+    def __init__(self, vocab_dim, emb_dim, margin, random_seed=42, share_parameter=False):
         super(EmbeddingModel, self).__init__()
         self._vocab_dim = vocab_dim
         self._emb_dim = emb_dim
         self._margin = margin
         self._random_seed = random_seed
-
-        # init the embedding matrix
+        self.share_parameter = share_parameter
         torch.manual_seed(random_seed)
-        context_embedding = torch.rand(emb_dim, vocab_dim) * 2 - 1
-        self.context_embedding = nn.Parameter(context_embedding)
-        if share_parameter:
+
+        self.context_embedding = Parameter(torch.Tensor(emb_dim, vocab_dim))
+        self.response_embedding = Parameter(torch.Tensor(emb_dim, vocab_dim))
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        self.context_embedding.data.uniform_(-1, 1)
+        if self.share_parameter:
             self.response_embedding = self.context_embedding
         else:
-            response_embedding = torch.rand(emb_dim, vocab_dim) * 2 - 1
-            self.response_embedding = nn.Parameter(response_embedding)
+            self.response_embedding.data.uniform_(-1, 1)
 
     def forward(self, context_batch, response_batch, neg_response_batch):
-        cont_mult = torch.t(torch.mm(self.context_embedding, torch.t(context_batch)))
-        resp_mult = torch.mm(self.response_embedding, torch.t(response_batch))
-        neg_resp_mult = torch.mm(self.response_embedding, torch.t(neg_response_batch))
+        cont_rep = torch.t(torch.mm(self.context_embedding, torch.t(context_batch)))
+        resp_rep = torch.mm(self.response_embedding, torch.t(response_batch))
+        neg_resp_rep = torch.mm(self.response_embedding, torch.t(neg_response_batch))
 
-        f_pos = torch.diag(torch.mm(cont_mult, resp_mult))
-        f_neg = torch.diag(torch.mm(cont_mult, neg_resp_mult))
+        f_pos = torch.diag(torch.mm(cont_rep, resp_rep))
+        f_neg = torch.diag(torch.mm(cont_rep, neg_resp_rep))
 
         loss = torch.sum(F.relu(f_neg - f_pos + self._margin))
         return f_pos, f_neg, loss
@@ -52,8 +56,8 @@ class Trainer(object):
 
     def _train(self, batch_size, neg_size):
         avg_loss = 0
-        for batch in batch_iter(self.train_tensor, batch_size, self.config["device"], True):
-            for neg_batch in neg_sampling_iter(self.train_tensor, batch_size, neg_size, self.config["device"]):
+        for batch in batch_iter(self.train_tensor, batch_size, True):
+            for neg_batch in neg_sampling_iter(self.train_tensor, batch_size, neg_size):
                 self.optimizer.zero_grad()
                 _, _, loss = self.model(batch[:, 0, :], batch[:, 1, :], neg_batch[:, 1, :])
                 loss.backward()
@@ -64,8 +68,8 @@ class Trainer(object):
 
     def _forward_all(self):
         avg_dev_loss = 0
-        for batch in batch_iter(self.dev_tensor, 256, self.config["device"]):
-            for neg_batch in neg_sampling_iter(self.dev_tensor, 256, 1, self.config["device"], 42):
+        for batch in batch_iter(self.dev_tensor, 256):
+            for neg_batch in neg_sampling_iter(self.dev_tensor, 256, 1, 42):
                 _, _, loss = self.model(batch[:, 0, :], batch[:, 1, :], neg_batch[:, 1, :])
                 avg_dev_loss += loss.item()
         avg_dev_loss = avg_dev_loss / self.dev_tensor.shape[0]
@@ -77,15 +81,14 @@ class Trainer(object):
             format='[%(levelname)s] %(asctime)s: %(message)s (%(pathname)s:%(lineno)d)',
             datefmt="%Y-%m-%dT%H:%M:%S%z",
             stream=sys.stdout)
-        logger = logging.getLogger('User Agnostic Dialog System')
+        logger = logging.getLogger('User-Agnostic-Dialog-EmbeddingModel')
         logger.setLevel(logging.DEBUG)
         return logger
 
     def evaluate_one_row(self, candidates_tensor, true_context, test_score, true_response):
-        for batch in batch_iter(candidates_tensor, 512, self.config["device"]):
+        for batch in batch_iter(candidates_tensor, 512):
             candidate_responses = batch[:, 0, :]
             context_batch = np.repeat(true_context, candidate_responses.shape[0], axis=0)
-            context_batch = torch.from_numpy(context_batch).to(self.config["device"])
 
             scores, _, _ = self.model(context_batch, candidate_responses, candidate_responses)
             scores = scores.numpy()
@@ -99,14 +102,11 @@ class Trainer(object):
         return True
 
     def evaluate(self, test_tensor, candidates_tensor):
-        test_tensor = torch.from_numpy(test_tensor).to(self.config["device"])
-        candidates_tensor = torch.from_numpy(candidates_tensor).to(self.config["device"])
-
         neg = 0
         pos = 0
         for row in tqdm(test_tensor):
             true_context = [row[0]]
-            _, test_score, _ = self.model(true_context, [row[1]], [row[1]])
+            test_score, _, _ = self.model(true_context, [row[1]], [row[1]])
             test_score = test_score.item()
 
             is_pos = self.evaluate_one_row(candidates_tensor, true_context, test_score, row[1])
