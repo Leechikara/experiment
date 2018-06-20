@@ -16,7 +16,7 @@ def batch_iter(tensor, batch_size, shuffle=False):
 
     for batch_num in range(batches_count):
         start_index = batch_num * batch_size
-        end_index = min((batch_num + 1)*batch_size, tensor.shape[0])
+        end_index = min((batch_num + 1) * batch_size, tensor.shape[0])
         yield data[start_index:end_index]
 
 
@@ -29,9 +29,8 @@ def neg_sampling_iter(tensor, batch_size, count, seed=None):
     for batch_num in range(batches_count):
         trials += 1
         start_index = batch_num * batch_size
-        end_index = min((batch_num + 1)*batch_size, tensor.shape[0])
+        end_index = min((batch_num + 1) * batch_size, tensor.shape[0])
         if trials > count:
             return
         else:
             yield data[start_index:end_index]
-
