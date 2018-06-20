@@ -113,4 +113,4 @@ SENTIMENT_RULES = ["append", "prefix", "insert", "mix"]
 REORGANIZE_RULES = ["None", "insert", "mix"]
 
 # Size of tran dev test
-DATA_SET = {"train": 50000, "dev": 10000, "test": 10000}
+DATA_SET = {"train": 20000, "dev": 5000, "test": 5000}
