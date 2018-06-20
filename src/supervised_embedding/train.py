@@ -14,7 +14,7 @@ def _parse_args():
     parser.add_argument("--trained_model", default=None, type=str)
     parser.add_argument("--emb_dim", default=32, type=int)
     parser.add_argument("--save_dir", default="checkpoints", type=str)
-    parser.add_argument("--margin", type=float, default=0.01)
+    parser.add_argument("--margin", type=float, default=0.1)
     parser.add_argument("--negative_cand", type=int, default=100)
     parser.add_argument("--learning_rate", type=float, default=0.01)
     parser.add_argument("--batch_size", type=int, default=32)

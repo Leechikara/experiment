@@ -3,7 +3,7 @@ import numpy as np
 
 
 def batch_iter(tensor, batch_size, shuffle=False):
-    if tensor.shape[0] % batch_size > 0:
+    while tensor.shape[0] % batch_size > 0:
         extra_data_num = batch_size - tensor.shape[0] % batch_size
         extra_tensor = np.random.permutation(tensor)[:extra_data_num]
         tensor = np.append(tensor, extra_tensor, axis=0)
@@ -22,7 +22,7 @@ def batch_iter(tensor, batch_size, shuffle=False):
 
 
 def neg_sampling_iter(tensor, batch_size, count, seed=None):
-    if tensor.shape[0] % batch_size > 0:
+    while tensor.shape[0] % batch_size > 0:
         extra_data_num = batch_size - tensor.shape[0] % batch_size
         extra_tensor = np.random.permutation(tensor)[:extra_data_num]
         tensor = np.append(tensor, extra_tensor, axis=0)
