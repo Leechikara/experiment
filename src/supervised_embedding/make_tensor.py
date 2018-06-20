@@ -1,7 +1,4 @@
 # coding = utf-8
-"""
-We reference the implementation of https://github.com/sld/supervised-embedding-model
-"""
 import numpy as np
 import json
 import os
