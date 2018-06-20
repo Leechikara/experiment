@@ -18,7 +18,7 @@ def _parse_args():
     parser.add_argument("--negative_cand", type=int, default=100)
     parser.add_argument("--learning_rate", type=float, default=0.01)
     parser.add_argument("--batch_size", type=int, default=32)
-    parser.add_argument("--epochs", type=int, default=50)
+    parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--shareEmbedding", action='store_true')
     parser.add_argument("--randomSeed", type=int, default=42)
     parser.add_argument("--device", type=str, default="0")
