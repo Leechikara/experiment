@@ -161,5 +161,5 @@ class EmbeddingAgent(object):
                 if accuracy >= prev_best_accuracy:
                     self.logger.debug("Saving checkpoint")
                     prev_best_accuracy = accuracy
-                    model_file = "epoch_{} accuracy_{}.pkl".format(epoch, accuracy)
+                    model_file = "epoch_{}_accuracy_{}.pkl".format(epoch, accuracy)
                     torch.save(self.model.state_dict(), save_dir + "/" + model_file)

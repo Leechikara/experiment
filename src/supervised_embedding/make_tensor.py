@@ -19,6 +19,8 @@ class Vectorizer(object):
     def vectorize_utt(self, utt):
         vec = np.zeros(len(self.word2index), dtype=np.float32)
         for w in utt.split(' '):
+            if w == "":
+                continue
             # Do not use special symbol features
             w = re.sub(r"<\S+?>", "", w)
             try:
