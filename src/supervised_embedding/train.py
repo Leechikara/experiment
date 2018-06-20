@@ -46,8 +46,8 @@ if __name__ == "__main__":
     vocab_dim = vectorizer.vocab_dim()
     model = EmbeddingModel(vocab_dim, args.emb_dim, args.margin, args.randomSeed, args.shareEmbedding)
 
-    if args.trained_mode is not None:
-        with open(args.trained_mode, "rb") as f:
+    if args.trained_model is not None:
+        with open(args.trained_model, "rb") as f:
             model.load_state_dict(torch.load(f))
 
     config = {"lr": args.learning_rate, "epochs": args.epochs, "negative_cand": args.negative_cand,

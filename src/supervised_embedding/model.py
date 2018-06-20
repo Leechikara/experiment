@@ -8,7 +8,7 @@ import numpy as np
 import logging
 import sys
 from tqdm import tqdm
-from .utils import batch_iter, neg_sampling_iter
+from supervised_embedding.utils import batch_iter, neg_sampling_iter
 
 
 class EmbeddingModel(nn.Module):
