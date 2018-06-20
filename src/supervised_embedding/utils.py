@@ -11,9 +11,6 @@ def batch_iter(tensor, batch_size, shuffle=False):
     else:
         data = tensor
 
-    neg_shuffle_indices = np.random.permutation(np.arange(tensor.shape[0]))
-    negative_data = tensor[neg_shuffle_indices]
-
     for batch_num in range(batches_count):
         start_index = batch_num * batch_size
         end_index = min((batch_num + 1) * batch_size, tensor.shape[0])
