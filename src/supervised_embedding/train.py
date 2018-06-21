@@ -35,6 +35,7 @@ if __name__ == "__main__":
         args.device = "cpu"
     else:
         args.device = "cuda:" + str(args.device)
+    args.save_dir = "/".join([args.save_dir, args.task])
 
     task = args.task
     train_file = os.path.join(DATA_ROOT, "public", task, "train.txt")
