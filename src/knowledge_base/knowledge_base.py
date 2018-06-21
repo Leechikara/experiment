@@ -1,6 +1,8 @@
 # coding = utf-8
 import json, io, random, os, sys, re
-from config import *
+
+sys.path.append("/home/wkwang/workstation/experiment/src")
+from config.config import *
 
 
 class KnowledgeBase(object):

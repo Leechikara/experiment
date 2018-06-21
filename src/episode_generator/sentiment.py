@@ -1,12 +1,11 @@
 # coding = utf-8
-import random
-import copy
-import sys
-import re
-from config import *
-from src.knowledge_base.knowledge_base import KnowledgeBase
+import random, copy, sys, re
 from collections import OrderedDict, defaultdict
 from utils import find_attr_entity
+
+sys.path.append("/home/wkwang/workstation/experiment/src")
+from config.config import *
+from knowledge_base.knowledge_base import KnowledgeBase
 
 
 class Sentiment(object):

@@ -4,7 +4,10 @@ from model import EmbeddingModel, EmbeddingAgent
 import argparse
 import torch
 import os
-from config import *
+import sys
+
+sys.path.append("/home/wkwang/workstation/experiment/src")
+from config.config import *
 
 
 def _parse_args():

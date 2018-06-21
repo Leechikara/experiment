@@ -8,6 +8,8 @@ import numpy as np
 import logging
 import sys
 from tqdm import tqdm
+
+sys.path.append("/home/wkwang/workstation/experiment/src")
 from supervised_embedding.utils import batch_iter, neg_sampling_iter
 
 

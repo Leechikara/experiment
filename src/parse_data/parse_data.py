@@ -3,12 +3,10 @@
 """
 This file parse data like babi-task
 """
-from config import *
-import json
-import os
-import io
-import jieba
-import re
+import json, re, os, io, jieba, sys
+
+sys.path.append("/home/wkwang/workstation/experiment/src")
+from config.config import DATA_ROOT, DATA_SET, TASKS
 
 
 class ParseData(object):

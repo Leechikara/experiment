@@ -1,8 +1,14 @@
 # coding=utf-8
-import random, copy, os, json
+import random
+import copy
+import os
+import json
+import sys
 from utils import filter_p_dict, random_pick
-from config import *
 from collections import OrderedDict
+
+sys.path.append("/home/wkwang/workstation/experiment/src")
+from config.config import *
 
 
 class AfterSales(object):

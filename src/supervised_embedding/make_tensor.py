@@ -1,9 +1,9 @@
 # coding = utf-8
 import numpy as np
-import json
-import os
-from config import *
-import re
+import json, re, os, sys
+
+sys.path.append("/home/wkwang/workstation/experiment/src")
+from config.config import DATA_ROOT
 
 
 class Vectorizer(object):

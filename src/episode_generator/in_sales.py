@@ -1,8 +1,10 @@
 # coding=utf-8
-import random, os, json
-from utils import random_pick, filter_p_dict
-from config import *
+import random, os, json, sys
 from collections import OrderedDict
+from utils import random_pick, filter_p_dict
+
+sys.path.append("/home/wkwang/workstation/experiment/src")
+from config.config import *
 
 
 class InSales(object):

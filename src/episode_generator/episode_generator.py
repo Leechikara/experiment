@@ -14,23 +14,18 @@ There are five principles:
 We think such episodes are reasonable:
     pre_sales, in_sales, after_sales, pre_sales + in_sales, sentiment + all combinations aforementioned
 """
-
+import random, json, copy, os, io, re, sys
+from collections import OrderedDict
 from pre_sales import PreSales
 from in_sales import InSales
 from after_sales import AfterSales
 from sentiment import Sentiment
-from src.knowledge_base.knowledge_base import KnowledgeBase
-from src.translator.translator import Translator
-from config import *
+
+sys.path.append("/home/wkwang/workstation/experiment/src")
+from knowledge_base.knowledge_base import KnowledgeBase
+from translator.translator import Translator
+from config.config import *
 from utils import find_attr_entity, post_process_data
-from collections import OrderedDict
-import random
-import json
-import copy
-import os
-import sys
-import io
-import re
 
 
 class EpisodeGenerator(object):

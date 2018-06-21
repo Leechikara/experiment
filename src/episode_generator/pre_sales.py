@@ -1,9 +1,11 @@
 # coding = utf-8
-from config import *
-import random, math, copy, json, os, re
+import random, math, copy, json, os, re, sys
 import numpy as np
 from collections import defaultdict, OrderedDict
 from utils import random_pick, filter_p_dict
+
+sys.path.append("/home/wkwang/workstation/experiment/src")
+from config.config import *
 
 
 class PreSales(object):

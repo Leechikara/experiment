@@ -1,8 +1,10 @@
 # coding=utf-8
+import sys
 import json
-from config import *
 import os
 import io
+sys.path.append("/home/wkwang/workstation/experiment/src")
+from config.config import *
 
 
 class DataAnalysis(object):

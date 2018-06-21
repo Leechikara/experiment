@@ -4,7 +4,7 @@ We translate agent reply into NL.
 """
 import json
 import os
-from config import *
+from config.config import *
 from src.knowledge_base.knowledge_base import KnowledgeBase
 import copy
 import re
