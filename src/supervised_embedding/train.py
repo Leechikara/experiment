@@ -18,23 +18,27 @@ def _parse_args():
     parser.add_argument("--emb_dim", default=32, type=int)
     parser.add_argument("--save_dir", default="checkpoints", type=str)
     parser.add_argument("--margin", type=float, default=0.1)
-    parser.add_argument("--negative_cand", type=int, default=100)
-    parser.add_argument("--learning_rate", type=float, default=0.01)
-    parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--negative_cand", type=int, default=50)
+    parser.add_argument("--learning_rate", type=float, default=0.001)
+    parser.add_argument("--batch_size", type=int, default=256)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--shareEmbedding", action='store_true')
     parser.add_argument("--randomSeed", type=int, default=42)
-    parser.add_argument("--device", type=str, default="0")
+    parser.add_argument("--device", type=int, default=0)
 
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = _parse_args()
+
+    # Get the device
     if not torch.cuda.is_available():
-        args.device = "cpu"
+        args.device = torch.device("cpu")
     else:
-        args.device = "cuda:" + str(args.device)
+        args.device = torch.device("cuda", args.device)
+
+    # checkpoints path
     args.save_dir = "/".join([args.save_dir, args.task])
 
     task = args.task
