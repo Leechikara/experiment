@@ -49,7 +49,7 @@ class EmbeddingModel(nn.Module):
 class EmbeddingAgent(object):
     def __init__(self, config, model, train_tensor, dev_tensor, test_tensor, candidates_tensor):
         self.config = config
-        self.model = model.to(config["device"])
+        self.model = model
         self.train_tensor = train_tensor
         self.dev_tensor = dev_tensor
         self.test_tensor = test_tensor

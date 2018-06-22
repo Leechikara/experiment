@@ -24,19 +24,14 @@ def _parse_args():
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--shareEmbedding", action='store_true')
     parser.add_argument("--randomSeed", type=int, default=42)
-    parser.add_argument("--device", type=int, default=0)
+    parser.add_argument("--cuda", action="store_true")
 
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = _parse_args()
-
-    # Get the device
-    if not torch.cuda.is_available():
-        args.device = torch.device("cpu")
-    else:
-        args.device = torch.device("cuda", args.device)
+    args.device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # checkpoints path
     args.save_dir = "/".join([args.save_dir, args.task])
@@ -52,7 +47,7 @@ if __name__ == "__main__":
     candidates_tensor = vectorizer.make_tensor(candidates_file)
 
     vocab_dim = vectorizer.vocab_dim()
-    model = EmbeddingModel(vocab_dim, args.emb_dim, args.margin, args.randomSeed, args.shareEmbedding)
+    model = EmbeddingModel(vocab_dim, args.emb_dim, args.margin, args.randomSeed, args.shareEmbedding).to(args.device)
 
     if args.trained_model is not None:
         with open(args.trained_model, "rb") as f:
