@@ -19,7 +19,7 @@ def _parse_args():
     parser.add_argument("--save_dir", default="checkpoints", type=str)
     parser.add_argument("--margin", type=float, default=0.1)
     parser.add_argument("--negative_cand", type=int, default=50)
-    parser.add_argument("--learning_rate", type=float, default=0.001)
+    parser.add_argument("--learning_rate", type=float, default=0.01)
     parser.add_argument("--batch_size", type=int, default=256)
     parser.add_argument("--epochs", type=int, default=10)
     parser.add_argument("--shareEmbedding", action='store_true')
