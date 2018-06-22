@@ -106,7 +106,7 @@ class EmbeddingAgent(object):
             scores, _, _ = self.model(self.tensor_wrapper(context_batch),
                                       self.tensor_wrapper(candidate_responses),
                                       self.tensor_wrapper(candidate_responses))
-            scores = scores.numpy()
+            scores = scores.cpu().numpy()
 
             for ind, score in enumerate(scores):
                 if score == float("Inf") or score == -float("Inf") or score == float("NaN"):
