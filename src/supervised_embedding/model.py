@@ -7,7 +7,6 @@ from torch.nn.parameter import Parameter
 import numpy as np
 import logging
 import sys
-from tqdm import tqdm
 
 sys.path.append("/home/wkwang/workstation/experiment/src")
 from supervised_embedding.utils import batch_iter, neg_sampling_iter
@@ -72,15 +71,20 @@ class EmbeddingAgent(object):
                                         self.tensor_wrapper(batch[:, 1, :]),
                                         self.tensor_wrapper(neg_batch[:, 1, :]))
                 loss.backward()
+
+                # clamp grad
+                for param in self.model.parameters():
+                    param.grad.data.clamp_(-5, 5)
+
                 self.optimizer.step()
                 avg_loss += loss.item()
         avg_loss = avg_loss / (self.train_tensor.shape[0] * neg_size)
         return avg_loss
 
-    def _forward_all(self):
+    def _forward_all(self, batch_size):
         avg_dev_loss = 0
-        for batch in batch_iter(self.dev_tensor, 256):
-            for neg_batch in neg_sampling_iter(self.dev_tensor, 256, 1, 42):
+        for batch in batch_iter(self.dev_tensor, batch_size):
+            for neg_batch in neg_sampling_iter(self.dev_tensor, batch_size, count=1, seed=42):
                 _, _, loss = self.model(self.tensor_wrapper(batch[:, 0, :]),
                                         self.tensor_wrapper(batch[:, 1, :]),
                                         self.tensor_wrapper(neg_batch[:, 1, :]))
@@ -98,15 +102,15 @@ class EmbeddingAgent(object):
         logger.setLevel(logging.DEBUG)
         return logger
 
-    def evaluate_one_row(self, candidates_tensor, true_context, test_score, true_response):
-        for batch in batch_iter(candidates_tensor, 512):
+    def evaluate_one_row(self, candidates_tensor, true_context, test_score, true_response, batch_size):
+        for batch in batch_iter(candidates_tensor, batch_size):
             candidate_responses = batch[:, 0, :]
             context_batch = np.repeat(true_context, candidate_responses.shape[0], axis=0)
 
             scores, _, _ = self.model(self.tensor_wrapper(context_batch),
                                       self.tensor_wrapper(candidate_responses),
                                       self.tensor_wrapper(candidate_responses))
-            scores = scores.cpu().numpy()
+            scores = scores.detach().cpu().numpy()
 
             for ind, score in enumerate(scores):
                 if score == float("Inf") or score == -float("Inf") or score == float("NaN"):
@@ -116,17 +120,17 @@ class EmbeddingAgent(object):
                     return False
         return True
 
-    def evaluate(self, test_tensor, candidates_tensor):
+    def evaluate(self, test_tensor, candidates_tensor, batch_size):
         neg = 0
         pos = 0
-        for row in tqdm(test_tensor):
+        for row in test_tensor:
             true_context = [row[0]]
             test_score, _, _ = self.model(self.tensor_wrapper(true_context),
                                           self.tensor_wrapper([row[1]]),
                                           self.tensor_wrapper([row[1]]))
             test_score = test_score.item()
 
-            is_pos = self.evaluate_one_row(candidates_tensor, true_context, test_score, row[1])
+            is_pos = self.evaluate_one_row(candidates_tensor, true_context, test_score, row[1], batch_size)
             if is_pos:
                 pos += 1
             else:
@@ -134,7 +138,7 @@ class EmbeddingAgent(object):
         return pos, neg, pos / (pos + neg)
 
     def test(self):
-        pos, neg, rate = self.evaluate(self.test_tensor, self.candidates_tensor)
+        pos, neg, rate = self.evaluate(self.test_tensor, self.candidates_tensor, self.config["batch_size"])
         print("pos:{} neg:{} rate:{}".format(pos, neg, rate))
 
     def train(self):
@@ -151,13 +155,13 @@ class EmbeddingAgent(object):
             with torch.set_grad_enabled(True):
                 avg_loss = self._train(batch_size, negative_cand)
             with torch.set_grad_enabled(False):
-                avg_dev_loss = self._forward_all()
+                avg_dev_loss = self._forward_all(batch_size)
 
             self.logger.info("Epoch: {}; Train loss: {}; Dev loss: {};".format(epoch, avg_loss, avg_dev_loss))
 
             if epoch % 2 == 0:
                 with torch.set_grad_enabled(False):
-                    dev_eval = self.evaluate(self.dev_tensor, self.candidates_tensor)
+                    dev_eval = self.evaluate(self.dev_tensor, self.candidates_tensor, batch_size)
                 self.logger.info("Evaluation: {}".format(dev_eval))
                 accuracy = dev_eval[2]
                 if accuracy >= prev_best_accuracy:
