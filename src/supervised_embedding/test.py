@@ -1,5 +1,5 @@
 # coding=utf-8
-from make_tensor import Vectorizer
+from data_utils import Vectorizer
 from model import EmbeddingModel, EmbeddingAgent
 import argparse
 import torch
@@ -13,7 +13,8 @@ from config.config import *
 def _parse_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--task", type=str)
+    parser.add_argument("--trained_task", type=str)
+    parser.add_argument("--test_task", type=str)
     parser.add_argument("--trained_model", default=None, type=str)
     parser.add_argument("--device", type=str, default="0")
 
@@ -29,16 +30,14 @@ if __name__ == "__main__":
     else:
         args.device = "cuda:" + str(args.device)
 
-    task = args.task
+    test_file = os.path.join(DATA_ROOT, "public", args.test_task, "test.txt")
+    candidates_file = os.path.join(DATA_ROOT, "candidate", args.test_task + ".txt")
 
-    test_file = os.path.join(DATA_ROOT, "public", task, "test.txt")
-    candidates_file = os.path.join(DATA_ROOT, "candidate", task + ".txt")
+    vectorizer = Vectorizer()
+    word2index, index2word, vocab_dim = vectorizer.load_vocab(args.trained_model)
+    test_tensor = vectorizer.make_tensor(test_file, word2index)
+    candidates_tensor = vectorizer.make_tensor(candidates_file, word2index)
 
-    vectorizer = Vectorizer(task)
-    test_tensor = vectorizer.make_tensor(test_file)
-    candidates_tensor = vectorizer.make_tensor(candidates_file)
-
-    vocab_dim = vectorizer.vocab_dim()
     model = EmbeddingModel(vocab_dim, args.emb_dim, args.margin, args.randomSeed, args.shareEmbedding)
 
     if args.trained_model is not None:

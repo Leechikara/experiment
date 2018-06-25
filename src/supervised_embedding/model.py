@@ -9,7 +9,7 @@ import logging
 import sys
 
 sys.path.append("/home/wkwang/workstation/experiment/src")
-from supervised_embedding.utils import batch_iter, neg_sampling_iter
+from supervised_embedding.data_utils import batch_iter, neg_sampling_iter
 
 
 class EmbeddingModel(nn.Module):

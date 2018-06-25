@@ -1,5 +1,5 @@
 # coding = utf-8
-from make_tensor import Vectorizer
+from data_utils import Vectorizer
 from model import EmbeddingModel, EmbeddingAgent
 import argparse
 import torch
@@ -41,12 +41,12 @@ if __name__ == "__main__":
     dev_file = os.path.join(DATA_ROOT, "public", task, "dev.txt")
     candidates_file = os.path.join(DATA_ROOT, "candidate", task + ".txt")
 
-    vectorizer = Vectorizer(task)
-    train_tensor = vectorizer.make_tensor(train_file)
-    dev_tensor = vectorizer.make_tensor(dev_file)
-    candidates_tensor = vectorizer.make_tensor(candidates_file)
+    vectorizer = Vectorizer()
+    word2index, index2word, vocab_dim = vectorizer.load_vocab(task)
+    train_tensor = vectorizer.make_tensor(train_file, word2index)
+    dev_tensor = vectorizer.make_tensor(dev_file, word2index)
+    candidates_tensor = vectorizer.make_tensor(candidates_file, word2index)
 
-    vocab_dim = vectorizer.vocab_dim()
     model = EmbeddingModel(vocab_dim, args.emb_dim, args.margin, args.randomSeed, args.shareEmbedding).to(args.device)
 
     if args.trained_model is not None:
