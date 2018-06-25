@@ -20,7 +20,7 @@ class Vectorizer(object):
     @staticmethod
     def vectorize_utt(utt, word2index):
         vec = np.zeros(len(word2index), dtype=np.float32)
-        for w in utt.split(' '):
+        for w in utt.split(" "):
             if w == "":
                 continue
             # Do not use special symbol features
@@ -46,9 +46,9 @@ class Vectorizer(object):
     @staticmethod
     def load_train(train_filename):
         context_response_pairs = []
-        with open(train_filename, 'r') as f:
+        with open(train_filename, "r") as f:
             for line in f:
-                context, response = line.strip("\n").split('\t')
+                context, response = line.strip("\n").split("\t")
                 context_response_pairs.append((context, response))
         return context_response_pairs
 
