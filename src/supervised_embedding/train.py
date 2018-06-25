@@ -21,7 +21,7 @@ def _parse_args():
     parser.add_argument("--negative_cand", type=int, default=20)
     parser.add_argument("--learning_rate", type=float, default=0.001)
     parser.add_argument("--batch_size", type=int, default=512)
-    parser.add_argument("--epochs", type=int, default=30)
+    parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--shareEmbedding", action='store_true')
     parser.add_argument("--randomSeed", type=int, default=42)
     parser.add_argument("--cuda", action="store_true")
