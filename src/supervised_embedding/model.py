@@ -53,7 +53,7 @@ class EmbeddingAgent(object):
         self.dev_tensor = dev_tensor
         self.test_tensor = test_tensor
         self.candidates_tensor = candidates_tensor
-        self.optimizer = optim.Adam(self.model.parameters(), lr=config["lr"])
+        self.optimizer = optim.Adam(self.model.parameters(), lr=config.get("lr", None))
         self.logger = self._setup_logger()
 
     def tensor_wrapper(self, data):
