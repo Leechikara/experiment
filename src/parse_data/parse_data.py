@@ -107,7 +107,7 @@ class ParseData(object):
                     for dialog in dialogs:
                         for _, user_utt, agent_utt in dialog:
                             f.write('{}\t{}\n'.format(user_utt, agent_utt))
-                        f.write("\t")
+                        f.write("\n")
 
 
 if __name__ == "__main__":
