@@ -14,11 +14,14 @@ def _parse_args():
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--trained_task", type=str)
-    parser.add_argument("--test_task", type=str)
     parser.add_argument("--trained_model", default=None, type=str)
-    parser.add_argument("--cuda", action="store_true")
+    parser.add_argument("--emb_dim", default=32, type=int)
+    parser.add_argument("--margin", type=float, default=0.1)
     parser.add_argument("--shareEmbedding", action='store_true')
+    parser.add_argument("--randomSeed", type=int, default=42)
     parser.add_argument("--batch_size", type=int, default=512)
+    parser.add_argument("--test_task", type=str)
+    parser.add_argument("--cuda", action="store_true")
 
     args = parser.parse_args()
 

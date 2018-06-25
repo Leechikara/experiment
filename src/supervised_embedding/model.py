@@ -7,9 +7,7 @@ from torch.nn.parameter import Parameter
 import numpy as np
 import logging
 import sys
-
-sys.path.append("/home/wkwang/workstation/experiment/src")
-from supervised_embedding.data_utils import batch_iter, neg_sampling_iter
+from data_utils import batch_iter, neg_sampling_iter
 
 
 class EmbeddingModel(nn.Module):

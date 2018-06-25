@@ -7,7 +7,7 @@ import os
 import sys
 
 sys.path.append("/home/wkwang/workstation/experiment/src")
-from config.config import *
+from config.config import DATA_ROOT
 
 
 def _parse_args():
