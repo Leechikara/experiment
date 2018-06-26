@@ -18,6 +18,7 @@ def _parse_args():
     parser.add_argument("--testing_task", type=str)
     parser.add_argument("--emb_dim", default=32, type=int)
     parser.add_argument("--batch_size", type=int, default=32)
+    parser.add_argument("--random_seed", type=int, default=42)
     parser.add_argument("--cuda", action="store_true")
     parser.add_argument("--memory_size", type=int, default=50)
     parser.add_argument("--max_hops", type=int, default=3)
@@ -40,8 +41,8 @@ if __name__ == "__main__":
     data_utils.build_pad_config(test_data, args.memory_size)
     candidates_vec = data_utils.vectorize_candidates()
 
-    model = MemN2N(data_utils.vocab_size, args.emb_dim, args.max_hops, args.nonlinear, candidates_vec,
-                   args.random_seed).to(args.device)
+    model = MemN2N(data_utils.vocab_size, args.emb_dim, args.max_hops,
+                   args.nonlinear, candidates_vec, args.random_seed).to(args.device)
 
     assert args.trained_model is not None
     with open(args.trained_model, "rb") as f:
