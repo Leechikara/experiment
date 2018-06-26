@@ -88,9 +88,10 @@ class DataUtils(object):
             memory = list()
             for nid, description in enumerate(context[:-1]):
                 if nid % 2 == 0:
-                    memory.append(description.extend(["$u", "#" + str(nid)]))
+                    description.extend(["$u", "#" + str(nid // 2)])
                 else:
-                    memory.append(description.extend(["$r", "#" + str(nid)]))
+                    description.extend(["$r", "#" + str(nid // 2)])
+                memory.append(description)
             query = context[-1]
             # if train and test are not same, the response will be invalid
             response = self.candid2index.get(_response, len(self.candid2index))
@@ -146,11 +147,10 @@ class DataUtils(object):
             lq = max(0, self.sentence_size - len(query))
             q = [self.word2index[w] if w in self.word2index else self.word2index["UNK"] for w in query] + [0] * lq
 
-            stories.append(ss)
-            queries.append(q)
-            answers.append(answer)
-        return np.asarray(stories, dtype=np.int64), np.asarray(queries, dtype=np.int64), np.asarray(answers,
-                                                                                                    dtype=np.int64)
+            stories.append(np.array(ss, dtype=np.int64))
+            queries.append(np.array(q, dtype=np.int64))
+            answers.append(np.array(answer, dtype=np.int64))
+        return stories, queries, answers
 
 
 def batch_iter(stories, queries, answers, batch_size, shuffle=False):
