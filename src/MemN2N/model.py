@@ -13,7 +13,7 @@ from MemN2N.data_utils import batch_iter
 class MemN2N(nn.Module):
     def __init__(self, vocab_size, embedding_dim, max_hops, nonlinear, candidates, random_seed):
         super(MemN2N, self).__init__()
-        torch.manual_seed(random_seed + 1)
+        torch.manual_seed(random_seed)
         self.vocab_size = vocab_size
         self.embedding_dim = embedding_dim
         self.max_hops = max_hops
@@ -123,7 +123,7 @@ class MemAgent(object):
         return loss.item()
 
     def train(self):
-        np.random.seed(self.config["random_seed"] + 2)
+        np.random.seed(self.config["random_seed"] + 1)
         trainS, trainQ, trainA = self.data_utils.vectorize_data(self.train_data, self.config["batch_size"])
         valS, valQ, valA = self.data_utils.vectorize_data(self.dev_data, self.config["batch_size"])
         n_train = len(trainS)
