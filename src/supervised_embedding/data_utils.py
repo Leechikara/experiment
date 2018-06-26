@@ -20,9 +20,7 @@ class Vectorizer(object):
     @staticmethod
     def vectorize_utt(utt, word2index):
         vec = np.zeros(len(word2index), dtype=np.float32)
-        for w in utt.split(" "):
-            if w == "":
-                continue
+        for w in utt.split():
             # Do not use special symbol features
             w = re.sub(r"<\S+?>", "", w)
             try:
