@@ -57,7 +57,7 @@ class DataUtils(object):
                 line = line.strip()
                 self.candid2index[line] = i
                 self.index2candid[i] = line
-                line = line.split(" ")
+                line = line.split()
                 self.candidates.append(line)
         self.cand_size = len(self.candidates)
 
