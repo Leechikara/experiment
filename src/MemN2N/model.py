@@ -78,7 +78,7 @@ class MemAgent(object):
         self.config = config
         self.model = model
         self.loss = nn.CrossEntropyLoss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=config["lr"])
+        self.optimizer = optim.Adam(self.model.parameters(), lr=config.get["lr", None])
         self.train_data = train_data
         self.dev_data = dev_data
         self.test_data = test_data
