@@ -7,18 +7,20 @@ from torch.nn.parameter import Parameter
 import numpy as np
 import logging
 import sys
-from data_utils import batch_iter, neg_sampling_iter
+
+sys.path.append("/home/wkwang/workstation/experiment/src")
+from supervised_embedding.data_utils import batch_iter, neg_sampling_iter
 
 
 class EmbeddingModel(nn.Module):
     def __init__(self, vocab_dim, emb_dim, margin, random_seed=42, share_parameter=False):
         super(EmbeddingModel, self).__init__()
+        torch.manual_seed(random_seed)
+
         self._vocab_dim = vocab_dim
         self._emb_dim = emb_dim
         self._margin = margin
-        self._random_seed = random_seed
         self.share_parameter = share_parameter
-        torch.manual_seed(random_seed)
 
         self.context_embedding = Parameter(torch.Tensor(emb_dim, vocab_dim))
         self.response_embedding = Parameter(torch.Tensor(emb_dim, vocab_dim))
@@ -45,13 +47,14 @@ class EmbeddingModel(nn.Module):
 
 class EmbeddingAgent(object):
     def __init__(self, config, model, train_tensor, dev_tensor, test_tensor, candidates_tensor):
+        np.random.seed(config["random_seed"] + 1)
         self.config = config
         self.model = model
         self.train_tensor = train_tensor
         self.dev_tensor = dev_tensor
         self.test_tensor = test_tensor
         self.candidates_tensor = candidates_tensor
-        self.optimizer = optim.Adam(self.model.parameters(), lr=config.get("lr", None))
+        self.optimizer = optim.Adam(self.model.parameters(), lr=config.get("lr", 0.001))
         self.logger = self._setup_logger()
 
     def tensor_wrapper(self, data):
