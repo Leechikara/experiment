@@ -38,25 +38,27 @@ class MemN2N(nn.Module):
 
         # register candidates for answer selecting
         self.candidates = torch.from_numpy(candidates)
-        self.register_buffer("candidates", self.candidates)
+        self.register_buffer("candidates_const", self.candidates)
+
+        self.softmax_layer = torch.nn.Softmax(dim=1)
 
     def forward(self, stories, queries):
         q_emb = self.A(queries)
-        u_0 = torch.sum(q_emb, axis=1)
+        u_0 = torch.sum(q_emb, 1)
         u = [u_0]
 
         for _ in range(self.max_hops):
             m_emb = self.A(stories)
-            m = torch.sum(m_emb, axis=2)
+            m = torch.sum(m_emb, 2)
             u_temp = torch.transpose(torch.unsqueeze(u[-1], -1), 1, 2)
-            dotted = torch.sum(m * u_temp, axis=2)
+            dotted = torch.sum(m * u_temp, 2)
 
             # Calculate probabilities
-            probs = torch.nn.Softmax(dotted)
+            probs = self.softmax_layer(dotted)
 
             probs_temp = torch.transpose(torch.unsqueeze(probs, -1), 1, 2)
-            c_temp = torch.tanspose(m, 1, 2)
-            o_k = torch.sum(c_temp * probs_temp, axis=2)
+            c_temp = torch.transpose(m, 1, 2)
+            o_k = torch.sum(c_temp * probs_temp, 2)
 
             u_k = self.H(u[-1]) + o_k
             if self.nonlinear is not None:
@@ -64,8 +66,8 @@ class MemN2N(nn.Module):
 
             u.append(u_k)
 
-        candidate_emb = self.W(self.candidates)
-        candidate_emb_sum = torch.sum(candidate_emb, axis=1)
+        candidate_emb = self.W(self.candidates_const)
+        candidate_emb_sum = torch.sum(candidate_emb, 1)
         logits = torch.mm(u[-1], candidate_emb_sum.t())
 
         return logits
@@ -82,7 +84,14 @@ class MemAgent(object):
         self.test_data = test_data
         self.data_utils = data_utils
 
+    def tensor_wrapper(self, data):
+        if isinstance(data, list):
+            data = np.array(data)
+        data = torch.from_numpy(data)
+        return data.to(self.config["device"])
+
     def _gradient_noise_and_clip(self, parameters):
+        parameters = list(filter(lambda p: p.grad is not None, parameters))
         nn.utils.clip_grad_norm_(parameters, self.config["max_clip"])
 
         for p in parameters:
@@ -102,7 +111,7 @@ class MemAgent(object):
     def batch_predict(self, stories, queries):
         preds = list()
         for stories_batch, queries_batch, _ in batch_iter(stories, queries, None, self.config["batch_size"], False):
-            logits = self.model(stories_batch, queries_batch)
+            logits = self.model(self.tensor_wrapper(stories_batch), self.tensor_wrapper(queries_batch))
             predict_op = torch.argmax(logits, dim=1)
             pred = predict_op.cpu().numpy()
             preds += list(pred)
@@ -128,7 +137,7 @@ class MemAgent(object):
             total_cost = 0.0
             for s, q, a in batch_iter(trainS, trainQ, trainA, batch_size=self.config["batch_size"], shuffle=True):
                 with torch.set_grad_enabled(True):
-                    cost_t = self.model.batch_fit(s, q, a)
+                    cost_t = self.batch_fit(self.tensor_wrapper(s), self.tensor_wrapper(q), self.tensor_wrapper(a))
                 total_cost += cost_t
             if epoch % self.config["evaluation_interval"] == 0:
                 with torch.set_grad_enabled(False):
