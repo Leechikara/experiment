@@ -131,11 +131,6 @@ class MemAgent(object):
             preds += list(pred)
         return preds
 
-    def batch_evaluate(self, stories, queries, answers):
-        logits = self.model(stories, queries)
-        loss = self.loss(logits, answers)
-        return loss.item()
-
     def train(self):
         self.logger.info("Run main with config {}".format(self.config))
 
