@@ -5,6 +5,7 @@ import torch.optim as optim
 import numpy as np
 import sys
 from sklearn import metrics
+import logging
 
 sys.path.append("/home/wkwang/workstation/experiment/src")
 from MemN2N.data_utils import batch_iter
@@ -14,6 +15,7 @@ class MemN2N(nn.Module):
     def __init__(self, vocab_size, embedding_dim, max_hops, nonlinear, candidates, random_seed):
         super(MemN2N, self).__init__()
         torch.manual_seed(random_seed)
+
         self.vocab_size = vocab_size
         self.embedding_dim = embedding_dim
         self.max_hops = max_hops
@@ -75,6 +77,7 @@ class MemN2N(nn.Module):
 
 class MemAgent(object):
     def __init__(self, config, model, train_data, dev_data, test_data, data_utils):
+        np.random.seed(config["random_seed"] + 1)
         self.config = config
         self.model = model
         self.loss = nn.CrossEntropyLoss()
@@ -83,6 +86,17 @@ class MemAgent(object):
         self.dev_data = dev_data
         self.test_data = test_data
         self.data_utils = data_utils
+        self.logger = self._setup_logger()
+
+    @staticmethod
+    def _setup_logger():
+        logging.basicConfig(
+            format="[%(levelname)s] %(asctime)s: %(message)s (%(pathname)s:%(lineno)d)",
+            datefmt="%Y-%m-%dT%H:%M:%S%z",
+            stream=sys.stdout)
+        logger = logging.getLogger("User-Agnostic-Dialog-MemoryNetWork")
+        logger.setLevel(logging.DEBUG)
+        return logger
 
     def tensor_wrapper(self, data):
         if isinstance(data, list):
@@ -123,7 +137,8 @@ class MemAgent(object):
         return loss.item()
 
     def train(self):
-        np.random.seed(self.config["random_seed"] + 1)
+        self.logger.info("Run main with config {}".format(self.config))
+
         trainS, trainQ, trainA = self.data_utils.vectorize_data(self.train_data, self.config["batch_size"])
         valS, valQ, valA = self.data_utils.vectorize_data(self.dev_data, self.config["batch_size"])
         n_train = len(trainS)
