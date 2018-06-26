@@ -1,6 +1,4 @@
 # coding = utf-8
-from data_utils import Vectorizer
-from model import EmbeddingModel, EmbeddingAgent
 import argparse
 import torch
 import os
@@ -8,6 +6,8 @@ import sys
 
 sys.path.append("/home/wkwang/workstation/experiment/src")
 from config.config import DATA_ROOT
+from supervised_embedding.data_utils import Vectorizer
+from supervised_embedding.model import EmbeddingModel, EmbeddingAgent
 
 
 def _parse_args():
@@ -23,7 +23,7 @@ def _parse_args():
     parser.add_argument("--batch_size", type=int, default=512)
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--shareEmbedding", action='store_true')
-    parser.add_argument("--randomSeed", type=int, default=42)
+    parser.add_argument("--random_seed", type=int, default=42)
     parser.add_argument("--cuda", action="store_true")
 
     return parser.parse_args()
@@ -36,18 +36,17 @@ if __name__ == "__main__":
     # checkpoints path
     args.save_dir = "/".join([args.save_dir, args.task])
 
-    task = args.task
-    train_file = os.path.join(DATA_ROOT, "public", task, "train.txt")
-    dev_file = os.path.join(DATA_ROOT, "public", task, "dev.txt")
-    candidates_file = os.path.join(DATA_ROOT, "candidate", task + ".txt")
+    train_file = os.path.join(DATA_ROOT, "public", args.task, "train.txt")
+    dev_file = os.path.join(DATA_ROOT, "public", args.task, "dev.txt")
+    candidates_file = os.path.join(DATA_ROOT, "candidate", args.task + ".txt")
 
     vectorizer = Vectorizer()
-    word2index, index2word, vocab_dim = vectorizer.load_vocab(task)
+    word2index, index2word, vocab_dim = vectorizer.load_vocab(args.task)
     train_tensor = vectorizer.make_tensor(train_file, word2index)
     dev_tensor = vectorizer.make_tensor(dev_file, word2index)
     candidates_tensor = vectorizer.make_tensor(candidates_file, word2index)
 
-    model = EmbeddingModel(vocab_dim, args.emb_dim, args.margin, args.randomSeed, args.shareEmbedding).to(args.device)
+    model = EmbeddingModel(vocab_dim, args.emb_dim, args.margin, args.random_seed, args.shareEmbedding).to(args.device)
 
     if args.trained_model is not None:
         with open(args.trained_model, "rb") as f:
