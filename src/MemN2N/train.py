@@ -37,7 +37,7 @@ if __name__ == "__main__":
     args.device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # checkpoints path
-    args.save_dir = "/".join([args.save_dir, args.train_task])
+    args.save_dir = "/".join([args.save_dir, args.task])
 
     train_file = os.path.join(DATA_ROOT, "public", args.task, "train.txt")
     dev_file = os.path.join(DATA_ROOT, "public", args.task, "dev.txt")
@@ -61,6 +61,6 @@ if __name__ == "__main__":
 
     config = {"lr": args.learning_rate, "epochs": args.epochs, "device": args.device, "batch_size": args.batch_size,
               "save_dir": args.save_dir, "max_clip": args.max_clip, "noise_stddev": args.noise_stddev,
-              "random_seed": args.random_seed}
+              "random_seed": args.random_seed, "evaluation_interval": args.evaluation_interval}
     agent = MemAgent(config, model, train_data, dev_data, None, data_utils)
     agent.train()
