@@ -18,7 +18,6 @@ def _parse_args():
     parser.add_argument("--testing_task", type=str)
     parser.add_argument("--emb_dim", default=32, type=int)
     parser.add_argument("--batch_size", type=int, default=32)
-    parser.add_argument("--random_seed", type=int, default=42)
     parser.add_argument("--cuda", action="store_true")
     parser.add_argument("--memory_size", type=int, default=50)
     parser.add_argument("--max_hops", type=int, default=3)
@@ -48,8 +47,6 @@ if __name__ == "__main__":
     with open(args.trained_model, "rb") as f:
         model.load_state_dict(torch.load(f))
 
-    config = {"lr": args.learning_rate, "epochs": args.epochs, "device": args.device, "batch_size": args.batch_size,
-              "save_dir": args.save_dir, "max_clip": args.max_clip, "noise_stddev": args.noise_stddev,
-              "random_seed": args.random_seed, "evaluation_interval": args.evaluation_interval}
+    config = {"device": args.device, "batch_size": args.batch_size}
     agent = MemAgent(config, model, None, None, test_data, data_utils)
     agent.test()
