@@ -26,7 +26,7 @@ class ParseData(object):
                 del special_sign[0]
             else:
                 cut_l.append(word)
-        return " ".join(cut_l)
+        return " ".join(list(filter(lambda x: x.strip() != "", cut_l)))
 
     def get_vocab(self):
         for task in TASKS.keys():
