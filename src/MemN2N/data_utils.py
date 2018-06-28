@@ -161,7 +161,7 @@ def batch_iter(stories, queries, answers, batch_size, shuffle=False):
     if extra_data_num > 0:
         batches = [(start, end) for start, end in batches] + [(data_num - extra_data_num, data_num)]
     else:
-        batches = [(start, end) for start, end in batches]
+        batches = [(start, end) for start, end in batches] + [(data_num - batch_size, data_num)]
 
     if shuffle:
         np.random.shuffle(batches)
