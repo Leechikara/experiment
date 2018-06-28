@@ -174,3 +174,11 @@ def batch_iter(stories, queries, answers, batch_size, shuffle=False):
         else:
             answers_batch = answers[start:end]
         yield stories_batch, queries_batch, answers_batch
+
+
+def build_p_mapping(source_s2ind, target_s2ind):
+    mapping = list()
+    for s in source_s2ind.keys():
+        if s in target_s2ind:
+            mapping.append((source_s2ind[s], target_s2ind[s]))
+    return mapping
