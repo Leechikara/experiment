@@ -26,7 +26,6 @@ def _parse_args():
     parser.add_argument("--max_hops", type=int, default=3)
     parser.add_argument("--nonlinear", type=str, default="iden")
     parser.add_argument("--max_clip", type=float, default=40)
-    parser.add_argument("--noise_stddev", type=float, default=0.1)
     parser.add_argument("--evaluation_interval", type=int, default=2)
 
     return parser.parse_args()
@@ -58,7 +57,7 @@ if __name__ == "__main__":
         model.load_checkpoints(args.trained_model)
 
     config = {"lr": args.learning_rate, "epochs": args.epochs, "device": args.device, "batch_size": args.batch_size,
-              "save_dir": args.save_dir, "max_clip": args.max_clip, "noise_stddev": args.noise_stddev,
-              "random_seed": args.random_seed, "evaluation_interval": args.evaluation_interval}
+              "save_dir": args.save_dir, "max_clip": args.max_clip, "random_seed": args.random_seed,
+              "evaluation_interval": args.evaluation_interval}
     agent = MemAgent(config, model, train_data, dev_data, None, data_utils)
     agent.train()

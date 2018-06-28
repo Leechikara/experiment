@@ -126,21 +126,12 @@ class MemAgent(object):
         data = torch.from_numpy(data)
         return data.to(self.config["device"])
 
-    def _gradient_noise_and_clip(self, parameters):
-        parameters = list(filter(lambda p: p.grad is not None, parameters))
-        nn.utils.clip_grad_norm_(parameters, self.config["max_clip"])
-
-        for p in parameters:
-            noise = torch.randn(p.size()) * self.config["noise_stddev"]
-            noise = noise.to(self.config["device"])
-            p.grad.data.add_(noise)
-
     def batch_fit(self, stories, queries, answers):
         self.optimizer.zero_grad()
         logits = self.model(stories, queries)
         loss = self.loss(logits, answers)
         loss.backward()
-        self._gradient_noise_and_clip(self.model.parameters())
+        nn.utils.clip_grad_norm_(self.model.parameters(), self.config["max_clip"])
         self.optimizer.step()
         return loss.item()
 
