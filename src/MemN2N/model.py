@@ -6,6 +6,8 @@ import numpy as np
 import sys
 from sklearn import metrics
 import logging
+import pickle
+import os
 
 sys.path.append("/home/wkwang/workstation/experiment/src")
 from MemN2N.data_utils import batch_iter
@@ -44,6 +46,27 @@ class MemN2N(nn.Module):
 
         self.softmax_layer = torch.nn.Softmax(dim=1)
 
+    def load_checkpoints(self, f, mapping_dict={}):
+        with open(f, 'rb') as f:
+            checkpoints = pickle.load(f)
+
+        def new_get_attr(_object_, attr_name):
+            for attr_item in attr_name.split("."):
+                _object_ = _object_.__getattr__(attr_item)
+            return _object_
+
+        def new_copy_parameter(source_p, target_p, mapping):
+            if mapping is None:
+                for idx in range(len(source_p)):
+                    target_p[idx] = torch.from_numpy(source_p[idx])
+            else:
+                for source_idx, target_idx in mapping:
+                    target_p[target_idx] = torch.from_numpy(source_p[source_idx])
+
+        for key, value in checkpoints.items():
+            target = new_get_attr(self, key)
+            new_copy_parameter(value, target, mapping_dict.get(key, None))
+
     def forward(self, stories, queries):
         q_emb = self.A(queries)
         u_0 = torch.sum(q_emb, 1)
@@ -79,7 +102,7 @@ class MemAgent(object):
     def __init__(self, config, model, train_data, dev_data, test_data, data_utils):
         np.random.seed(config["random_seed"] + 1)
         self.config = config
-        self.model = model
+        self.model = model.to(config["device"])
         self.loss = nn.CrossEntropyLoss()
         self.optimizer = optim.Adam(self.model.parameters(), lr=config.get("lr", 0.001))
         self.train_data = train_data
@@ -131,6 +154,13 @@ class MemAgent(object):
             preds += list(pred)
         return preds
 
+    def get_checkpoints(self, concerned_p=["A.weight", "W.weight", "H.weight"]):
+        checkpoints = dict()
+        for name, p in self.model.named_parameters():
+            if name in concerned_p:
+                checkpoints[name] = p.detach().to("cpu").numpy()
+        return checkpoints
+
     def train(self):
         self.logger.info("Run main with config {}".format(self.config))
 
@@ -165,7 +195,9 @@ class MemAgent(object):
                 if val_acc > best_validation_accuracy:
                     best_validation_accuracy = val_acc
                     model_file = "epoch_{}_accuracy_{}.pkl".format(epoch, val_acc)
-                    torch.save(self.model.state_dict(), self.config["save_dir"] + "/" + model_file)
+                    # A different method to store parameters
+                    with open(os.path.join(self.config["save_dir"], model_file), "wb") as f:
+                        pickle.dump(self.get_checkpoints(), f)
 
     def test(self):
         testS, testQ, testA = self.data_utils.vectorize_data(self.test_data, self.config["batch_size"])
