@@ -57,10 +57,10 @@ class MemN2N(nn.Module):
 
         def new_copy_parameter(source_p, target_p, mapping):
             if mapping is None:
-                target_p = torch.from_numpy(source_p)
+                target_p.data = torch.from_numpy(source_p)
             else:
                 for source_idx, target_idx in mapping:
-                    target_p[target_idx] = torch.from_numpy(source_p[source_idx])
+                    target_p.data[target_idx] = torch.from_numpy(source_p[source_idx])
 
         for key, value in checkpoints.items():
             target = new_get_attr(self, key)
