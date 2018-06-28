@@ -55,8 +55,7 @@ if __name__ == "__main__":
     model = MemN2N(data_utils.vocab_size, args.emb_dim, args.max_hops, args.nonlinear, candidates_vec, args.random_seed)
 
     if args.trained_model is not None:
-        with open(args.trained_model, "rb") as f:
-            model.load_checkpoints(args.trained_model)
+        model.load_checkpoints(args.trained_model)
 
     config = {"lr": args.learning_rate, "epochs": args.epochs, "device": args.device, "batch_size": args.batch_size,
               "save_dir": args.save_dir, "max_clip": args.max_clip, "noise_stddev": args.noise_stddev,
