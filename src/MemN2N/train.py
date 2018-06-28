@@ -37,7 +37,7 @@ if __name__ == "__main__":
     args.device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # checkpoints path
-    args.save_dir = "/".join([args.save_dir, args.task])
+    args.save_dir = os.path.join(args.save_dir, args.task)
 
     train_file = os.path.join(DATA_ROOT, "public", args.task, "train.txt")
     dev_file = os.path.join(DATA_ROOT, "public", args.task, "dev.txt")
@@ -52,12 +52,11 @@ if __name__ == "__main__":
     data_utils.build_pad_config(data, args.memory_size)
     candidates_vec = data_utils.vectorize_candidates()
 
-    model = MemN2N(data_utils.vocab_size, args.emb_dim, args.max_hops, args.nonlinear, candidates_vec,
-                   args.random_seed).to(args.device)
+    model = MemN2N(data_utils.vocab_size, args.emb_dim, args.max_hops, args.nonlinear, candidates_vec, args.random_seed)
 
     if args.trained_model is not None:
         with open(args.trained_model, "rb") as f:
-            model.load_state_dict(torch.load(f))
+            model.load_checkpoints(args.trained_model)
 
     config = {"lr": args.learning_rate, "epochs": args.epochs, "device": args.device, "batch_size": args.batch_size,
               "save_dir": args.save_dir, "max_clip": args.max_clip, "noise_stddev": args.noise_stddev,
