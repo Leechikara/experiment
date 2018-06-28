@@ -7,6 +7,8 @@ from torch.nn.parameter import Parameter
 import numpy as np
 import logging
 import sys
+import pickle
+import os
 
 sys.path.append("/home/wkwang/workstation/experiment/src")
 from supervised_embedding.data_utils import batch_iter, neg_sampling_iter
@@ -33,6 +35,27 @@ class EmbeddingModel(nn.Module):
         else:
             self.response_embedding.data.uniform_(-1, 1)
 
+    def load_checkpoints(self, f, mapping_dict={}):
+        with open(f, 'rb') as f:
+            checkpoints = pickle.load(f)
+
+        def new_get_attr(_object_, attr_name):
+            for attr_item in attr_name.split("."):
+                _object_ = _object_.__getattr__(attr_item)
+            return _object_
+
+        def new_copy_parameter(source_p, target_p, mapping):
+            if mapping is None:
+                for idx in range(len(source_p)):
+                    target_p[idx] = torch.from_numpy(source_p[idx])
+            else:
+                for source_idx, target_idx in mapping:
+                    target_p[target_idx] = torch.from_numpy(source_p[source_idx])
+
+        for key, value in checkpoints.items():
+            target = new_get_attr(self, key)
+            new_copy_parameter(value, target, mapping_dict.get(key, None))
+
     def forward(self, context_batch, response_batch, neg_response_batch):
         cont_rep = torch.t(torch.mm(self.context_embedding, torch.t(context_batch)))
         resp_rep = torch.mm(self.response_embedding, torch.t(response_batch))
@@ -49,7 +72,7 @@ class EmbeddingAgent(object):
     def __init__(self, config, model, train_tensor, dev_tensor, test_tensor, candidates_tensor):
         np.random.seed(config["random_seed"] + 1)
         self.config = config
-        self.model = model
+        self.model = model.to(config["device"])
         self.train_tensor = train_tensor
         self.dev_tensor = dev_tensor
         self.test_tensor = test_tensor
@@ -62,6 +85,13 @@ class EmbeddingAgent(object):
             data = np.asarray(data)
         data = torch.from_numpy(data)
         return data.to(self.config["device"])
+
+    def get_checkpoints(self, concerned_p=["context_embedding", "response_embedding"]):
+        checkpoints = dict()
+        for name, p in self.model.named_parameters():
+            if name in concerned_p:
+                checkpoints[name] = p.detach().to("cpu").numpy()
+        return checkpoints
 
     def _train(self, batch_size, neg_size):
         avg_loss = 0
@@ -148,7 +178,6 @@ class EmbeddingAgent(object):
         epochs = self.config["epochs"]
         batch_size = self.config["batch_size"]
         negative_cand = self.config["negative_cand"]
-        save_dir = self.config["save_dir"]
 
         prev_best_accuracy = 0
 
@@ -169,4 +198,6 @@ class EmbeddingAgent(object):
                     self.logger.debug("Saving checkpoint")
                     prev_best_accuracy = accuracy
                     model_file = "epoch_{}_accuracy_{}.pkl".format(epoch, accuracy)
-                    torch.save(self.model.state_dict(), save_dir + "/" + model_file)
+                    # A different method to store parameters
+                    with open(os.path.join(self.config["save_dir"], model_file), "wb") as f:
+                        pickle.dump(self.get_checkpoints(), f)

@@ -21,7 +21,7 @@ def _parse_args():
     parser.add_argument("--negative_cand", type=int, default=20)
     parser.add_argument("--learning_rate", type=float, default=0.001)
     parser.add_argument("--batch_size", type=int, default=512)
-    parser.add_argument("--epochs", type=int, default=50)
+    parser.add_argument("--epochs", type=int, default=60)
     parser.add_argument("--shareEmbedding", action='store_true')
     parser.add_argument("--random_seed", type=int, default=42)
     parser.add_argument("--cuda", action="store_true")
@@ -34,7 +34,7 @@ if __name__ == "__main__":
     args.device = torch.device("cuda" if torch.cuda.is_available() and args.cuda else "cpu")
 
     # checkpoints path
-    args.save_dir = "/".join([args.save_dir, args.task])
+    args.save_dir = os.path.join(args.save_dir, args.task)
 
     train_file = os.path.join(DATA_ROOT, "public", args.task, "train.txt")
     dev_file = os.path.join(DATA_ROOT, "public", args.task, "dev.txt")
@@ -46,13 +46,13 @@ if __name__ == "__main__":
     dev_tensor = vectorizer.make_tensor(dev_file, word2index)
     candidates_tensor = vectorizer.make_tensor(candidates_file, word2index)
 
-    model = EmbeddingModel(vocab_dim, args.emb_dim, args.margin, args.random_seed, args.shareEmbedding).to(args.device)
+    model = EmbeddingModel(vocab_dim, args.emb_dim, args.margin, args.random_seed, args.shareEmbedding)
 
     if args.trained_model is not None:
-        with open(args.trained_model, "rb") as f:
-            model.load_state_dict(torch.load(f))
+        model.load_checkpoints(args.trained_model)
 
     config = {"lr": args.learning_rate, "epochs": args.epochs, "negative_cand": args.negative_cand,
-              "device": args.device, "batch_size": args.batch_size, "save_dir": args.save_dir}
+              "device": args.device, "batch_size": args.batch_size, "save_dir": args.save_dir,
+              "random_seed": args.random_seed}
     agent = EmbeddingAgent(config, model, train_tensor, dev_tensor, None, candidates_tensor)
     agent.train()
