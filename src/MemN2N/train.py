@@ -19,7 +19,7 @@ def _parse_args():
     parser.add_argument("--save_dir", default="checkpoints", type=str)
     parser.add_argument("--learning_rate", type=float, default=0.001)
     parser.add_argument("--batch_size", type=int, default=32)
-    parser.add_argument("--epochs", type=int, default=50)
+    parser.add_argument("--epochs", type=int, default=60)
     parser.add_argument("--random_seed", type=int, default=42)
     parser.add_argument("--cuda", action="store_true")
     parser.add_argument("--memory_size", type=int, default=50)
