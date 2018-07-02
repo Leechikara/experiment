@@ -58,6 +58,7 @@ if __name__ == "__main__":
             trained_model = os.listdir(args.trained_model)
             trained_model.sort(key=lambda x: int(x.split("_")[1]))
             args.trained_model = os.path.join(args.trained_model, trained_model[-1])
+        print("Using trained model in {}".format(args.trained_model))
         model.load_checkpoints(args.trained_model)
 
     config = {"lr": args.learning_rate, "epochs": args.epochs, "device": args.device, "batch_size": args.batch_size,
