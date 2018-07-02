@@ -58,6 +58,11 @@ if __name__ == "__main__":
                    args.nonlinear, candidates_vec, args.random_seed)
 
     assert args.trained_model is not None
+    if os.path.isdir(args.trained_model):
+        trained_model = os.listdir(args.trained_model)
+        trained_model.sort(key=lambda x: int(x.split("_")[1]))
+        args.trained_model = os.path.join(args.trained_model, trained_model[-1])
+    print("Using trained model in {}".format(args.trained_model))
     model.load_checkpoints(args.trained_model, mapping_dict)
 
     config = {"device": args.device, "batch_size": args.batch_size, "random_seed": args.random_seed}

@@ -54,6 +54,10 @@ if __name__ == "__main__":
     model = MemN2N(data_utils.vocab_size, args.emb_dim, args.max_hops, args.nonlinear, candidates_vec, args.random_seed)
 
     if args.trained_model is not None:
+        if os.path.isdir(args.trained_model):
+            trained_model = os.listdir(args.trained_model)
+            trained_model.sort(key=lambda x: int(x.split("_")[1]))
+            args.trained_model = os.path.join(args.trained_model, trained_model[-1])
         model.load_checkpoints(args.trained_model)
 
     config = {"lr": args.learning_rate, "epochs": args.epochs, "device": args.device, "batch_size": args.batch_size,
