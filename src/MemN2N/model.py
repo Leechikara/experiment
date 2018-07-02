@@ -193,6 +193,7 @@ class MemAgent(object):
         testS, testQ, testA = self.data_utils.vectorize_data(self.test_data, self.config["batch_size"])
         n_test = len(testS)
         print("Testing Size", n_test)
-        test_preds = self.batch_predict(testS, testQ)
+        with torch.set_grad_enabled(False):
+            test_preds = self.batch_predict(testS, testQ)
         test_acc = metrics.accuracy_score(test_preds, testA)
         print("Testing Accuracy:", test_acc)
