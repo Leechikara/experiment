@@ -140,7 +140,7 @@ class MemAgent(object):
         for stories_batch, queries_batch, _ in batch_iter(stories, queries, None, self.config["batch_size"], False):
             logits = self.model(self.tensor_wrapper(stories_batch), self.tensor_wrapper(queries_batch))
             predict_op = torch.argmax(logits, dim=1)
-            pred = predict_op.cpu().numpy()
+            pred = predict_op.detach().to(torch.device("cpu")).numpy()
             preds += list(pred)
         return preds
 
@@ -148,7 +148,7 @@ class MemAgent(object):
         checkpoints = dict()
         for name, p in self.model.named_parameters():
             if name in concerned_p:
-                checkpoints[name] = p.detach().to("cpu").numpy()
+                checkpoints[name] = p.detach().to(torch.device("cpu")).numpy()
         return checkpoints
 
     def train(self):
