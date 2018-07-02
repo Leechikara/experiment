@@ -101,11 +101,7 @@ class EmbeddingAgent(object):
                                         self.tensor_wrapper(batch[:, 1, :]),
                                         self.tensor_wrapper(neg_batch[:, 1, :]))
                 loss.backward()
-
-                # clamp grad
-                for param in self.model.parameters():
-                    param.grad.data.clamp_(-5, 5)
-
+                nn.utils.clip_grad_norm_(self.model.parameters(), self.config["max_clip"])
                 self.optimizer.step()
                 avg_loss += loss.item()
         avg_loss = avg_loss / (self.train_tensor.shape[0] * neg_size)

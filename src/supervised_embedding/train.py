@@ -25,6 +25,7 @@ def _parse_args():
     parser.add_argument("--shareEmbedding", action='store_true')
     parser.add_argument("--random_seed", type=int, default=42)
     parser.add_argument("--cuda", action="store_true")
+    parser.add_argument("--max_clip", type=float, default=40)
 
     return parser.parse_args()
 
@@ -53,6 +54,6 @@ if __name__ == "__main__":
 
     config = {"lr": args.learning_rate, "epochs": args.epochs, "negative_cand": args.negative_cand,
               "device": args.device, "batch_size": args.batch_size, "save_dir": args.save_dir,
-              "random_seed": args.random_seed}
+              "random_seed": args.random_seed, "max_clip": args.max_clip}
     agent = EmbeddingAgent(config, model, train_tensor, dev_tensor, None, candidates_tensor)
     agent.train()
