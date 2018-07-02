@@ -132,6 +132,8 @@ class EmbeddingAgent(object):
         # If the true response is not in the candidate set, we should return False
         in_candi_set = False
         for batch in batch_iter(candidates_tensor, batch_size):
+            if in_candi_set is True:
+                break
             candidate_responses = batch[:, 0, :]
             for candidate in candidate_responses:
                 if np.array_equal(candidate, true_response):
