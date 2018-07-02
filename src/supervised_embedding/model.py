@@ -89,7 +89,7 @@ class EmbeddingAgent(object):
         checkpoints = dict()
         for name, p in self.model.named_parameters():
             if name in concerned_p:
-                checkpoints[name] = p.detach().to("cpu").numpy()
+                checkpoints[name] = p.detach().to(torch.device("cpu")).numpy()
         return checkpoints
 
     def _train(self, batch_size, neg_size):
@@ -140,7 +140,7 @@ class EmbeddingAgent(object):
             scores, _, _ = self.model(self.tensor_wrapper(context_batch),
                                       self.tensor_wrapper(candidate_responses),
                                       self.tensor_wrapper(candidate_responses))
-            scores = scores.detach().cpu().numpy()
+            scores = scores.detach().to(torch.device("cpu")).numpy()
 
             for ind, score in enumerate(scores):
                 if score == float("Inf") or score == -float("Inf") or score == float("NaN"):
