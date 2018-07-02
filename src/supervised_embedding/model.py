@@ -133,6 +133,17 @@ class EmbeddingAgent(object):
         return logger
 
     def evaluate_one_row(self, candidates_tensor, true_context, test_score, true_response, batch_size):
+        # If the true response is not in the candidate set, we should return False
+        in_candi_set = False
+        for batch in batch_iter(candidates_tensor, batch_size):
+            candidate_responses = batch[:, 0, :]
+            for candidate in candidate_responses:
+                if np.array_equal(candidate, true_response):
+                    in_candi_set = True
+                    break
+        if in_candi_set is False:
+            return False
+
         for batch in batch_iter(candidates_tensor, batch_size):
             candidate_responses = batch[:, 0, :]
             context_batch = np.repeat(true_context, candidate_responses.shape[0], axis=0)
