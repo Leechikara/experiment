@@ -21,7 +21,7 @@ def _parse_args():
     parser.add_argument("--margin", type=float, default=0.1)
     parser.add_argument("--shareEmbedding", action='store_true')
     parser.add_argument("--random_seed", type=int, default=42)
-    parser.add_argument("--batch_size", type=int, default=512)
+    parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--cuda", action="store_true")
 
     args = parser.parse_args()
@@ -54,6 +54,11 @@ if __name__ == "__main__":
     model = EmbeddingModel(vocab_dim, args.emb_dim, args.margin, args.random_seed, args.shareEmbedding)
 
     assert args.trained_model is not None
+    if os.path.isdir(args.trained_model):
+        trained_model = os.listdir(args.trained_model)
+        trained_model.sort(key=lambda x: int(x.split("_")[1]))
+        args.trained_model = os.path.join(args.trained_model, trained_model[-1])
+    print("Using trained model in {}".format(args.trained_model))
     model.load_checkpoints(args.trained_model, mapping_dict)
 
     config = {"device": args.device, "batch_size": args.batch_size, "random_seed": args.random_seed}

@@ -20,7 +20,7 @@ def _parse_args():
     parser.add_argument("--margin", type=float, default=0.1)
     parser.add_argument("--negative_cand", type=int, default=20)
     parser.add_argument("--learning_rate", type=float, default=0.001)
-    parser.add_argument("--batch_size", type=int, default=512)
+    parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--epochs", type=int, default=60)
     parser.add_argument("--shareEmbedding", action='store_true')
     parser.add_argument("--random_seed", type=int, default=42)
@@ -54,6 +54,7 @@ if __name__ == "__main__":
             trained_model = os.listdir(args.trained_model)
             trained_model.sort(key=lambda x: int(x.split("_")[1]))
             args.trained_model = os.path.join(args.trained_model, trained_model[-1])
+        print("Using trained model in {}".format(args.trained_model))
         model.load_checkpoints(args.trained_model)
 
     config = {"lr": args.learning_rate, "epochs": args.epochs, "negative_cand": args.negative_cand,
