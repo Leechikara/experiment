@@ -50,6 +50,10 @@ if __name__ == "__main__":
     model = EmbeddingModel(vocab_dim, args.emb_dim, args.margin, args.random_seed, args.shareEmbedding)
 
     if args.trained_model is not None:
+        if os.path.isdir(args.trained_model):
+            trained_model = os.listdir(args.trained_model)
+            trained_model.sort(key=lambda x: int(x.split("_")[1]))
+            args.trained_model = os.path.join(args.trained_model, trained_model[-1])
         model.load_checkpoints(args.trained_model)
 
     config = {"lr": args.learning_rate, "epochs": args.epochs, "negative_cand": args.negative_cand,
