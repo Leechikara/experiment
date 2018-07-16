@@ -11,8 +11,8 @@ from collections import Counter
 import logging
 
 sys.path.append("/home/wkwang/workstation/experiment/src")
-from Continuous_VAE.model.utils import sample_gaussian, norm_log_liklihood, gaussian_kld
-from Continuous_VAE.data_apis.data_utils import batch_iter, DataUtils, TASKS
+from Continuous_VAE.model.utils import sample_gaussian, gaussian_kld
+from Continuous_VAE.data_apis.data_utils import batch_iter, TASKS, DATA_ROOT
 
 
 class ContinuousVAE(nn.Module):
@@ -45,23 +45,29 @@ class ContinuousVAE(nn.Module):
 
         # recognitionNetwork: A MLP
         self.recogNet_mulogvar = nn.Sequential(
-            nn.Linear(recog_input_size, np.maximum(50, config["latent_size"] * 2)),
+            nn.Linear(recog_input_size, max(50, config["latent_size"] * 2)),
             nn.Tanh(),
-            nn.Linear(np.maximum(50, config["latent_size"] * 2), config["latent_size"] * 2)
+            nn.Linear(max(50, config["latent_size"] * 2), config["latent_size"] * 2)
         )
 
         # priorNetwork: A MLP
         self.priorNet_mulogvar = nn.Sequential(
-            nn.Linear(cond_embedding_size, np.maximum(50, config["latent_size"] * 2)),
+            nn.Linear(cond_embedding_size, max(50, config["latent_size"] * 2)),
             nn.Tanh(),
-            nn.Linear(np.maximum(50, config["latent_size"] * 2), config["latent_size"] * 2)
+            nn.Linear(max(50, config["latent_size"] * 2), config["latent_size"] * 2)
         )
 
         # record all candidates in advance and current available index
         # If new candidates are known, we add its index into  available_cand_index
         # I think it's a more efficient strategy to simulate continuous leaning
+        # In the beginning, only the candidates response in task_1 is available
         self.available_cand_index = list()
-        self.register_buffer("candidates", torch.from_numpy(api.candidates))
+        with open(os.path.join(DATA_ROOT, "candidate", "task_1.txt")) as f:
+            for line in f:
+                line = line.strip()
+                self.available_cand_index.append(api.candid2index[line])
+        self.available_cand_index.sort()
+        self.register_buffer("candidates", torch.from_numpy(api.vectorize_candidates()))
 
         # fuse cond_embedding and z
         # todo: there may be other method
@@ -87,7 +93,7 @@ class ContinuousVAE(nn.Module):
 
             # fuse read memory and previous hops
             u_k = self.hops_map(u[-1]) + o_k
-            if self.config["memory_nonlinear"] is not None:
+            if self.memory_nonlinear is not None:
                 u_k = self.memory_nonlinear(u_k)
 
             u.append(u_k)
@@ -114,7 +120,7 @@ class ContinuousVAE(nn.Module):
         probs = F.softmax(logits, 2)
         probs = probs.contiguous().view(-1, len(self.available_cand_index))
         sampled_response = torch.multinomial(probs, 1)
-        sampled_response = sampled_response.view(-1, self.config["n_forward"])
+        sampled_response = sampled_response.view(-1, self.config["sample"])
         sampled_response = sampled_response.detach().data.cpu().numpy()
 
         # todo: more heuristic method for uncertain points
@@ -217,12 +223,12 @@ class ContinuousAgent(object):
         self.model = model.to(config["device"])
         self.optimizer = optim.Adam(self.model.parameters(), lr=config.get("lr", 0.001))
         self.api = api
-        coming_data = list()
+        self.coming_data = list()
         self.test_data = dict()
         for task in TASKS.keys():
             for data_set in ["train", "dev"]:
-                coming_data.extend(self.api.all_data[task][data_set])
-        self.comingS, self.comingQ, self.comingA = self.api.vectorize_data(coming_data, self.config["batch_size"])
+                self.coming_data.extend(self.api.all_data[task][data_set])
+        self.comingS, self.comingQ, self.comingA = self.api.vectorize_data(self.coming_data, self.config["batch_size"])
         for task in TASKS.keys():
             self.test_data[task] = dict()
             self.test_data[task]["S"], self.test_data[task]["Q"], self.test_data[task]["A"] = self.api.vectorize_data(

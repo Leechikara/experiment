@@ -15,9 +15,10 @@ def norm_log_liklihood(x, mu, logvar):
 
 
 def sample_gaussian(mu, logvar, n):
-    eps_shape = list(mu.shape).insert(1, n)
-    mu_temp = torch.unsequeeze(mu, 1)
-    logvar_temp = torch.unsequeeze(logvar, 1)
+    eps_shape = list(mu.shape)
+    eps_shape.insert(1, n)
+    mu_temp = torch.unsqueeze(mu, 1)
+    logvar_temp = torch.unsqueeze(logvar, 1)
     epsilon = torch.randn(eps_shape, device=mu.device)
     std = torch.exp(0.5 * logvar_temp)
     z = mu_temp + std * epsilon

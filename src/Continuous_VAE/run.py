@@ -26,6 +26,8 @@ def _parse_args():
     parser.add_argument("--context_encoding_method", type=str, default="MemoryNetwork")
     parser.add_argument("--memory_nonlinear", type=str, default="iden")
     parser.add_argument("--latent_size", type=int, default=20)
+    parser.add_argument("--sample", type=int, default=10)
+    parser.add_argument("--threshold", type=float, default=0.6)
     parser.add_argument("--evaluation_interval", type=int, default=2)
 
     return parser.parse_args()
@@ -40,11 +42,11 @@ if __name__ == "__main__":
     api.load_candidates()
     api.load_dialog()
     api.build_pad_config(args.memory_size)
-    api.vectorize_candidates()
 
     config = {"random_seed": args.random_seed, "embed_dim": args.emb_dim,
               "context_encoding_method": args.context_encoding_method, "memory_nonlinear": args.memory_nonlinear,
-              "latent_size": args.latent_size}
+              "latent_size": args.latent_size, "max_hops": args.max_hops, "sample": args.sample,
+              "threshold": args.threshold}
     model = ContinuousVAE(config, api)
 
     if args.trained_model is not None:
