@@ -24,8 +24,8 @@ def _parse_args():
     parser.add_argument("--nonlinear", type=str, default="iden")
     parser.add_argument("--max_clip", type=float, default=40)
     parser.add_argument("--context_encoding_method", type=str, default="MemoryNetwork")
-    parser.add_argument("--memory_nonlinear", type=str, default=20)
-    parser.add_argument("--latent_size", type=int, default="iden")
+    parser.add_argument("--memory_nonlinear", type=str, default="iden")
+    parser.add_argument("--latent_size", type=int, default=20)
     parser.add_argument("--evaluation_interval", type=int, default=2)
 
     return parser.parse_args()
