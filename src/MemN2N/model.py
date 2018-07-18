@@ -132,15 +132,6 @@ class MemAgent(object):
     def batch_predict(self, stories, queries):
         preds = list()
         for stories_batch, queries_batch, _ in batch_iter(stories, queries, None, self.config["batch_size"], False):
-            # def helper(b):
-            #     for l in b:
-            #         l = list(filter(lambda x: x != 0, l))
-            #         l = " ".join([self.data_utils.index2word[x] for x in l])
-            #         print(l)
-            #
-            # helper(stories_batch[0])
-            # helper(queries_batch)
-            # print("\n")
             logits = self.model(self.tensor_wrapper(stories_batch), self.tensor_wrapper(queries_batch))
             predict_op = torch.argmax(logits, dim=1)
             pred = predict_op.detach().to(torch.device("cpu")).numpy()
