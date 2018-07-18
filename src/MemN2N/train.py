@@ -26,6 +26,9 @@ def _parse_args():
     parser.add_argument("--max_hops", type=int, default=3)
     parser.add_argument("--nonlinear", type=str, default="iden")
     parser.add_argument("--max_clip", type=float, default=40)
+    parser.add_argument("--attn_method", type=str, default="general")
+    parser.add_argument("--sent_emb_method", type=str, default="bow")
+    parser.add_argument("--emb_sum", action="store_true")
     parser.add_argument("--evaluation_interval", type=int, default=2)
 
     return parser.parse_args()
@@ -49,9 +52,12 @@ if __name__ == "__main__":
     dev_data = data_utils.load_dialog(dev_file)
     data = train_data + dev_data
     data_utils.build_pad_config(data, args.memory_size)
-    candidates_vec = data_utils.vectorize_candidates()
+    candidates = data_utils.vectorize_candidates()
 
-    model = MemN2N(data_utils.vocab_size, args.emb_dim, args.max_hops, args.nonlinear, candidates_vec, args.random_seed)
+    config = {"vocab_size": data_utils.vocab_size, "emb_dim": args.emb_dim, "max_hops": args.max_hops,
+              "nonlinear": args.nonlinear, "random_seed": args.random_seed, "attn_method": args.attn_method,
+              "sent_emb_method": args.sent_emb_method, "emb_sum": args.emb_sum}
+    model = MemN2N(config, candidates).to(args.device)
 
     if args.trained_model is not None:
         if os.path.isdir(args.trained_model):
