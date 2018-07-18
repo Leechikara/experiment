@@ -32,7 +32,6 @@ def _parse_args():
     parser.add_argument("--sample", type=int, default=10)
     parser.add_argument("--threshold", type=float, default=0.6)
     parser.add_argument("--evaluation_interval", type=int, default=2)
-    parser.add_argument("--save_dir", default="checkpoints", type=str)
 
     return parser.parse_args()
 
