@@ -273,4 +273,4 @@ class ContinuousAgent(object):
                 self.optimizer.step()
             print(len(certain_index))
 
-        self.model.save_state_dict(os.path.join(self.config["save_dir"], "model.pkl"))
+        torch.save(self.model.state_dict(), os.path.join(self.config["save_dir"], "model.pkl"))
