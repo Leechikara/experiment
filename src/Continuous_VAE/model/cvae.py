@@ -13,6 +13,7 @@ import logging
 sys.path.append("/home/wkwang/workstation/experiment/src")
 from Continuous_VAE.model.utils import sample_gaussian, gaussian_kld
 from Continuous_VAE.data_apis.data_utils import batch_iter, TASKS, DATA_ROOT
+from nn_utils.nn_utils import Attn, get_bow
 
 
 class ContinuousVAE(nn.Module):
@@ -22,15 +23,17 @@ class ContinuousVAE(nn.Module):
 
         self.config = config
         self.vocab_size = api.vocab_size
-        self.embed_dim = config["embed_dim"]
+        self.emb_dim = config["emb_dim"]
+        self.attn_method = config["attn_method"]
+        self.sent_emb_method = config["sent_emb_method"]
 
         # Embedding for context and response
-        self.embedding = nn.Embedding(self.vocab_size, self.embed_dim, padding_idx=0)
+        self.embedding = nn.Embedding(self.vocab_size, self.emb_dim, padding_idx=0)
 
-        # todo: Encoding method for context, Now we only implement the basic method
-        # todo: Encoding method for response, Now we only implement the basic method
-        if config["context_encoding_method"] == "MemoryNetwork":
-            self.hops_map = nn.Linear(self.embed_dim, self.embed_dim)
+        # todo: Encoding method for context and response, Now we only implement the basic method
+        if config["context_emb_method"] == "MemoryNetwork":
+            self.attn_layer = Attn(self.attn_method, self.emb_dim, self.emb_dim)
+            self.hops_map = nn.Linear(self.emb_dim, self.emb_dim)
             assert config["memory_nonlinear"].lower() in ["tanh", "iden", "relu"]
             if config["memory_nonlinear"].lower() == "tanh":
                 self.memory_nonlinear = nn.Tanh()
@@ -39,10 +42,11 @@ class ContinuousVAE(nn.Module):
             else:
                 self.memory_nonlinear = None
 
-        cond_embedding_size = self.embed_dim
-        response_embedding_size = self.embed_dim
+        cond_embedding_size = self.emb_dim
+        response_embedding_size = self.emb_dim
         recog_input_size = cond_embedding_size + response_embedding_size
 
+        # todo: make prior and posterior more expressive (IAF)
         # recognitionNetwork: A MLP
         self.recogNet_mulogvar = nn.Sequential(
             nn.Linear(recog_input_size, max(50, config["latent_size"] * 2)),
@@ -71,25 +75,22 @@ class ContinuousVAE(nn.Module):
 
         # fuse cond_embedding and z
         # todo: there may be other method
-        self.fused_cond_z = nn.Linear(self.embed_dim + config["latent_size"], self.embed_dim)
+        self.fused_cond_z = nn.Linear(self.emb_dim + config["latent_size"], self.emb_dim)
 
     def context_encoding_m2n(self, contexts):
         # encoding the contexts in a batch by memory networks
+        # todo: more complex method for sentence embedding
         stories, queries = contexts
-        m = self.embedding(stories).sum(2)
-        q = self.embedding(queries).sum(1)
+        if self.sent_emb_method == "bow":
+            m, _ = get_bow(self.embedding(stories), self.config["emb_sum"])
+            q, _ = get_bow(self.embedding(queries), self.config["emb_sum"])
+        else:
+            pass
         u = [q]
 
         for _ in range(self.config["max_hops"]):
-            # attention over memory
-            u_temp = torch.unsqueeze(u[-1], 1)
-            dotted = torch.sum(m * u_temp, 2)
-            probs = F.softmax(dotted, dim=1)
-
-            # read memory
-            probs_temp = torch.unsqueeze(probs, 1)
-            c_temp = torch.transpose(m, 1, 2)
-            o_k = torch.sum(c_temp * probs_temp, 2)
+            # attention over memory and read memory
+            _, o_k = self.attn_layer(m, u[-1])
 
             # fuse read memory and previous hops
             u_k = self.hops_map(u[-1]) + o_k
@@ -140,7 +141,7 @@ class ContinuousVAE(nn.Module):
         # todo: Now the context encoding is from Memory network and very naive
         context_rep = self.context_encoding_m2n(feed_dict["contexts"])
 
-        # todo: we may add something to cond_embedding
+        # todo: we may add more to cond_embedding
         cond_embedding = context_rep
 
         # Step2: Sample z from prior
@@ -161,7 +162,10 @@ class ContinuousVAE(nn.Module):
         cond_z_embed_prior = self.fused_cond_z(torch.cat([cond_embedding_temp, latent_prior], 2))
         # step2: Get the embedding of current candidates
         # todo: more complicated methods for candidates representations
-        candidates_rep = self.embedding(self.candidates).sum(1)
+        if self.sent_emb_method == "bow":
+            candidates_rep, _ = get_bow(self.embedding(self.candidates), self.config["emb_sum"])
+        else:
+            pass
         current_candidates_rep = candidates_rep[self.available_cand_index]
         # step3: Get the logits of each candidate
         # todo: more complicated methods for candidates scoring
@@ -181,29 +185,32 @@ class ContinuousVAE(nn.Module):
 
         if len(uncertain_index) > 0:
             # step1: Simulate human in the loop and update the available response set
-            uncertain_resp_index = feed_dict["responses"][uncertain_index]
+            uncertain_resp_index = [int(feed_dict["responses"][i]) for i in uncertain_index]
             self.available_cand_index = list(set(self.available_cand_index) | set(uncertain_resp_index))
             self.available_cand_index.sort()
             current_candidates_rep = candidates_rep[self.available_cand_index]
+
             # step2: Get the uncertain cond & resp embedding
             uncertain_cond_embedding = cond_embedding[uncertain_index]
             uncertain_resp_embedding = candidates_rep[uncertain_resp_index]
+
             # step3: fuse cond and resp
             recog_input = torch.cat([uncertain_cond_embedding, uncertain_resp_embedding], 1)
+
             # step4: Get z posterior
             posterior_mulogvar = self.recogNet_mulogvar(recog_input)
             posterior_mu, posterior_logvar = torch.chunk(posterior_mulogvar, 2, 1)
             # todo: sample more posterior may increase data efficiency
-            latent_posterior = sample_gaussian(posterior_mu, posterior_logvar, 1).squeeze()
+            latent_posterior = sample_gaussian(posterior_mu, posterior_logvar, 1).squeeze(1)
 
             # step5: Get loss
             cond_z_embed_posterior = self.fused_cond_z(torch.cat([uncertain_cond_embedding, latent_posterior], 1))
             uncertain_logits = torch.matmul(cond_z_embed_posterior, current_candidates_rep.t())
             target = list(map(lambda resp_index: self.available_cand_index.index(resp_index), uncertain_resp_index))
-            target = torch.LongTensor(target, device=uncertain_logits.device)
+            target = torch.Tensor(target).to(uncertain_logits.device, dtype=torch.long)
             # todo: maybe other loss form for data recover such as: max margin
             avg_rc_loss = F.cross_entropy(uncertain_logits, target)
-            kld = gaussian_kld(posterior_mu, posterior_mulogvar,
+            kld = gaussian_kld(posterior_mu, posterior_logvar,
                                prior_mu[uncertain_index], prior_logvar[uncertain_index])
             avg_kld = torch.mean(kld)
             # todo: KL weight
@@ -258,9 +265,12 @@ class ContinuousAgent(object):
         for s, q, a in batch_iter(self.comingS, self.comingQ, self.comingA, self.config["batch_size"], shuffle=True):
             self.optimizer.zero_grad()
             feed_dict = {"contexts": (self.tensor_wrapper(s), self.tensor_wrapper(q)),
-                         "responses": self.tensor_wrapper(a)}
+                         "responses": a}
             elbo, uncertain_index, certain_index, certain_response = self.model.forward(feed_dict)
             if elbo is not None:
                 elbo.backward()
                 nn.utils.clip_grad_norm_(self.model.parameters(), self.config["max_clip"])
                 self.optimizer.step()
+            print(len(certain_index))
+
+        self.model.save_state_dict(os.path.join(self.config["save_dir"], "model.pkl"))
