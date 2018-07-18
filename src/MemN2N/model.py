@@ -8,91 +8,86 @@ from sklearn import metrics
 import logging
 import pickle
 import os
+import torch.nn.functional as F
 
 sys.path.append("/home/wkwang/workstation/experiment/src")
 from MemN2N.data_utils import batch_iter
+from nn_utils.nn_utils import Attn, get_bow
 
 
 class MemN2N(nn.Module):
-    def __init__(self, vocab_size, embedding_dim, max_hops, nonlinear, candidates, random_seed):
+    def __init__(self, config, candidates):
         super(MemN2N, self).__init__()
-        torch.manual_seed(random_seed)
+        torch.manual_seed(config["random_seed"])
 
-        self.vocab_size = vocab_size
-        self.embedding_dim = embedding_dim
-        self.max_hops = max_hops
+        self.vocab_size = config["vocab_size"]
+        self.emb_dim = config["emb_dim"]
+        self.max_hops = config["max_hops"]
+        self.attn_method = config["attn_method"]
+        self.sent_emb_method = config["sent_emb_method"]
+        self.emb_sum = config["emb_sum"]
 
         # A is embedding layer for context and query
-        self.A = nn.Embedding(vocab_size, embedding_dim, padding_idx=0)
+        self.A = nn.Embedding(self.vocab_size, self.emb_dim, padding_idx=0)
 
         # W is embedding layer for candidate responses
-        self.W = nn.Embedding(vocab_size, embedding_dim, padding_idx=0)
+        self.W = nn.Embedding(self.vocab_size, self.emb_dim, padding_idx=0)
 
-        self.H = nn.Linear(embedding_dim, embedding_dim, bias=False)
+        # Forward layer for hops
+        self.H = nn.Linear(self.emb_dim, self.emb_dim, bias=False)
 
-        assert nonlinear.lower() in ["tanh", "iden", "relu"]
-        if nonlinear.lower() == "tanh":
+        self.attn_layer = Attn(self.attn_method, self.emb_dim, self.emb_dim)
+
+        assert config["nonlinear"].lower() in ["tanh", "iden", "relu"]
+        if config["nonlinear"].lower() == "tanh":
             self.nonlinear = nn.Tanh()
-        elif nonlinear.lower() == "iden":
+        elif config["nonlinear"].lower() == "iden":
             self.nonlinear = None
-        elif nonlinear.lower() == "relu":
+        elif config["nonlinear"].lower() == "relu":
             self.nonlinear == nn.ReLU()
         else:
             pass
 
         # register candidates for answer selecting
-        self.candidates = torch.from_numpy(candidates)
-        self.register_buffer("candidates_const", self.candidates)
-
-        self.softmax_layer = torch.nn.Softmax(dim=1)
+        self.register_buffer("candidates", torch.from_numpy(candidates))
 
     def load_checkpoints(self, f, mapping_dict={}):
         with open(f, 'rb') as f:
             checkpoints = pickle.load(f)
 
-        def new_get_attr(_object_, attr_name):
-            for attr_item in attr_name.split("."):
-                _object_ = _object_.__getattr__(attr_item)
-            return _object_
-
-        def new_copy_parameter(source_p, target_p, mapping):
+        for attr, source in checkpoints.items():
+            mapping = mapping_dict.get(attr, None)
+            target = self.__getattr__(attr)
             if mapping is None:
-                target_p.data = torch.from_numpy(source_p)
+                for target_p, source_p in zip(target.parameters(), source.parameters()):
+                    target_p.data = source_p.data
             else:
                 for source_idx, target_idx in mapping:
-                    target_p.data[target_idx] = torch.from_numpy(source_p[source_idx])
-
-        for key, value in checkpoints.items():
-            target = new_get_attr(self, key)
-            new_copy_parameter(value, target, mapping_dict.get(key, None))
+                    target.weight.data[target_idx] = source.weight.data[source_idx]
 
     def forward(self, stories, queries):
-        q_emb = self.A(queries)
-        u_0 = torch.sum(q_emb, 1)
-        u = [u_0]
+        # Encode stories and queries
+        if self.sent_emb_method == "bow":
+            m, _ = get_bow(self.A(stories), self.emb_sum)
+            q, _ = get_bow(self.A(queries), self.emb_sum)
+        else:
+            pass
+        u = [q]
 
         for _ in range(self.max_hops):
-            m_emb = self.A(stories)
-            m = torch.sum(m_emb, 2)
-            u_temp = torch.transpose(torch.unsqueeze(u[-1], -1), 1, 2)
-            dotted = torch.sum(m * u_temp, 2)
+            # attention over memory and read memory
+            _, o_k = self.attn_layer(m, u[-1])
 
-            # Calculate probabilities
-            probs = self.softmax_layer(dotted)
-
-            probs_temp = torch.transpose(torch.unsqueeze(probs, -1), 1, 2)
-            c_temp = torch.transpose(m, 1, 2)
-            o_k = torch.sum(c_temp * probs_temp, 2)
-
+            # fuse read memory and previous hops
             u_k = self.H(u[-1]) + o_k
             if self.nonlinear is not None:
                 u_k = self.nonlinear(u_k)
 
             u.append(u_k)
 
-        candidate_emb = self.W(self.candidates_const)
-        candidate_emb_sum = torch.sum(candidate_emb, 1)
-        logits = torch.mm(u[-1], candidate_emb_sum.t())
+        if self.sent_emb_method == "bow":
+            candidate_rep, _ = get_bow(self.W(self.candidates), self.emb_sum)
+        logits = torch.mm(u[-1], candidate_rep.t())
 
         return logits
 
@@ -101,8 +96,7 @@ class MemAgent(object):
     def __init__(self, config, model, train_data, dev_data, test_data, data_utils):
         np.random.seed(config["random_seed"] + 1)
         self.config = config
-        self.model = model.to(config["device"])
-        self.loss = nn.CrossEntropyLoss()
+        self.model = model
         self.optimizer = optim.Adam(self.model.parameters(), lr=config.get("lr", 0.001))
         self.train_data = train_data
         self.dev_data = dev_data
@@ -129,7 +123,7 @@ class MemAgent(object):
     def batch_fit(self, stories, queries, answers):
         self.optimizer.zero_grad()
         logits = self.model(stories, queries)
-        loss = self.loss(logits, answers)
+        loss = F.cross_entropy(logits, answers)
         loss.backward()
         nn.utils.clip_grad_norm_(self.model.parameters(), self.config["max_clip"])
         self.optimizer.step()
@@ -138,17 +132,25 @@ class MemAgent(object):
     def batch_predict(self, stories, queries):
         preds = list()
         for stories_batch, queries_batch, _ in batch_iter(stories, queries, None, self.config["batch_size"], False):
+            # def helper(b):
+            #     for l in b:
+            #         l = list(filter(lambda x: x != 0, l))
+            #         l = " ".join([self.data_utils.index2word[x] for x in l])
+            #         print(l)
+            #
+            # helper(stories_batch[0])
+            # helper(queries_batch)
+            # print("\n")
             logits = self.model(self.tensor_wrapper(stories_batch), self.tensor_wrapper(queries_batch))
             predict_op = torch.argmax(logits, dim=1)
             pred = predict_op.detach().to(torch.device("cpu")).numpy()
             preds += list(pred)
         return preds
 
-    def get_checkpoints(self, concerned_p=["A.weight", "W.weight", "H.weight"]):
+    def get_checkpoints(self, concerned_state=["A", "W", "H", "attn_layer"]):
         checkpoints = dict()
-        for name, p in self.model.named_parameters():
-            if name in concerned_p:
-                checkpoints[name] = p.detach().to(torch.device("cpu")).numpy()
+        for attr in concerned_state:
+            checkpoints[attr] = self.model.__getattr__(attr)
         return checkpoints
 
     def train(self):
