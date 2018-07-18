@@ -86,8 +86,8 @@ class MemN2N(nn.Module):
             u.append(u_k)
 
         if self.sent_emb_method == "bow":
-            candidate_rep, _ = get_bow(self.W(self.candidates), self.emb_sum)
-        logits = torch.mm(u[-1], candidate_rep.t())
+            candidates_rep, _ = get_bow(self.W(self.candidates), self.emb_sum)
+        logits = torch.mm(u[-1], candidates_rep.t())
 
         return logits
 
