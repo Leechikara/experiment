@@ -109,7 +109,7 @@ class ContinuousVAE(nn.Module):
         # todo: can we accelerate this part in GPU?
         for i, response_dist in enumerate(sampled_response):
             vot_result, vot_num = Counter(response_dist).most_common(1)[0]
-            if vot_num < self.config["threshold"] * len(self.available_cand_index):
+            if vot_num < self.config["threshold"] * self.config["sample"]:
                 uncertain_index.append(i)
             else:
                 certain_index.append(i)
@@ -220,7 +220,7 @@ class ContinuousVAE(nn.Module):
             # todo: Such as mutual information to stable z, weight lock for continuous learning, normalisation term
         else:
             elbo = None
-        return elbo, uncertain_index, certain_index, certain_response
+        return elbo, uncertain_index, certain_index, certain_response, elbo.item() if elbo is not None else 0, avg_rc_loss.item() if elbo is not None else 0, avg_kld.item() if elbo is not None else 0
 
 
 class ContinuousAgent(object):
@@ -266,11 +266,12 @@ class ContinuousAgent(object):
             self.optimizer.zero_grad()
             feed_dict = {"contexts": (self.tensor_wrapper(s), self.tensor_wrapper(q)),
                          "responses": a}
-            elbo, uncertain_index, certain_index, certain_response = self.model.forward(feed_dict)
+            elbo, uncertain_index, certain_index, certain_response, elbo_item, avg_rc_loss_item, avg_kld_item = self.model.forward(
+                feed_dict)
             if elbo is not None:
                 elbo.backward()
                 nn.utils.clip_grad_norm_(self.model.parameters(), self.config["max_clip"])
                 self.optimizer.step()
-            print(len(certain_index))
+            print(len(certain_index), elbo_item, avg_rc_loss_item, avg_kld_item)
 
         torch.save(self.model.state_dict(), os.path.join(self.config["save_dir"], "model.pkl"))
