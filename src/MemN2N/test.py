@@ -24,6 +24,9 @@ def _parse_args():
     parser.add_argument("--memory_size", type=int, default=50)
     parser.add_argument("--max_hops", type=int, default=3)
     parser.add_argument("--nonlinear", type=str, default="iden")
+    parser.add_argument("--attn_method", type=str, default="general")
+    parser.add_argument("--sent_emb_method", type=str, default="bow")
+    parser.add_argument("--emb_sum", action="store_true")
 
     return parser.parse_args()
 
@@ -43,8 +46,8 @@ if __name__ == "__main__":
         # build mapping for parameters
         original_data_utils = DataUtils()
         original_data_utils.load_vocab(args.trained_task)
-        mapping_dict = {"A.weight": build_p_mapping(original_data_utils.word2index, data_utils.word2index),
-                        "W.weight": build_p_mapping(original_data_utils.word2index, data_utils.word2index)}
+        mapping_dict = {"A": build_p_mapping(original_data_utils.word2index, data_utils.word2index),
+                        "W": build_p_mapping(original_data_utils.word2index, data_utils.word2index)}
     else:
         data_utils.load_vocab(args.trained_task)
         data_utils.load_candidates(args.trained_task)
@@ -52,10 +55,12 @@ if __name__ == "__main__":
 
     test_data = data_utils.load_dialog(test_file)
     data_utils.build_pad_config(test_data, args.memory_size)
-    candidates_vec = data_utils.vectorize_candidates()
+    candidates = data_utils.vectorize_candidates()
 
-    model = MemN2N(data_utils.vocab_size, args.emb_dim, args.max_hops,
-                   args.nonlinear, candidates_vec, args.random_seed)
+    config = {"vocab_size": data_utils.vocab_size, "emb_dim": args.emb_dim, "max_hops": args.max_hops,
+              "nonlinear": args.nonlinear, "random_seed": args.random_seed, "attn_method": args.attn_method,
+              "sent_emb_method": args.sent_emb_method, "emb_sum": args.emb_sum}
+    model = MemN2N(config, candidates).to(args.device)
 
     assert args.trained_model is not None
     if os.path.isdir(args.trained_model):
