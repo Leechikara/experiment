@@ -327,9 +327,8 @@ class EpisodeGenerator(object):
 
 if __name__ == "__main__":
     # Generate the simulated Data Set
-    random.seed(0)
-
-    for task, available_intent in TASKS.items():
+    for seed, (task, available_intent) in enumerate(TASKS.items()):
+        random.seed(seed)
         episode_generator = EpisodeGenerator(available_intent)
         for data_set_name, data_set_size in DATA_SET.items():
             data = OrderedDict()
