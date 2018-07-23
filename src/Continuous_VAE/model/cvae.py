@@ -9,11 +9,14 @@ import torch.optim as optim
 import torch.nn.functional as F
 from collections import Counter
 import logging
+from collections import defaultdict
+import pickle
+from sklearn import metrics
 
 sys.path.append("/home/wkwang/workstation/experiment/src")
 from Continuous_VAE.model.utils import sample_gaussian, gaussian_kld
 from Continuous_VAE.data_apis.data_utils import batch_iter, TASKS, DATA_ROOT
-from nn_utils.nn_utils import Attn, get_bow
+from nn_utils.nn_utils import Attn, bow_sentence
 
 
 class ContinuousVAE(nn.Module):
@@ -21,6 +24,7 @@ class ContinuousVAE(nn.Module):
         super(ContinuousVAE, self).__init__()
         torch.manual_seed(config["random_seed"])
 
+        self.api = api
         self.config = config
         self.vocab_size = api.vocab_size
         self.emb_dim = config["emb_dim"]
@@ -82,8 +86,8 @@ class ContinuousVAE(nn.Module):
         # todo: more complex method for sentence embedding
         stories, queries = contexts
         if self.sent_emb_method == "bow":
-            m, _ = get_bow(self.embedding(stories), self.config["emb_sum"])
-            q, _ = get_bow(self.embedding(queries), self.config["emb_sum"])
+            m, _ = bow_sentence(self.embedding(stories), self.config["emb_sum"])
+            q, _ = bow_sentence(self.embedding(queries), self.config["emb_sum"])
         else:
             pass
         u = [q]
@@ -129,6 +133,25 @@ class ContinuousVAE(nn.Module):
 
         return uncertain_index, certain_index, certain_response
 
+    @staticmethod
+    def evaluate(certain_indexs, certain_responses, feed_responses):
+        feed_responses = np.array([feed_responses[i] for i in certain_indexs])
+        certain_responses = np.array(certain_responses)
+        acc = metrics.accuracy_score(feed_responses, certain_responses)
+        return acc
+
+    def helper(self, s):
+        s = s.data.cpu().numpy()
+        if s.ndim == 2:
+            for l in s:
+                l = list(filter(lambda x: x != 0, l))
+                l = " ".join([self.api.index2word[x] for x in l])
+                print(l)
+        else:
+            l = list(filter(lambda x: x != 0, s))
+            l = " ".join([self.api.index2word[x] for x in l])
+            print(l)
+
     def forward(self, feed_dict):
         """
         Step1: Get the context representation
@@ -163,7 +186,7 @@ class ContinuousVAE(nn.Module):
         # step2: Get the embedding of current candidates
         # todo: more complicated methods for candidates representations
         if self.sent_emb_method == "bow":
-            candidates_rep, _ = get_bow(self.embedding(self.candidates), self.config["emb_sum"])
+            candidates_rep, _ = bow_sentence(self.embedding(self.candidates), self.config["emb_sum"])
         else:
             pass
         current_candidates_rep = candidates_rep[self.available_cand_index]
@@ -175,6 +198,10 @@ class ContinuousVAE(nn.Module):
 
         # Step4: Calculate the IR Evaluation on the certain points and uncertain points
         # todo: we left this part aside
+        if len(certain_index) > 0:
+            acc = self.evaluate(certain_index, certain_response, feed_dict["responses"])
+        else:
+            acc = 0
 
         # Step5: Get the loss
         #    step1: Simulate human in the loop and update the available response set
@@ -220,7 +247,14 @@ class ContinuousVAE(nn.Module):
             # todo: Such as mutual information to stable z, weight lock for continuous learning, normalisation term
         else:
             elbo = None
-        return elbo, uncertain_index, certain_index, certain_response, elbo.item() if elbo is not None else 0, avg_rc_loss.item() if elbo is not None else 0, avg_kld.item() if elbo is not None else 0
+        return elbo, \
+               uncertain_index, \
+               certain_index, \
+               certain_response, \
+               elbo.item() if elbo is not None else 0, \
+               avg_rc_loss.item() if elbo is not None else 0, \
+               avg_kld.item() if elbo is not None else 0, \
+               acc
 
 
 class ContinuousAgent(object):
@@ -260,18 +294,26 @@ class ContinuousAgent(object):
         return data.to(self.config["device"])
 
     def simulate_run(self):
+        loss_log = defaultdict(list)
+
         self.logger.info("Run main with config {}".format(self.config))
 
         for s, q, a in batch_iter(self.comingS, self.comingQ, self.comingA, self.config["batch_size"], shuffle=True):
             self.optimizer.zero_grad()
             feed_dict = {"contexts": (self.tensor_wrapper(s), self.tensor_wrapper(q)),
                          "responses": a}
-            elbo, uncertain_index, certain_index, certain_response, elbo_item, avg_rc_loss_item, avg_kld_item = self.model.forward(
+            elbo, uncertain_index, certain_index, certain_response, elbo_item, avg_rc_loss_item, avg_kld_item, acc = self.model.forward(
                 feed_dict)
             if elbo is not None:
                 elbo.backward()
                 nn.utils.clip_grad_norm_(self.model.parameters(), self.config["max_clip"])
                 self.optimizer.step()
-            print(len(certain_index), elbo_item, avg_rc_loss_item, avg_kld_item)
+            print(len(certain_index), elbo_item, avg_rc_loss_item, avg_kld_item, acc)
+            loss_log["certain"].append(len(certain_index))
+            loss_log["elbo"].append(elbo_item)
+            loss_log["avg_rc_loss"].append(avg_rc_loss_item)
+            loss_log["avg_kld_loss"].append(avg_kld_item)
+            loss_log["acc"].append(acc)
 
         torch.save(self.model.state_dict(), os.path.join(self.config["save_dir"], "model.pkl"))
+        pickle.dump(loss_log, open(os.path.join("debug", "loss.log"), "wb"))
