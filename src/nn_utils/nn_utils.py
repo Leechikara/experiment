@@ -20,6 +20,15 @@ def bow_sentence(input, emb_sum=False):
         return input.mean(-2), embedding_size
 
 
+def bow_sentence_self_att(input, self_att_model):
+    """
+    :param input: (batch, seq_len, feature)
+    :param self_att_model: A object of SelfAttn
+    :return: (batch, feature)
+    """
+    return self_att_model(input)
+
+
 def rnn_sentence(input, sent_len, rnn_model):
     """
     :param input: (batch, seq_len, feature)
@@ -73,6 +82,7 @@ class SelfAttn(nn.Module):
         """
         x = F.tanh(self.linear_first(rnn_output))
         x = self.linear_second(x)
+        x = self.softmax(x, 1)
         attention = x.transpose(1, 2)
         sentence_embeddings = torch.matmul(attention, rnn_output)
         avg_sentence_embeddings = torch.sum(sentence_embeddings, 1) / self.head
