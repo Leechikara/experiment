@@ -13,11 +13,10 @@ def bow_sentence(input, emb_sum=False):
     The second last dimension is the sentence length.
     The rank must be not less than 3.(batch, *, seq_len, feature)
     """
-    embedding_size = input.size(-1)
     if emb_sum:
-        return input.sum(-2), embedding_size
+        return input.sum(-2)
     else:
-        return input.mean(-2), embedding_size
+        return input.mean(-2)
 
 
 def bow_sentence_self_att(input, self_att_model):
