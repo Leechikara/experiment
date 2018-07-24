@@ -8,7 +8,6 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 from collections import Counter
-import logging
 from collections import defaultdict
 import pickle
 from sklearn import metrics
@@ -304,18 +303,6 @@ class ContinuousAgent(object):
             self.test_data[task]["S"], self.test_data[task]["Q"], self.test_data[task]["A"] = self.api.vectorize_data(
                 self.api.all_data[task]["test"], self.config.batch_size)
 
-        self.logger = self._setup_logger()
-
-    @staticmethod
-    def _setup_logger():
-        logging.basicConfig(
-            format="[%(levelname)s] %(asctime)s: %(message)s (%(pathname)s:%(lineno)d)",
-            datefmt="%Y-%m-%dT%H:%M:%S%z",
-            stream=sys.stdout)
-        logger = logging.getLogger("User-Agnostic-Dialog-MemoryNetWork")
-        logger.setLevel(logging.DEBUG)
-        return logger
-
     def tensor_wrapper(self, data):
         if isinstance(data, list):
             data = np.array(data)
@@ -325,14 +312,12 @@ class ContinuousAgent(object):
     def simulate_run(self):
         loss_log = defaultdict(list)
 
-        self.logger.info("Run main with config {}".format(self.config))
-
         for s, q, a in batch_iter(self.comingS, self.comingQ, self.comingA, self.config.batch_size, shuffle=True):
             self.optimizer.zero_grad()
             feed_dict = {"contexts": (self.tensor_wrapper(s), self.tensor_wrapper(q)),
                          "responses": a}
             elbo, uncertain_index, certain_index, certain_response, elbo_item, avg_rc_loss_item, avg_kld_item, acc = \
-                self.model.forward(feed_dict)
+                self.model(feed_dict)
             if elbo is not None:
                 elbo.backward()
                 nn.utils.clip_grad_norm_(self.model.parameters(), self.config.max_clip)
