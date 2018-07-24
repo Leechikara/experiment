@@ -16,59 +16,66 @@ from sklearn import metrics
 sys.path.append("/home/wkwang/workstation/experiment/src")
 from Continuous_VAE.model.utils import sample_gaussian, gaussian_kld
 from Continuous_VAE.data_apis.data_utils import batch_iter, TASKS, DATA_ROOT
-from nn_utils.nn_utils import Attn, bow_sentence, bow_sentence_self_att, rnn_sentence, rnn_sentence_self_att, RnnV
+from nn_utils.nn_utils import Attn, bow_sentence, bow_sentence_self_attn, rnn_sentence, rnn_sentence_self_attn, RnnV, \
+    SelfAttn
 
 
 class ContinuousVAE(nn.Module):
     def __init__(self, config, api):
         super(ContinuousVAE, self).__init__()
-        torch.manual_seed(config["random_seed"])
+        torch.manual_seed(config.random_seed)
 
-        # todo: del api for real run!
         self.api = api
         self.config = config
-        self.vocab_size = api.vocab_size
-        self.emb_dim = config["emb_dim"]
-        self.attn_method = config["attn_method"]
-        self.sent_emb_method = config["sent_emb_method"]
-        self.context_emb_method = config["context_emb_method"]
 
-        self.embedding = nn.Embedding(self.vocab_size, self.emb_dim, padding_idx=0)
+        self.embedding = nn.Embedding(self.api.vocab_size, self.config.word_emb_size, padding_idx=0)
 
-        if config["sent_emb_method"] == "rnn":
-            self.sent_rnn = RnnV()
+        if self.config.sent_encode_method == "rnn":
+            self.sent_rnn = RnnV(self.config.word_emb_size, self.config.sent_rnn_hidden_size, self.config.sent_rnn_type,
+                                 self.config.sent_rnn_layers, dropout=self.config.sent_rnn_dropout,
+                                 bidirectional=self.config.sent_rnn_bidirectional)
+        if self.config.self_attn is True:
+            self.sent_self_attn_layer = SelfAttn(self.config.sent_emb_size, self.config.self_attn_hidden,
+                                                 self.config.self_attn_head)
 
-        if config["attn_method"] is True:
-
-        # todo: Encoding method for context and response, Now we only implement the basic method
-        if self.context_emb_method == "MemoryNetwork":
-            self.attn_layer = Attn(self.attn_method, self.emb_dim, self.emb_dim)
-            self.hops_map = nn.Linear(self.emb_dim, self.emb_dim)
-            assert config["memory_nonlinear"].lower() in ["tanh", "iden", "relu"]
-            if config["memory_nonlinear"].lower() == "tanh":
+        if self.config.ctx_encode_method == "MemoryNetwork":
+            self.attn_layer = Attn(self.config.attn_method, self.config.sent_emb_size, self.config.sent_emb_size)
+            self.hops_map = nn.Linear(self.config.sent_emb_size, self.config.sent_emb_size)
+            if self.config.memory_nonlinear.lower() == "tanh":
                 self.memory_nonlinear = nn.Tanh()
-            elif config["memory_nonlinear"].lower() == "relu":
-                self.memory_nonlinear == nn.ReLU()
-            else:
+            elif self.config.memory_nonlinear.lower() == "relu":
+                self.memory_nonlinear = nn.ReLU()
+            elif self.config.memory_nonlinear.lower() == "iden":
                 self.memory_nonlinear = None
+        else:
+            if self.config.ctx_encode_method == "HierarchalRNN":
+                # todo
+                pass
+            elif self.config.ctx_encode_method == "RNN":
+                # todo
+                pass
+            if self.config.self_attn is True:
+                self.ctx_self_attn_layer = SelfAttn(self.config.ctx_emb_size, self.config.self_attn_hidden,
+                                                    self.config.self_attn_head)
 
-        cond_embedding_size = self.emb_dim
-        response_embedding_size = self.emb_dim
-        recog_input_size = cond_embedding_size + response_embedding_size
+        # todo: add more in cond
+        cond_emb_size = self.config.ctx_emb_size
+        response_emb_size = self.config.sent_emb_size
+        recog_input_size = cond_emb_size + response_emb_size
 
         # todo: make prior and posterior more expressive (IAF)
         # recognitionNetwork: A MLP
         self.recogNet_mulogvar = nn.Sequential(
-            nn.Linear(recog_input_size, max(50, config["latent_size"] * 2)),
+            nn.Linear(recog_input_size, max(50, self.config.latent_size * 2)),
             nn.Tanh(),
-            nn.Linear(max(50, config["latent_size"] * 2), config["latent_size"] * 2)
+            nn.Linear(max(50, self.config.latent_size * 2), self.config.latent_size * 2)
         )
 
         # priorNetwork: A MLP
         self.priorNet_mulogvar = nn.Sequential(
-            nn.Linear(cond_embedding_size, max(50, config["latent_size"] * 2)),
+            nn.Linear(cond_emb_size, max(50, self.config.latent_size * 2)),
             nn.Tanh(),
-            nn.Linear(max(50, config["latent_size"] * 2), config["latent_size"] * 2)
+            nn.Linear(max(50, self.config.latent_size * 2), self.config.latent_size * 2)
         )
 
         # record all candidates in advance and current available index
@@ -83,21 +90,27 @@ class ContinuousVAE(nn.Module):
         self.available_cand_index.sort()
         self.register_buffer("candidates", torch.from_numpy(api.vectorize_candidates()))
 
-        # fuse cond_embedding and z
+        # fuse cond_embed and z
         # todo: there may be other method
-        self.fused_cond_z = nn.Linear(self.emb_dim + config["latent_size"], self.emb_dim)
+        self.fused_cond_z = nn.Linear(cond_emb_size + self.config.latent_size, self.config.sent_emb_size)
 
-    def context_encoding_m2n(self, contexts):
-        # encoding the contexts in a batch by memory networks
-        # todo: more complex method for sentence embedding
+    def ctx_encode_m2n(self, contexts):
         stories, queries = contexts
-        if self.sent_emb_method == "bow":
-            m, _ = bow_sentence(self.embedding(stories), self.config["emb_sum"])
-            q, _ = bow_sentence(self.embedding(queries), self.config["emb_sum"])
-        elif self.sent_emb_method == "rnn":
-            m =
-        else:
-            pass
+        if self.config.sent_encode_method == "bow":
+            if self.config.self_attn is False:
+                m = bow_sentence(self.embedding(stories), self.config.emb_sum)
+                q = bow_sentence(self.embedding(queries), self.config.emb_sum)
+            else:
+                m = bow_sentence_self_attn(self.embedding(stories), self.sent_self_attn_layer)
+                q = bow_sentence_self_attn(self.embedding(queries), self.sent_self_attn_layer)
+        elif self.config.sent_encode_method == "rnn":
+            if self.config.self_attn is False:
+                m = rnn_sentence(self.embedding(stories), self.sent_rnn)
+                q = rnn_sentence(self.embedding(queries), self.sent_rnn)
+            else:
+                m = rnn_sentence_self_attn(self.embedding(stories), self.sent_rnn, self.sent_self_attn_layer)
+                q = rnn_sentence_self_attn(self.embedding(queries), self.sent_rnn, self.sent_self_attn_layer)
+
         u = [q]
 
         for _ in range(self.config["max_hops"]):
@@ -169,34 +182,42 @@ class ContinuousVAE(nn.Module):
         Step5: Get the loss
         """
         # Step1: Get the context representation
-        # todo: Now the context encoding is from Memory network and very naive
-        context_rep = self.context_encoding_m2n(feed_dict["contexts"])
+        # todo: more complex method for sentence embed
+        context_rep = self.ctx_encode_m2n(feed_dict["contexts"])
 
-        # todo: we may add more to cond_embedding
-        cond_embedding = context_rep
+        # todo: we may add more to cond_embed
+        cond_emb = context_rep
 
         # Step2: Sample z from prior
-        prior_mulogvar = self.priorNet_mulogvar(cond_embedding)
+        prior_mulogvar = self.priorNet_mulogvar(cond_emb)
         prior_mu, prior_logvar = torch.chunk(prior_mulogvar, 2, 1)
-        latent_prior = sample_gaussian(prior_mu, prior_logvar, self.config["sample"])
+        latent_prior = sample_gaussian(prior_mu, prior_logvar, self.config.sample)
 
         # Step3: Get the slice of uncertain points and certain points
-        #    step1: fusing z and cond_embedding
-        #    step2: Get the embedding of current candidates
+        #    step1: fusing z and cond_embed
+        #    step2: Get the embed of current candidates
         #    step3: Get the logits of each candidate
         #    step4: A method to judge which context is uncertain
 
-        # step1: fusing z and cond_embedding
+        # step1: fusing z and cond_embed
         # todo: The z can be seen as a gate or other complex method
         # todo: Now we do it very naive
-        cond_embedding_temp = cond_embedding.unsqueeze(1).expand(-1, self.config["sample"], -1)
-        cond_z_embed_prior = self.fused_cond_z(torch.cat([cond_embedding_temp, latent_prior], 2))
-        # step2: Get the embedding of current candidates
+        cond_emb_temp = cond_emb.unsqueeze(1).expand(-1, self.config.sample, -1)
+        cond_z_embed_prior = self.fused_cond_z(torch.cat([cond_emb_temp, latent_prior], 2))
+        # step2: Get the embed of current candidates
         # todo: more complicated methods for candidates representations
-        if self.sent_emb_method == "bow":
-            candidates_rep, _ = bow_sentence(self.embedding(self.candidates), self.config["emb_sum"])
-        else:
-            pass
+        if self.config.sent_encode_method == "bow":
+            if self.config.self_attn is False:
+                candidates_rep = bow_sentence(self.embedding(self.candidates), self.config.emb_sum)
+            else:
+                candidates_rep = bow_sentence_self_attn(self.embedding(self.candidates), self.sent_self_attn_layer)
+        elif self.config.sent_encode_method == "rnn":
+            if self.config.self_attn is False:
+                candidates_rep = rnn_sentence(self.embedding(self.candidates), self.sent_rnn)
+            else:
+                candidates_rep = rnn_sentence_self_attn(self.embedding(self.candidates), self.sent_rnn,
+                                                        self.sent_self_attn_layer)
+
         current_candidates_rep = candidates_rep[self.available_cand_index]
         # step3: Get the logits of each candidate
         # todo: more complicated methods for candidates scoring
@@ -213,7 +234,7 @@ class ContinuousVAE(nn.Module):
 
         # Step5: Get the loss
         #    step1: Simulate human in the loop and update the available response set
-        #    step2: Get the uncertain cond & resp embedding
+        #    step2: Get the uncertain cond & resp embed
         #    step3: fuse cond & resp
         #    step4: Get z posterior
         #    step5: fuse z and cond
@@ -225,12 +246,12 @@ class ContinuousVAE(nn.Module):
             self.available_cand_index.sort()
             current_candidates_rep = candidates_rep[self.available_cand_index]
 
-            # step2: Get the uncertain cond & resp embedding
-            uncertain_cond_embedding = cond_embedding[uncertain_index]
-            uncertain_resp_embedding = candidates_rep[uncertain_resp_index]
+            # step2: Get the uncertain cond & resp embed
+            uncertain_cond_emb = cond_emb[uncertain_index]
+            uncertain_resp_emb = candidates_rep[uncertain_resp_index]
 
             # step3: fuse cond and resp
-            recog_input = torch.cat([uncertain_cond_embedding, uncertain_resp_embedding], 1)
+            recog_input = torch.cat([uncertain_cond_emb, uncertain_resp_emb], 1)
 
             # step4: Get z posterior
             posterior_mulogvar = self.recogNet_mulogvar(recog_input)
@@ -239,7 +260,7 @@ class ContinuousVAE(nn.Module):
             latent_posterior = sample_gaussian(posterior_mu, posterior_logvar, 1).squeeze(1)
 
             # step5: Get loss
-            cond_z_embed_posterior = self.fused_cond_z(torch.cat([uncertain_cond_embedding, latent_posterior], 1))
+            cond_z_embed_posterior = self.fused_cond_z(torch.cat([uncertain_cond_emb, latent_posterior], 1))
             uncertain_logits = torch.matmul(cond_z_embed_posterior, current_candidates_rep.t())
             target = list(map(lambda resp_index: self.available_cand_index.index(resp_index), uncertain_resp_index))
             target = torch.Tensor(target).to(uncertain_logits.device, dtype=torch.long)
