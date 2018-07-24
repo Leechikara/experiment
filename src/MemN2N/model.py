@@ -68,8 +68,8 @@ class MemN2N(nn.Module):
     def forward(self, stories, queries):
         # Encode stories and queries
         if self.sent_emb_method == "bow":
-            m, _ = bow_sentence(self.A(stories), self.emb_sum)
-            q, _ = bow_sentence(self.A(queries), self.emb_sum)
+            m = bow_sentence(self.A(stories), self.emb_sum)
+            q = bow_sentence(self.A(queries), self.emb_sum)
         else:
             pass
         u = [q]
@@ -86,7 +86,7 @@ class MemN2N(nn.Module):
             u.append(u_k)
 
         if self.sent_emb_method == "bow":
-            candidates_rep, _ = bow_sentence(self.W(self.candidates), self.emb_sum)
+            candidates_rep = bow_sentence(self.W(self.candidates), self.emb_sum)
         logits = torch.mm(u[-1], candidates_rep.t())
 
         return logits
