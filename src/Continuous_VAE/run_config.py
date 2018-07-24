@@ -16,7 +16,7 @@ class RunConfig(object):
     word_emb_size = 32
 
     # sentence encoding config
-    sent_encode_method = "bow"
+    sent_encode_method = "rnn"
     emb_sum = False
     sent_rnn_type = "gru"
     sent_rnn_hidden_size = 32
@@ -36,7 +36,7 @@ class RunConfig(object):
     ctx_rnn_dropout = 0
     ctx_rnn_bidirectional = True
 
-    self_attn = False
+    self_attn = True
     self_attn_hidden = 32
     self_attn_head = 1
 
