@@ -13,7 +13,7 @@ class RunConfig(object):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # word embedding config
-    word_emb_dim = 32
+    word_emb_size = 32
 
     # sentence encoding config
     sent_encode_method = "bow"
@@ -46,18 +46,18 @@ class RunConfig(object):
 
     if sent_encode_method == "rnn":
         if self_attn is True:
-            sent_emb_dim = sent_rnn_hidden_size * 2 if sent_rnn_bidirectional else sent_rnn_hidden_size
+            sent_emb_size = sent_rnn_hidden_size * 2 if sent_rnn_bidirectional else sent_rnn_hidden_size
         else:
-            sent_emb_dim = sent_rnn_hidden_size * sent_rnn_layers * 2 if sent_rnn_bidirectional \
+            sent_emb_size = sent_rnn_hidden_size * sent_rnn_layers * 2 if sent_rnn_bidirectional \
                 else sent_rnn_hidden_size * sent_rnn_layers
     elif sent_encode_method == "bow":
-        sent_emb_dim = word_emb_dim
+        sent_emb_size = word_emb_size
 
     if ctx_encode_method == "MemoryNetwork":
-        ctx_emb_dim = sent_emb_dim
+        ctx_emb_size = sent_emb_size
     elif ctx_encode_method == "HierarchalRNN" or ctx_encode_method == "RNN":
         if self_attn is True:
-            ctx_emb_dim = ctx_rnn_hidden_size * 2 if ctx_rnn_bidirectional else ctx_rnn_hidden_size
+            ctx_emb_size = ctx_rnn_hidden_size * 2 if ctx_rnn_bidirectional else ctx_rnn_hidden_size
         else:
-            ctx_emb_dim = ctx_rnn_hidden_size * ctx_rnn_layers * 2 if ctx_rnn_bidirectional \
+            ctx_emb_size = ctx_rnn_hidden_size * ctx_rnn_layers * 2 if ctx_rnn_bidirectional \
                 else ctx_rnn_hidden_size * ctx_rnn_layers
