@@ -104,11 +104,13 @@ class ContinuousVAE(nn.Module):
                 q = bow_sentence_self_attn(self.embedding(queries), self.sent_self_attn_layer)
         elif self.config.sent_encode_method == "rnn":
             if self.config.self_attn is False:
-                m = rnn_sentence(self.embedding(stories), self.sent_rnn)
-                q = rnn_sentence(self.embedding(queries), self.sent_rnn)
+                m = rnn_sentence(self.embedding(stories), self.sent_rnn, self.config.sent_emb_size)
+                q = rnn_sentence(self.embedding(queries), self.sent_rnn, self.config.sent_emb_size)
             else:
-                m = rnn_sentence_self_attn(self.embedding(stories), self.sent_rnn, self.sent_self_attn_layer)
-                q = rnn_sentence_self_attn(self.embedding(queries), self.sent_rnn, self.sent_self_attn_layer)
+                m = rnn_sentence_self_attn(self.embedding(stories), self.sent_rnn, self.sent_self_attn_layer,
+                                           self.config.sent_emb_size)
+                q = rnn_sentence_self_attn(self.embedding(queries), self.sent_rnn, self.sent_self_attn_layer,
+                                           self.config.sent_emb_size)
 
         u = [q]
 
@@ -212,10 +214,10 @@ class ContinuousVAE(nn.Module):
                 candidates_rep = bow_sentence_self_attn(self.embedding(self.candidates), self.sent_self_attn_layer)
         elif self.config.sent_encode_method == "rnn":
             if self.config.self_attn is False:
-                candidates_rep = rnn_sentence(self.embedding(self.candidates), self.sent_rnn)
+                candidates_rep = rnn_sentence(self.embedding(self.candidates), self.sent_rnn, self.config.sent_emb_size)
             else:
                 candidates_rep = rnn_sentence_self_attn(self.embedding(self.candidates), self.sent_rnn,
-                                                        self.sent_self_attn_layer)
+                                                        self.sent_self_attn_layer, self.config.sent_emb_size)
 
         current_candidates_rep = candidates_rep[self.available_cand_index]
         # step3: Get the logits of each candidate
@@ -329,5 +331,5 @@ class ContinuousAgent(object):
             loss_log["avg_kld_loss"].append(avg_kld_item)
             loss_log["acc"].append(acc)
 
-        torch.save(self.model.state_dict(), os.path.join(self.config.save_dir, "model.pkl"))
-        pickle.dump(loss_log, open(os.path.join("debug", "loss.log"), "wb"))
+        torch.save(self.model.state_dict(), os.path.join(self.config.save_dir, "model4.pkl"))
+        pickle.dump(loss_log, open(os.path.join("debug", "loss4.log"), "wb"))
