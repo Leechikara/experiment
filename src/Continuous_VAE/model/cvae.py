@@ -133,7 +133,7 @@ class ContinuousVAE(nn.Module):
         # todo: can we accelerate this part in GPU?
         for i, response_dist in enumerate(sampled_response):
             vot_result, vot_num = Counter(response_dist).most_common(1)[0]
-            if vot_num < self.config["threshold"] * self.config["sample"]:
+            if vot_num < self.config.threshold * self.config.sample:
                 uncertain_index.append(i)
             else:
                 certain_index.append(i)
@@ -145,7 +145,7 @@ class ContinuousVAE(nn.Module):
         probs = F.softmax(logits, 2)
         probs = probs.contiguous().view(-1, len(self.available_cand_index))
         sampled_response = torch.multinomial(probs, 1)
-        sampled_response = sampled_response.view(-1, self.config["sample"])
+        sampled_response = sampled_response.view(-1, self.config.sample)
         sampled_response = sampled_response.detach().data.cpu().numpy()
 
         # todo: more heuristic method for uncertain points
