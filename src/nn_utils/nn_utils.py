@@ -50,7 +50,7 @@ def rnn_sentence_self_att(input, sent_len, rnn_model, self_att_model):
     :param self_att_model: A object of SelfAttn
     :return: Apply rnn model on input and use self attention
     """
-    (out, _), _ = rnn_model(input, sent_len)
+    (out, _), _ = rnn_model(input, sent_len, False)
     return self_att_model(out)
 
 
@@ -98,8 +98,7 @@ class RnnV(nn.Module):
                  bias=True,
                  batch_first=True,
                  dropout=0,
-                 bidirectional=False,
-                 only_use_last_hidden_state=True):
+                 bidirectional=False):
         """
         RNN which can hold variable length sequence, use like TensorFlow's RNN(input, length...).
 
@@ -111,7 +110,6 @@ class RnnV(nn.Module):
         :param batch_first: If True (default True), the input and output tensors are provided as (batch, seq, feature)
         :param dropout: If non-zero, introduces a dropout layer on the outputs of each RNN layer except the last layer
         :param bidirectional: If True, becomes a bidirectional RNN. Default: False
-        :param only_use_last_hidden_state: return h_n if true
         """
         super(RnnV, self).__init__()
 
@@ -129,7 +127,6 @@ class RnnV(nn.Module):
         self.batch_first = batch_first
         self.dropout = dropout
         self.directions = 2 if bidirectional else 1
-        self.only_use_last_hidden_state = only_use_last_hidden_state
 
         if self.rnn_type == 'lstm':
             self.rnn = nn.LSTM(
@@ -150,12 +147,13 @@ class RnnV(nn.Module):
                 dropout=dropout,
                 bidirectional=bidirectional)
 
-    def forward(self, x, x_len):
+    def forward(self, x, x_len, only_use_last_hidden_state=True):
         """
         sequence -> sort -> pack -> process using RNN -> unpack -> unsort
 
         :param x: If batch_first is True(default), then Variable are provided as (batch, seq_len, input_size)
         :param x_len: valid seq_len numpy list in a batch, provided as (batch, )
+        :param only_use_last_hidden_state: return h_n if true
         :return:
         """
         # obtain sort index and unsort index
@@ -184,7 +182,7 @@ class RnnV(nn.Module):
 
         # unsort h_n
         h_n = h_n.select(1, x_unsort_idx)
-        if self.only_use_last_hidden_state:
+        if only_use_last_hidden_state:
             return h_n
         else:
             # unpack and unsort out
