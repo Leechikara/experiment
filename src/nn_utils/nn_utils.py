@@ -28,21 +28,21 @@ def bow_sentence(input_tensor, emb_sum=False):
         return input_tensor.mean(-2)
 
 
-def bow_sentence_self_att(input_tensor, self_att_model):
+def bow_sentence_self_attn(input_tensor, self_attn_model):
     """
     :param input_tensor: (batch, *, seq_len, feature)
-    :param self_att_model: A object of SelfAttn
+    :param self_attn_model: A object of SelfAttn
     :return: (batch, *, feature)
     """
     if input_tensor.dim() == 3:
-        return self_att_model(input_tensor)
+        return self_attn_model(input_tensor)
     else:
         batch_size = input_tensor.size(0)
         memory_size = input_tensor.size(1)
         seq_len = input_tensor.size(2)
         feature_size = input_tensor.size(3)
         input_tensor_temp = input_tensor.view(batch_size * memory_size, seq_len, feature_size)
-        output = self_att_model(input_tensor_temp)
+        output = self_attn_model(input_tensor_temp)
         return output.contiguous().view(batch_size, memory_size, output.size(-1))
 
 
@@ -77,17 +77,17 @@ def rnn_sentence(input_tensor, rnn_model):
         return output.veiw(batch_size, memory_size, h_n.size(1))
 
 
-def rnn_sentence_self_att(input_tensor, rnn_model, self_att_model):
+def rnn_sentence_self_attn(input_tensor, rnn_model, self_attn_model):
     """
     :param input_tensor: (batch, *, seq_len, feature)
     :param rnn_model: A object of RnnV
-    :param self_att_model: A object of SelfAttn
+    :param self_attn_model: A object of SelfAttn
     :return: (batch, *, feature)
     """
     if input_tensor.dim() == 3:
         length_mask = get_length_mask(input_tensor)
         (out, _), _ = rnn_model(input_tensor, length_mask.detach().data.cpu().numpy(), False)
-        return self_att_model(out)
+        return self_attn_model(out)
     else:
         batch_size = input_tensor.size(0)
         memory_size = input_tensor.size(1)
@@ -102,7 +102,7 @@ def rnn_sentence_self_att(input_tensor, rnn_model, self_att_model):
 
         output = torch.zeros(batch_size * memory_size, seq_len, out.size(-1)).to(out.device)
         output[retain_mask] = out
-        output = self_att_model(output)
+        output = self_attn_model(output)
         return output.contiguous().view(batch_size, memory_size, seq_len, output.size(-1))
 
 
