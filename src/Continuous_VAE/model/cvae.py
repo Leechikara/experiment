@@ -112,7 +112,7 @@ class ContinuousVAE(nn.Module):
 
         u = [q]
 
-        for _ in range(self.config["max_hops"]):
+        for _ in range(self.config.max_hops):
             # attention over memory and read memory
             _, o_k = self.attn_layer(m, u[-1])
 
