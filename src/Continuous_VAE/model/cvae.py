@@ -16,7 +16,7 @@ from sklearn import metrics
 sys.path.append("/home/wkwang/workstation/experiment/src")
 from Continuous_VAE.model.utils import sample_gaussian, gaussian_kld
 from Continuous_VAE.data_apis.data_utils import batch_iter, TASKS, DATA_ROOT
-from nn_utils.nn_utils import Attn, bow_sentence
+from nn_utils.nn_utils import Attn, bow_sentence, bow_sentence_self_att, rnn_sentence, rnn_sentence_self_att, RnnV
 
 
 class ContinuousVAE(nn.Module):
@@ -24,18 +24,24 @@ class ContinuousVAE(nn.Module):
         super(ContinuousVAE, self).__init__()
         torch.manual_seed(config["random_seed"])
 
+        # todo: del api for real run!
         self.api = api
         self.config = config
         self.vocab_size = api.vocab_size
         self.emb_dim = config["emb_dim"]
         self.attn_method = config["attn_method"]
         self.sent_emb_method = config["sent_emb_method"]
+        self.context_emb_method = config["context_emb_method"]
 
-        # Embedding for context and response
         self.embedding = nn.Embedding(self.vocab_size, self.emb_dim, padding_idx=0)
 
+        if config["sent_emb_method"] == "rnn":
+            self.sent_rnn = RnnV()
+
+        if config["attn_method"] is True:
+
         # todo: Encoding method for context and response, Now we only implement the basic method
-        if config["context_emb_method"] == "MemoryNetwork":
+        if self.context_emb_method == "MemoryNetwork":
             self.attn_layer = Attn(self.attn_method, self.emb_dim, self.emb_dim)
             self.hops_map = nn.Linear(self.emb_dim, self.emb_dim)
             assert config["memory_nonlinear"].lower() in ["tanh", "iden", "relu"]
@@ -88,6 +94,8 @@ class ContinuousVAE(nn.Module):
         if self.sent_emb_method == "bow":
             m, _ = bow_sentence(self.embedding(stories), self.config["emb_sum"])
             q, _ = bow_sentence(self.embedding(queries), self.config["emb_sum"])
+        elif self.sent_emb_method == "rnn":
+            m =
         else:
             pass
         u = [q]
