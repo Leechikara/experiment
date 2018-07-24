@@ -74,7 +74,7 @@ def rnn_sentence(input_tensor, rnn_model):
 
         output = torch.zeros(batch_size * memory_size, h_n.size(1)).to(h_n.device)
         output[retain_mask] = h_n
-        return output.veiw(batch_size, memory_size, h_n.size(1))
+        return output.view(batch_size, memory_size, h_n.size(1))
 
 
 def rnn_sentence_self_attn(input_tensor, rnn_model, self_attn_model):
@@ -100,10 +100,10 @@ def rnn_sentence_self_attn(input_tensor, rnn_model, self_attn_model):
         length_mask_temp = torch.index_select(length_mask, 0, retain_mask)
         (out, _), _ = rnn_model(input_tensor_temp, length_mask_temp.detach().data.cpu().numpy(), False)
 
-        output = torch.zeros(batch_size * memory_size, seq_len, out.size(-1)).to(out.device)
+        output = torch.zeros(batch_size * memory_size, out.size(1), out.size(-1)).to(out.device)
         output[retain_mask] = out
         output = self_attn_model(output)
-        return output.contiguous().view(batch_size, memory_size, seq_len, output.size(-1))
+        return output.contiguous().view(batch_size, memory_size, output.size(-1))
 
 
 class SelfAttn(nn.Module):
