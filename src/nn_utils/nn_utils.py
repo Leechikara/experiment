@@ -11,7 +11,7 @@ def bow_sentence(input, emb_sum=False):
     """
     Assumption, the last dimension is the embedding
     The second last dimension is the sentence length.
-    The rank must be not less than 3.
+    The rank must be not less than 3.(batch, *, seq_len, feature)
     """
     embedding_size = input.size(-1)
     if emb_sum:
@@ -38,7 +38,7 @@ def rnn_sentence(input, sent_len, rnn_model):
     """
     h_n = rnn_model(input, sent_len)
     h_n = h_n.transpose(0, 1)
-    h_n = h_n.view(h_n.size(0), -1)
+    h_n = h_n.contiguous().view(h_n.size(0), -1)
     return h_n
 
 
