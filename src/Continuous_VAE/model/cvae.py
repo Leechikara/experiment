@@ -288,21 +288,21 @@ class ContinuousVAE(nn.Module):
 
 class ContinuousAgent(object):
     def __init__(self, config, model, api):
-        np.random.seed(config["random_seed"] + 1)
+        np.random.seed(config.random_seed + 1)
         self.config = config
-        self.model = model.to(config["device"])
-        self.optimizer = optim.Adam(self.model.parameters(), lr=config.get("lr", 0.001))
+        self.model = model.to(config.device)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
         self.api = api
         self.coming_data = list()
         self.test_data = dict()
         for task in TASKS.keys():
             for data_set in ["train", "dev"]:
                 self.coming_data.extend(self.api.all_data[task][data_set])
-        self.comingS, self.comingQ, self.comingA = self.api.vectorize_data(self.coming_data, self.config["batch_size"])
+        self.comingS, self.comingQ, self.comingA = self.api.vectorize_data(self.coming_data, self.config.batch_size)
         for task in TASKS.keys():
             self.test_data[task] = dict()
             self.test_data[task]["S"], self.test_data[task]["Q"], self.test_data[task]["A"] = self.api.vectorize_data(
-                self.api.all_data[task]["test"], self.config["batch_size"])
+                self.api.all_data[task]["test"], self.config.batch_size)
 
         self.logger = self._setup_logger()
 
@@ -320,22 +320,22 @@ class ContinuousAgent(object):
         if isinstance(data, list):
             data = np.array(data)
         data = torch.from_numpy(data)
-        return data.to(self.config["device"])
+        return data.to(self.config.device)
 
     def simulate_run(self):
         loss_log = defaultdict(list)
 
         self.logger.info("Run main with config {}".format(self.config))
 
-        for s, q, a in batch_iter(self.comingS, self.comingQ, self.comingA, self.config["batch_size"], shuffle=True):
+        for s, q, a in batch_iter(self.comingS, self.comingQ, self.comingA, self.config.batch_size, shuffle=True):
             self.optimizer.zero_grad()
             feed_dict = {"contexts": (self.tensor_wrapper(s), self.tensor_wrapper(q)),
                          "responses": a}
-            elbo, uncertain_index, certain_index, certain_response, elbo_item, avg_rc_loss_item, avg_kld_item, acc = self.model.forward(
-                feed_dict)
+            elbo, uncertain_index, certain_index, certain_response, elbo_item, avg_rc_loss_item, avg_kld_item, acc = \
+                self.model.forward(feed_dict)
             if elbo is not None:
                 elbo.backward()
-                nn.utils.clip_grad_norm_(self.model.parameters(), self.config["max_clip"])
+                nn.utils.clip_grad_norm_(self.model.parameters(), self.config.max_clip)
                 self.optimizer.step()
             print(len(certain_index), elbo_item, avg_rc_loss_item, avg_kld_item, acc)
             loss_log["certain"].append(len(certain_index))
@@ -344,5 +344,5 @@ class ContinuousAgent(object):
             loss_log["avg_kld_loss"].append(avg_kld_item)
             loss_log["acc"].append(acc)
 
-        torch.save(self.model.state_dict(), os.path.join(self.config["save_dir"], "model.pkl"))
+        torch.save(self.model.state_dict(), os.path.join(self.config.save_dir, "model.pkl"))
         pickle.dump(loss_log, open(os.path.join("debug", "loss.log"), "wb"))
