@@ -6,51 +6,104 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-# sentence embedding method
-def bow_sentence(input, emb_sum=False):
+def get_length_mask(input_tensor):
     """
-    Assumption, the last dimension is the embedding
-    The second last dimension is the sentence length.
-    The rank must be not less than 3.(batch, *, seq_len, feature)
+    :param input_tensor: (batch, seq_len, feature)
+    :return: (batch,)
+    """
+    length_mask = torch.sum(torch.sign(torch.max(torch.abs(input_tensor), 2)[0]), 1)
+    length_mask = length_mask.long()
+    return length_mask
+
+
+def bow_sentence(input_tensor, emb_sum=False):
+    """
+    :param input_tensor: (batch, *, seq_len, feature)
+    :param emb_sum:
+    :return: (batch, *, feature)
     """
     if emb_sum:
-        return input.sum(-2)
+        return input_tensor.sum(-2)
     else:
-        return input.mean(-2)
+        return input_tensor.mean(-2)
 
 
-def bow_sentence_self_att(input, self_att_model):
+def bow_sentence_self_att(input_tensor, self_att_model):
     """
-    :param input: (batch, seq_len, feature)
+    :param input_tensor: (batch, *, seq_len, feature)
     :param self_att_model: A object of SelfAttn
-    :return: (batch, feature)
+    :return: (batch, *, feature)
     """
-    return self_att_model(input)
+    if input_tensor.dim() == 3:
+        return self_att_model(input_tensor)
+    else:
+        batch_size = input_tensor.size(0)
+        memory_size = input_tensor.size(1)
+        seq_len = input_tensor.size(2)
+        feature_size = input_tensor.size(3)
+        input_tensor_temp = input_tensor.view(batch_size * memory_size, seq_len, feature_size)
+        output = self_att_model(input_tensor_temp)
+        return output.contiguous().view(batch_size, memory_size, output.size(-1))
 
 
-def rnn_sentence(input, sent_len, rnn_model):
+def rnn_sentence(input_tensor, rnn_model):
     """
-    :param input: (batch, seq_len, feature)
-    :param sent_len: (batch,)
+    :param input_tensor: (batch, *, seq_len, feature)
     :param rnn_model: A object of RnnV
-    :return: The last hidden state of RNN model (batch, feature)
+    :return: The last hidden state of RNN model (batch, *, feature)
     """
-    h_n = rnn_model(input, sent_len)
-    h_n = h_n.transpose(0, 1)
-    h_n = h_n.contiguous().view(h_n.size(0), -1)
-    return h_n
+    if input_tensor.dim() == 3:
+        length_mask = get_length_mask(input_tensor)
+        h_n = rnn_model(input_tensor, length_mask.detach().data.cpu().numpy())
+        h_n = h_n.transpose(0, 1)
+        h_n = h_n.contiguous().view(h_n.size(0), -1)
+        return h_n
+    else:
+        batch_size = input_tensor.size(0)
+        memory_size = input_tensor.size(1)
+        seq_len = input_tensor.size(2)
+        feature_size = input_tensor.size(3)
+        input_tensor_temp = input_tensor.view(batch_size * memory_size, seq_len, feature_size)
+        length_mask = get_length_mask(input_tensor_temp)
+        retain_mask = torch.nonzero(length_mask).squeeze()
+        input_tensor_temp = torch.index_select(input_tensor_temp, 0, retain_mask)
+        length_mask_temp = torch.index_select(length_mask, 0, retain_mask)
+        h_n = rnn_model(input_tensor_temp, length_mask_temp.detach().data.cpu().numpy())
+        h_n = h_n.transpose(0, 1)
+        h_n = h_n.contiguous().view(h_n.size(0), -1)
+
+        output = torch.zeros(batch_size * memory_size, h_n.size(1)).to(h_n.device)
+        output[retain_mask] = h_n
+        return output.veiw(batch_size, memory_size, h_n.size(1))
 
 
-def rnn_sentence_self_att(input, sent_len, rnn_model, self_att_model):
+def rnn_sentence_self_att(input_tensor, rnn_model, self_att_model):
     """
-    :param input: (batch, seq_len, feature)
-    :param sent_len: (batch,)
+    :param input_tensor: (batch, *, seq_len, feature)
     :param rnn_model: A object of RnnV
     :param self_att_model: A object of SelfAttn
-    :return: Apply rnn model on input and use self attention
+    :return: (batch, *, feature)
     """
-    (out, _), _ = rnn_model(input, sent_len, False)
-    return self_att_model(out)
+    if input_tensor.dim() == 3:
+        length_mask = get_length_mask(input_tensor)
+        (out, _), _ = rnn_model(input_tensor, length_mask.detach().data.cpu().numpy(), False)
+        return self_att_model(out)
+    else:
+        batch_size = input_tensor.size(0)
+        memory_size = input_tensor.size(1)
+        seq_len = input_tensor.size(2)
+        feature_size = input_tensor.size(3)
+        input_tensor_temp = input_tensor.view(batch_size * memory_size, seq_len, feature_size)
+        length_mask = get_length_mask(input_tensor_temp)
+        retain_mask = torch.nonzero(length_mask).squeeze()
+        input_tensor_temp = torch.index_select(input_tensor_temp, 0, retain_mask)
+        length_mask_temp = torch.index_select(length_mask, 0, retain_mask)
+        (out, _), _ = rnn_model(input_tensor_temp, length_mask_temp.detach().data.cpu().numpy(), False)
+
+        output = torch.zeros(batch_size * memory_size, seq_len, out.size(-1)).to(out.device)
+        output[retain_mask] = out
+        output = self_att_model(output)
+        return output.contiguous().view(batch_size, memory_size, seq_len, output.size(-1))
 
 
 class SelfAttn(nn.Module):
@@ -160,7 +213,7 @@ class RnnV(nn.Module):
         x_unsort_idx = np.argsort(x_sort_idx)
 
         # sort x and x_len in batch dimension
-        x = x.select(0 if self.batch_first else 1, x_sort_idx)
+        x = torch.index_select(x, 0 if self.batch_first else 1, torch.LongTensor(x_sort_idx).to(x.device))
         x_len = x_len[x_sort_idx]
 
         # pack x
@@ -180,19 +233,19 @@ class RnnV(nn.Module):
             out_pack, h_n = self.rnn(x_p, h_0)
 
         # unsort h_n
-        h_n = h_n.select(1, x_unsort_idx)
+        h_n = torch.index_select(h_n, 1, torch.LongTensor(x_unsort_idx).to(h_n.device))
         if only_use_last_hidden_state:
             return h_n
         else:
             # unpack and unsort out
             out, lengths = torch.nn.utils.rnn.pad_packed_sequence(out_pack, batch_first=self.batch_first)
-            out = out.select(0 if self.batch_first else 1, x_unsort_idx)
+            out = torch.index_select(out, 0 if self.batch_first else 1, torch.LongTensor(x_unsort_idx).to(out.device))
             lengths = lengths.numpy()
             lengths = lengths[np.argsort(x_sort_idx)]
 
             # unsort c_n
             if c_n is not None:
-                c_n = c_n.select(1, x_unsort_idx)
+                c_n = torch.index_select(c_n, 1, torch.LongTensor(x_unsort_idx).to(c_n.device))
                 return (out, lengths), (h_n, c_n)
             else:
                 return (out, lengths), h_n
