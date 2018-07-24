@@ -36,16 +36,16 @@ class RunConfig(object):
     ctx_rnn_dropout = 0
     ctx_rnn_bidirectional = True
 
-    self_att = False
-    self_att_hidden = 32
-    self_att_head = 1
+    self_attn = False
+    self_attn_hidden = 32
+    self_attn_head = 1
 
     latent_size = 20
     sample = 50
     threshold = 0.7
 
     if sent_encode_method == "rnn":
-        if self_att is True:
+        if self_attn is True:
             sent_emb_dim = sent_rnn_hidden_size * 2 if sent_rnn_bidirectional else sent_rnn_hidden_size
         else:
             sent_emb_dim = sent_rnn_hidden_size * sent_rnn_layers * 2 if sent_rnn_bidirectional \
@@ -56,7 +56,7 @@ class RunConfig(object):
     if ctx_encode_method == "MemoryNetwork":
         ctx_emb_dim = sent_emb_dim
     elif ctx_encode_method == "HierarchalRNN" or ctx_encode_method == "RNN":
-        if self_att is True:
+        if self_attn is True:
             ctx_emb_dim = ctx_rnn_hidden_size * 2 if ctx_rnn_bidirectional else ctx_rnn_hidden_size
         else:
             ctx_emb_dim = ctx_rnn_hidden_size * ctx_rnn_layers * 2 if ctx_rnn_bidirectional \
