@@ -46,10 +46,11 @@ def bow_sentence_self_attn(input_tensor, self_attn_model):
         return output.contiguous().view(batch_size, memory_size, output.size(-1))
 
 
-def rnn_sentence(input_tensor, rnn_model):
+def rnn_sentence(input_tensor, rnn_model, sent_emb_size):
     """
     :param input_tensor: (batch, *, seq_len, feature)
     :param rnn_model: A object of RnnV
+    :param sent_emb_size:
     :return: The last hidden state of RNN model (batch, *, feature)
     """
     if input_tensor.dim() == 3:
@@ -66,22 +67,27 @@ def rnn_sentence(input_tensor, rnn_model):
         input_tensor_temp = input_tensor.view(batch_size * memory_size, seq_len, feature_size)
         length_mask = get_length_mask(input_tensor_temp)
         retain_mask = torch.nonzero(length_mask).squeeze()
-        input_tensor_temp = torch.index_select(input_tensor_temp, 0, retain_mask)
-        length_mask_temp = torch.index_select(length_mask, 0, retain_mask)
-        h_n = rnn_model(input_tensor_temp, length_mask_temp.detach().data.cpu().numpy())
-        h_n = h_n.transpose(0, 1)
-        h_n = h_n.contiguous().view(h_n.size(0), -1)
 
-        output = torch.zeros(batch_size * memory_size, h_n.size(1)).to(h_n.device)
-        output[retain_mask] = h_n
-        return output.view(batch_size, memory_size, h_n.size(1))
+        if retain_mask.size(0) == 0:
+            return torch.zeros(batch_size, memory_size, sent_emb_size).to(retain_mask.device)
+        else:
+            input_tensor_temp = torch.index_select(input_tensor_temp, 0, retain_mask)
+            length_mask_temp = torch.index_select(length_mask, 0, retain_mask)
+            h_n = rnn_model(input_tensor_temp, length_mask_temp.detach().data.cpu().numpy())
+            h_n = h_n.transpose(0, 1)
+            h_n = h_n.contiguous().view(h_n.size(0), -1)
+
+            output = torch.zeros(batch_size * memory_size, h_n.size(1)).to(h_n.device)
+            output[retain_mask] = h_n
+            return output.view(batch_size, memory_size, h_n.size(1))
 
 
-def rnn_sentence_self_attn(input_tensor, rnn_model, self_attn_model):
+def rnn_sentence_self_attn(input_tensor, rnn_model, self_attn_model, sent_emb_size):
     """
     :param input_tensor: (batch, *, seq_len, feature)
     :param rnn_model: A object of RnnV
     :param self_attn_model: A object of SelfAttn
+    :param sent_emb_size:
     :return: (batch, *, feature)
     """
     if input_tensor.dim() == 3:
@@ -96,14 +102,18 @@ def rnn_sentence_self_attn(input_tensor, rnn_model, self_attn_model):
         input_tensor_temp = input_tensor.view(batch_size * memory_size, seq_len, feature_size)
         length_mask = get_length_mask(input_tensor_temp)
         retain_mask = torch.nonzero(length_mask).squeeze()
-        input_tensor_temp = torch.index_select(input_tensor_temp, 0, retain_mask)
-        length_mask_temp = torch.index_select(length_mask, 0, retain_mask)
-        (out, _), _ = rnn_model(input_tensor_temp, length_mask_temp.detach().data.cpu().numpy(), False)
 
-        output = torch.zeros(batch_size * memory_size, out.size(1), out.size(-1)).to(out.device)
-        output[retain_mask] = out
-        output = self_attn_model(output)
-        return output.contiguous().view(batch_size, memory_size, output.size(-1))
+        if retain_mask.size(0) == 0:
+            return torch.zeros(batch_size, memory_size, sent_emb_size).to(retain_mask.device)
+        else:
+            input_tensor_temp = torch.index_select(input_tensor_temp, 0, retain_mask)
+            length_mask_temp = torch.index_select(length_mask, 0, retain_mask)
+            (out, _), _ = rnn_model(input_tensor_temp, length_mask_temp.detach().data.cpu().numpy(), False)
+
+            output = torch.zeros(batch_size * memory_size, out.size(1), out.size(-1)).to(out.device)
+            output[retain_mask] = out
+            output = self_attn_model(output)
+            return output.contiguous().view(batch_size, memory_size, output.size(-1))
 
 
 class SelfAttn(nn.Module):
