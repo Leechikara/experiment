@@ -7,7 +7,7 @@ class RunConfig(object):
     save_dir = "checkpoints"
 
     random_seed = 42
-    learning_rate = 0.001
+    lr = 0.001
     batch_size = 32
     max_clip = 40.0
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
