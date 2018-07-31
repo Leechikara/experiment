@@ -46,11 +46,11 @@ def bow_sentence_self_attn(input_tensor, self_attn_model):
         return output.contiguous().view(batch_size, memory_size, output.size(-1))
 
 
-def rnn_seq(input_tensor, rnn_model, sent_emb_size):
+def rnn_seq(input_tensor, rnn_model, out_feature_size):
     """
     :param input_tensor: (batch, *, seq_len, feature)
     :param rnn_model: A object of RnnV
-    :param sent_emb_size:
+    :param out_feature_size:
     :return: The last hidden state of RNN model (batch, *, feature)
     """
     if input_tensor.dim() == 3:
@@ -69,7 +69,7 @@ def rnn_seq(input_tensor, rnn_model, sent_emb_size):
         retain_mask = torch.nonzero(length_mask).squeeze()
 
         if retain_mask.size(0) == 0:
-            return torch.zeros(batch_size, memory_size, sent_emb_size).to(retain_mask.device)
+            return torch.zeros(batch_size, memory_size, out_feature_size).to(retain_mask.device)
         else:
             input_tensor_temp = torch.index_select(input_tensor_temp, 0, retain_mask)
             length_mask_temp = torch.index_select(length_mask, 0, retain_mask)
@@ -82,12 +82,12 @@ def rnn_seq(input_tensor, rnn_model, sent_emb_size):
             return output.view(batch_size, memory_size, h_n.size(1))
 
 
-def rnn_seq_self_attn(input_tensor, rnn_model, self_attn_model, sent_emb_size):
+def rnn_seq_self_attn(input_tensor, rnn_model, self_attn_model, out_feature_size):
     """
     :param input_tensor: (batch, *, seq_len, feature)
     :param rnn_model: A object of RnnV
     :param self_attn_model: A object of SelfAttn
-    :param sent_emb_size:
+    :param out_feature_size:
     :return: (batch, *, feature)
     """
     if input_tensor.dim() == 3:
@@ -104,7 +104,7 @@ def rnn_seq_self_attn(input_tensor, rnn_model, self_attn_model, sent_emb_size):
         retain_mask = torch.nonzero(length_mask).squeeze()
 
         if retain_mask.size(0) == 0:
-            return torch.zeros(batch_size, memory_size, sent_emb_size).to(retain_mask.device)
+            return torch.zeros(batch_size, memory_size, out_feature_size).to(retain_mask.device)
         else:
             input_tensor_temp = torch.index_select(input_tensor_temp, 0, retain_mask)
             length_mask_temp = torch.index_select(length_mask, 0, retain_mask)
