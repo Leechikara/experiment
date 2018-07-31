@@ -10,7 +10,7 @@ from Continuous_VAE.run_config import RunConfig as Config
 
 if __name__ == "__main__":
     config = Config()
-    api = DataUtils()
+    api = DataUtils(config.ctx_encode_method)
     api.load_vocab()
     api.load_candidates()
     api.load_dialog()
