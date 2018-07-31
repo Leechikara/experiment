@@ -26,7 +26,7 @@ class RunConfig(object):
     sent_rnn_bidirectional = True
 
     # context encoding config
-    ctx_encode_method = "MemoryNetwork"
+    ctx_encode_method = "HierarchalRNN"
 
     attn_method = "general"
     memory_size = 50
@@ -47,7 +47,8 @@ class RunConfig(object):
     ctx_self_attn_head = 1
 
     latent_size = 20
-    sample = 50
+    prior_sample = 50
+    posterior_sample = 50
     threshold = 0.7
     full_kl_step = 10000
 
