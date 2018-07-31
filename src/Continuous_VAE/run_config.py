@@ -3,6 +3,7 @@ import torch
 
 
 class RunConfig(object):
+    # trained_model = "checkpoints/model13.pkl"
     trained_model = None
     save_dir = "checkpoints"
 
@@ -26,6 +27,7 @@ class RunConfig(object):
 
     # context encoding config
     ctx_encode_method = "MemoryNetwork"
+
     attn_method = "general"
     memory_size = 50
     max_hops = 3
