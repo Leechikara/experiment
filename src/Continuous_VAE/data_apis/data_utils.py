@@ -2,13 +2,14 @@
 import numpy as np
 import os, sys, json, re
 from itertools import chain
+from collections import defaultdict
 
 sys.path.append("/home/wkwang/workstation/experiment/src")
 from config.config import DATA_ROOT, TASKS
 
 
 class DataUtils(object):
-    def __init__(self):
+    def __init__(self, ctx_encode):
         self.word2index = dict()
         self.index2word = dict()
         self.vocab_size = None
@@ -25,6 +26,11 @@ class DataUtils(object):
         self.candidate_sentence_size = None
         self.query_size = None
         self.memory_size = None
+
+        self.ctx_encode = ctx_encode
+
+        # self.tagged = defaultdict(list)
+        # self.comingS, self.comingQ, self.comingA = None, None, None
 
     def load_vocab(self):
         self.word2index = dict()
@@ -144,7 +150,11 @@ class DataUtils(object):
         for i, (story, query, answer) in enumerate(data):
             if i % batch_size == 0:
                 memory_size = max(1, min(self.memory_size, len(story)))
+                if self.ctx_encode != "MemoryNetwork":
+                    memory_size += 1
             ss = []
+            if self.ctx_encode != "MemoryNetwork":
+                story = story.append(query)
             for sentence in story:
                 ls = max(0, self.sentence_size - len(sentence))
                 ss.append([self.word2index[w] if w in self.word2index else self.word2index["UNK"] for w in sentence] + [
@@ -165,6 +175,23 @@ class DataUtils(object):
             queries.append(np.array(q, dtype=np.int64))
             answers.append(np.array(answer, dtype=np.int64))
         return stories, queries, answers
+
+    # def sample_true(self, resp_c, sample_n):
+    #     if len(self.tagged[resp_c]) < sample_n:
+    #         return list(np.random.choice(np.asarray(self.tagged[resp_c]), sample_n, replace=True))
+    #     else:
+    #         return list(np.random.choice(np.asarray(self.tagged[resp_c]), sample_n, replace=False))
+    #
+    # def sample_negative(self, resp_c, sample_n):
+    #     negative_cand = list()
+    #     for k, v in self.tagged.items():
+    #         if k == resp_c:
+    #             continue
+    #         negative_cand.extend(v)
+    #     if len(negative_cand) < sample_n:
+    #         return list(np.random.choice(np.asarray(negative_cand), sample_n, replace=True))
+    #     else:
+    #         return list(np.random.choice(np.asarray(negative_cand), sample_n, replace=False))
 
 
 def batch_iter(stories, queries, answers, batch_size, shuffle=False):
@@ -187,4 +214,4 @@ def batch_iter(stories, queries, answers, batch_size, shuffle=False):
             answers_batch = None
         else:
             answers_batch = answers[start:end]
-        yield stories_batch, queries_batch, answers_batch
+        yield stories_batch, queries_batch, answers_batch, start
