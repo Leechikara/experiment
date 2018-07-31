@@ -46,7 +46,7 @@ def bow_sentence_self_attn(input_tensor, self_attn_model):
         return output.contiguous().view(batch_size, memory_size, output.size(-1))
 
 
-def rnn_sentence(input_tensor, rnn_model, sent_emb_size):
+def rnn_seq(input_tensor, rnn_model, sent_emb_size):
     """
     :param input_tensor: (batch, *, seq_len, feature)
     :param rnn_model: A object of RnnV
@@ -82,7 +82,7 @@ def rnn_sentence(input_tensor, rnn_model, sent_emb_size):
             return output.view(batch_size, memory_size, h_n.size(1))
 
 
-def rnn_sentence_self_attn(input_tensor, rnn_model, self_attn_model, sent_emb_size):
+def rnn_seq_self_attn(input_tensor, rnn_model, self_attn_model, sent_emb_size):
     """
     :param input_tensor: (batch, *, seq_len, feature)
     :param rnn_model: A object of RnnV
