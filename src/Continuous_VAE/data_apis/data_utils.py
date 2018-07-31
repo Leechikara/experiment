@@ -154,7 +154,7 @@ class DataUtils(object):
                     memory_size += 1
             ss = []
             if self.ctx_encode != "MemoryNetwork":
-                story = story.append(query)
+                story.append(query)
             for sentence in story:
                 ls = max(0, self.sentence_size - len(sentence))
                 ss.append([self.word2index[w] if w in self.word2index else self.word2index["UNK"] for w in sentence] + [
