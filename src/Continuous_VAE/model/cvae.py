@@ -490,8 +490,8 @@ class ContinuousAgent(object):
             loss_log["avg_kld_loss"].append(avg_kld_item)
             loss_log["acc"].append(acc)
 
-        torch.save(self.model.state_dict(), self.config.save_dir)
-        pickle.dump(loss_log, open(self.config.debug_dir, "wb"))
+        torch.save(self.model.state_dict(), self.config.save_path)
+        pickle.dump(loss_log, open(self.config.debug_path, "wb"))
 
         # for debug
         print("debug details")
