@@ -27,7 +27,6 @@ class RunConfig(object):
 
     # context encoding config
     ctx_encode_method = "HierarchalRNN"
-
     attn_method = "general"
     memory_size = 50
     max_hops = 3
