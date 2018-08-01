@@ -53,7 +53,11 @@ class ContinuousVAE(nn.Module):
                                 self.config.ctx_rnn_type, self.config.ctx_rnn_layers,
                                 dropout=self.config.ctx_rnn_dropout,
                                 bidirectional=self.config.ctx_rnn_bidirectional)
-        elif self.config.ctx_self_attn is True or self.config.ctx_encode_method == "HierarchalSelfAttn":
+            if self.config.ctx_self_attn is True:
+                self.ctx_self_attn_layer = SelfAttn(self.config.ctx_emb_size,
+                                                    self.config.ctx_self_attn_hidden,
+                                                    self.config.ctx_self_attn_head)
+        elif self.config.ctx_encode_method == "HierarchalSelfAttn":
             self.ctx_self_attn_layer = SelfAttn(self.config.ctx_emb_size,
                                                 self.config.ctx_self_attn_hidden,
                                                 self.config.ctx_self_attn_head)
