@@ -4,7 +4,7 @@ import torch
 
 class RunConfig(object):
     trained_model = None
-    save_path = "checkpoints/model_H_RNN.pkl"
+    model_save_path = "checkpoints/model_H_RNN.pkl"
     debug_path = "debug/loss_H_RNN.pkl"
 
     random_seed = 42
