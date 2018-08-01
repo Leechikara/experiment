@@ -30,11 +30,13 @@ class ContinuousVAE(nn.Module):
         self.embedding = nn.Embedding(self.api.vocab_size, self.config.word_emb_size, padding_idx=0)
 
         if self.config.sent_encode_method == "rnn":
-            self.sent_rnn = RnnV(self.config.word_emb_size, self.config.sent_rnn_hidden_size, self.config.sent_rnn_type,
-                                 self.config.sent_rnn_layers, dropout=self.config.sent_rnn_dropout,
+            self.sent_rnn = RnnV(self.config.word_emb_size, self.config.sent_rnn_hidden_size,
+                                 self.config.sent_rnn_type, self.config.sent_rnn_layers,
+                                 dropout=self.config.sent_rnn_dropout,
                                  bidirectional=self.config.sent_rnn_bidirectional)
         if self.config.sent_self_attn is True:
-            self.sent_self_attn_layer = SelfAttn(self.config.sent_emb_size, self.config.sent_self_attn_hidden,
+            self.sent_self_attn_layer = SelfAttn(self.config.sent_emb_size,
+                                                 self.config.sent_self_attn_hidden,
                                                  self.config.sent_self_attn_head)
 
         if self.config.ctx_encode_method == "MemoryNetwork":
@@ -47,11 +49,13 @@ class ContinuousVAE(nn.Module):
             elif self.config.memory_nonlinear.lower() == "iden":
                 self.memory_nonlinear = None
         elif self.config.ctx_encode_method == "HierarchalRNN":
-            self.ctx_rnn = RnnV(self.config.sent_emb_size, self.config.ctx_rnn_hidden_size, self.config.ctx_rnn_type,
-                                self.config.ctx_rnn_layers, dropout=self.config.ctx_rnn_dropout,
+            self.ctx_rnn = RnnV(self.config.sent_emb_size, self.config.ctx_rnn_hidden_size,
+                                self.config.ctx_rnn_type, self.config.ctx_rnn_layers,
+                                dropout=self.config.ctx_rnn_dropout,
                                 bidirectional=self.config.ctx_rnn_bidirectional)
         elif self.config.ctx_self_attn is True or self.config.ctx_encode_method == "HierarchalSelfAttn":
-            self.ctx_self_attn_layer = SelfAttn(self.config.ctx_emb_size, self.config.ctx_self_attn_hidden,
+            self.ctx_self_attn_layer = SelfAttn(self.config.ctx_emb_size,
+                                                self.config.ctx_self_attn_hidden,
                                                 self.config.ctx_self_attn_head)
 
         # todo: add more in cond
@@ -115,24 +119,24 @@ class ContinuousVAE(nn.Module):
         # for debug
         self.error = defaultdict(list)
 
-    def ctx_encode_m2n(self, contexts):
-        stories, queries = contexts
+    def sent_encode(self, s):
         if self.config.sent_encode_method == "bow":
             if self.config.sent_self_attn is False:
-                m = bow_sentence(self.embedding(stories), self.config.emb_sum)
-                q = bow_sentence(self.embedding(queries), self.config.emb_sum)
+                s_encode = bow_sentence(self.embedding(s), self.config.emb_sum)
             else:
-                m = bow_sentence_self_attn(self.embedding(stories), self.sent_self_attn_layer)
-                q = bow_sentence_self_attn(self.embedding(queries), self.sent_self_attn_layer)
+                s_encode = bow_sentence_self_attn(self.embedding(s), self.sent_self_attn_layer)
         elif self.config.sent_encode_method == "rnn":
             if self.config.sent_self_attn is False:
-                m = rnn_seq(self.embedding(stories), self.sent_rnn, self.config.sent_emb_size)
-                q = rnn_seq(self.embedding(queries), self.sent_rnn, self.config.sent_emb_size)
+                s_encode = rnn_seq(self.embedding(s), self.sent_rnn, self.config.sent_emb_size)
             else:
-                m = rnn_seq_self_attn(self.embedding(stories), self.sent_rnn, self.sent_self_attn_layer,
-                                      self.config.sent_emb_size)
-                q = rnn_seq_self_attn(self.embedding(queries), self.sent_rnn, self.sent_self_attn_layer,
-                                      self.config.sent_emb_size)
+                s_encode = rnn_seq_self_attn(self.embedding(s), self.sent_rnn,
+                                             self.sent_self_attn_layer, self.config.sent_emb_size)
+        return s_encode
+
+    def ctx_encode_m2n(self, contexts):
+        stories, queries = contexts
+        m = self.sent_encode(stories)
+        q = self.sent_encode(queries)
 
         u = [q]
 
@@ -150,36 +154,18 @@ class ContinuousVAE(nn.Module):
         return u[-1]
 
     def ctx_encode_h_self_attn(self, contexts):
-        stories, queries = contexts
-        if self.config.sent_encode_method == "bow":
-            if self.config.sent_self_attn is False:
-                m = bow_sentence(self.embedding(stories), self.config.emb_sum)
-            else:
-                m = bow_sentence_self_attn(self.embedding(stories), self.sent_self_attn_layer)
-        elif self.config.sent_encode_method == "rnn":
-            if self.config.sent_self_attn is False:
-                m = rnn_seq(self.embedding(stories), self.sent_rnn, self.config.sent_emb_size)
-            else:
-                m = rnn_seq_self_attn(self.embedding(stories), self.sent_rnn, self.sent_self_attn_layer,
-                                      self.config.sent_emb_size)
-
+        stories, _ = contexts
+        m = self.sent_encode(stories)
         return self.ctx_self_attn_layer(m)
 
     def ctx_encode_h_rnn(self, contexts):
-        stories, queries = contexts
-        if self.config.sent_encode_method == "bow":
-            if self.config.sent_self_attn is False:
-                m = bow_sentence(self.embedding(stories), self.config.emb_sum)
-            else:
-                m = bow_sentence_self_attn(self.embedding(stories), self.sent_self_attn_layer)
-        elif self.config.sent_encode_method == "rnn":
-            if self.config.sent_self_attn is False:
-                m = rnn_seq(self.embedding(stories), self.sent_rnn, self.config.sent_emb_size)
-            else:
-                m = rnn_seq_self_attn(self.embedding(stories), self.sent_rnn, self.sent_self_attn_layer,
-                                      self.config.sent_emb_size)
+        stories, _ = contexts
+        m = self.sent_encode(stories)
 
-        return rnn_seq(m, self.ctx_rnn, self.config.ctx_emb_size)
+        if self.config.ctx_self_attn is True:
+            return rnn_seq_self_attn(m, self.ctx_rnn, self.ctx_self_attn_layer, self.config.ctx_emb_size)
+        else:
+            return rnn_seq(m, self.ctx_rnn, self.config.ctx_emb_size)
 
     def threshold_method(self, sampled_response):
         uncertain_index = list()
@@ -209,15 +195,15 @@ class ContinuousVAE(nn.Module):
 
         return uncertain_index, certain_index, certain_response
 
-    def evaluate(self, certain_indexs, certain_responses, feed_dict):
-        feed_responses = np.array([feed_dict["responses"][i] for i in certain_indexs])
+    def evaluate(self, certain_index, certain_responses, feed_dict):
+        feed_responses = np.array([feed_dict["responses"][i] for i in certain_index])
         certain_responses = np.array(certain_responses)
-        certain_indexs = np.array(certain_indexs)
+        certain_index = np.array(certain_index)
         acc = metrics.accuracy_score(feed_responses, certain_responses)
 
         if acc < 1:
             for certain_idx, certain_response, feed_response in zip(
-                    certain_indexs[np.not_equal(feed_responses, certain_responses)],
+                    certain_index[np.not_equal(feed_responses, certain_responses)],
                     certain_responses[np.not_equal(feed_responses, certain_responses)],
                     feed_responses[np.not_equal(feed_responses, certain_responses)]):
                 self.error[" ".join(self.api.candidates[feed_response])].append(
@@ -288,19 +274,7 @@ class ContinuousVAE(nn.Module):
         cond_emb_temp = cond_emb.unsqueeze(1).expand(-1, self.config.prior_sample, -1)
         cond_z_embed_prior = self.fused_cond_z(torch.cat([cond_emb_temp, latent_prior], 2))
         # step2: Get the embed of current candidates
-        # todo: more complicated methods for candidates representations
-        if self.config.sent_encode_method == "bow":
-            if self.config.sent_self_attn is False:
-                candidates_rep = bow_sentence(self.embedding(self.candidates), self.config.emb_sum)
-            else:
-                candidates_rep = bow_sentence_self_attn(self.embedding(self.candidates), self.sent_self_attn_layer)
-        elif self.config.sent_encode_method == "rnn":
-            if self.config.sent_self_attn is False:
-                candidates_rep = rnn_seq(self.embedding(self.candidates), self.sent_rnn, self.config.sent_emb_size)
-            else:
-                candidates_rep = rnn_seq_self_attn(self.embedding(self.candidates), self.sent_rnn,
-                                                   self.sent_self_attn_layer, self.config.sent_emb_size)
-
+        candidates_rep = self.sent_encode(self.candidates)
         current_candidates_rep = candidates_rep[self.available_cand_index]
         # step3: Get the logits of each candidate
         # todo: more complicated methods for candidates scoring
