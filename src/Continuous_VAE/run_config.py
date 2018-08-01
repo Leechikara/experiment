@@ -3,9 +3,9 @@ import torch
 
 
 class RunConfig(object):
-    # trained_model = "checkpoints/model13.pkl"
     trained_model = None
-    save_dir = "checkpoints"
+    save_dir = "checkpoints/model_H_RNN.pkl"
+    debug_dir = "debug/loss_H_RNN.log"
 
     random_seed = 42
     lr = 0.001
