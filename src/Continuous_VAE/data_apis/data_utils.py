@@ -3,6 +3,7 @@ import numpy as np
 import os, sys, json, re
 from itertools import chain
 from collections import defaultdict
+import random
 
 sys.path.append("/home/wkwang/workstation/experiment/src")
 from config.config import DATA_ROOT, TASKS
@@ -18,7 +19,7 @@ class DataUtils(object):
         self.candid2index = dict()
         self.index2candid = dict()
         self.cand_size = None
-        self.all_data = dict()
+        self.data = list()
 
         self.max_story_size = None
         self.mean_story_size = None
@@ -29,7 +30,7 @@ class DataUtils(object):
 
         self.ctx_encode = ctx_encode
 
-        # self.tagged = defaultdict(list)
+        self.tagged = defaultdict(list)
         # self.comingS, self.comingQ, self.comingA = None, None, None
 
     def load_vocab(self):
@@ -70,11 +71,21 @@ class DataUtils(object):
             self.candidates.append(cand.split())
         self.cand_size = len(self.candidates)
 
-    def load_dialog(self):
-        self.all_data = dict()
-        for task in TASKS.keys():
-            for data_set in ["train", "dev", "test"]:
-                # In on-line learning, dev is a part of dev.
+    def load_dialog(self, task, system_mode):
+        if task is None:
+            task_list = list(TASKS.keys())
+        else:
+            assert task in list(TASKS.keys())
+            task_list = [task]
+
+        assert system_mode in ["deploy", "test"]
+        if system_mode == "deploy":
+            data_set_list = ["train", "dev", "test"]
+        else:
+            data_set_list = ["test"]
+
+        for task in task_list:
+            for data_set in data_set_list:
                 data_file = os.path.join(DATA_ROOT, "public", task, data_set + ".txt")
                 with open(data_file, "r") as f:
                     lines = f.readlines()
@@ -111,20 +122,14 @@ class DataUtils(object):
                     response = self.candid2index.get(_response, len(self.candid2index))
                     data.append((memory, query, response))
 
-                self.all_data.setdefault(task, {})
-                self.all_data[task][data_set] = data
+                self.data.extend(data)
 
     def build_pad_config(self, memory_size):
-        data = list()
-        for task in TASKS.keys():
-            for data_set in ["train", "dev", "test"]:
-                data.extend(self.all_data[task][data_set])
-
-        self.max_story_size = max(map(len, (s for s, _, _ in data)))
-        self.mean_story_size = int(np.mean([len(s) for s, _, _ in data]))
-        sentence_size = max(map(len, chain.from_iterable(s for s, _, _ in data)))
+        self.max_story_size = max(map(len, (s for s, _, _ in self.data)))
+        self.mean_story_size = int(np.mean([len(s) for s, _, _ in self.data]))
+        sentence_size = max(map(len, chain.from_iterable(s for s, _, _ in self.data)))
         self.candidate_sentence_size = max(map(len, self.candidates))
-        self.query_size = max(map(len, (q for _, q, _ in data)))
+        self.query_size = max(map(len, (q for _, q, _ in self.data)))
         self.memory_size = min(memory_size, self.max_story_size)
         self.sentence_size = max(self.query_size, sentence_size)
 
@@ -142,16 +147,16 @@ class DataUtils(object):
                 [self.word2index[w] if w in self.word2index else self.word2index["UNK"] for w in candidate] + [0] * lc)
         return np.asarray(candidate_rep, dtype=np.int64)
 
-    def vectorize_data(self, data, batch_size):
+    def vectorize_data(self, data):
         stories = list()
         queries = list()
         answers = list()
-        data.sort(key=lambda x: len(x[0]), reverse=True)
+
+        memory_size = self.memory_size
+        if self.ctx_encode != "MemoryNetwork":
+            memory_size += 1
+
         for i, (story, query, answer) in enumerate(data):
-            if i % batch_size == 0:
-                memory_size = max(1, min(self.memory_size, len(story)))
-                if self.ctx_encode != "MemoryNetwork":
-                    memory_size += 1
             ss = []
             if self.ctx_encode != "MemoryNetwork":
                 story.append(query)
@@ -176,23 +181,6 @@ class DataUtils(object):
             answers.append(np.array(answer, dtype=np.int64))
         return stories, queries, answers
 
-    # def sample_true(self, resp_c, sample_n):
-    #     if len(self.tagged[resp_c]) < sample_n:
-    #         return list(np.random.choice(np.asarray(self.tagged[resp_c]), sample_n, replace=True))
-    #     else:
-    #         return list(np.random.choice(np.asarray(self.tagged[resp_c]), sample_n, replace=False))
-    #
-    # def sample_negative(self, resp_c, sample_n):
-    #     negative_cand = list()
-    #     for k, v in self.tagged.items():
-    #         if k == resp_c:
-    #             continue
-    #         negative_cand.extend(v)
-    #     if len(negative_cand) < sample_n:
-    #         return list(np.random.choice(np.asarray(negative_cand), sample_n, replace=True))
-    #     else:
-    #         return list(np.random.choice(np.asarray(negative_cand), sample_n, replace=False))
-
 
 def batch_iter(stories, queries, answers, batch_size, shuffle=False):
     data_num = len(stories)
@@ -215,3 +203,23 @@ def batch_iter(stories, queries, answers, batch_size, shuffle=False):
         else:
             answers_batch = answers[start:end]
         yield stories_batch, queries_batch, answers_batch, start
+
+
+def cluster_sampler(max_clusters, max_samples, tagged_data):
+    clusters = min(len(tagged_data), max_clusters)
+    if clusters == 0:
+        return None
+    sampled_clusters = random.sample(list(tagged_data.keys()), clusters)
+    samples = min(max_samples, min([len(tagged_data[c]) for c in sampled_clusters]))
+    sampled_batch = list()
+    for c in sampled_clusters:
+        sampled_batch.extend(random.sample(tagged_data[c], samples))
+
+    tag = list()
+    for i in range(len(sampled_batch)):
+        offset = i // samples
+        temp_tagged = [-1] * (offset * samples) + [1] * samples + [-1] * (len(sampled_batch) - samples * (offset + 1))
+        tag.extend(temp_tagged)
+    tag = np.array(tag, dtype=np.float32)
+
+    return sampled_batch, tag
