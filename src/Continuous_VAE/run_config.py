@@ -6,8 +6,8 @@ class RunConfig(object):
     trained_model = None
     coming_task = "task_1"
     system_mode = "deploy"
-    model_save_path = "checkpoints/model_H_RNN_task1_deploy.pkl"
-    debug_path = "debug/loss_H_RNN_task1_deploy.pkl"
+    model_save_path = "checkpoints/model_H_RNN_task_1_deploy.pkl"
+    debug_path = "debug/loss_H_RNN_task_1_deploy.pkl"
 
     random_seed = 42
     lr = 0.001
