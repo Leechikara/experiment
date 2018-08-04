@@ -14,9 +14,10 @@ from sklearn import metrics
 
 sys.path.append("/home/wkwang/workstation/experiment/src")
 from Continuous_VAE.model.utils import sample_gaussian, gaussian_kld
-from Continuous_VAE.data_apis.data_utils import batch_iter, TASKS, DATA_ROOT
+from Continuous_VAE.data_apis.data_utils import batch_iter, TASKS, DATA_ROOT, cluster_sampler
 from nn_utils.nn_utils import Attn, bow_sentence, bow_sentence_self_attn, rnn_seq, rnn_seq_self_attn, RnnV, \
     SelfAttn
+
 
 
 class ContinuousVAE(nn.Module):
@@ -85,19 +86,27 @@ class ContinuousVAE(nn.Module):
         # record all candidates in advance and current available index
         # If new candidates are known, we add its index into  available_cand_index
         # I think it's a more efficient strategy to simulate continuous leaning
-        # In the beginning, only the candidates response in task_1 is available
+        # We assume that only the candidates response in task_1 is known to developers.
         self.available_cand_index = list()
-        with open(os.path.join(DATA_ROOT, "candidate", "task_1.txt")) as f:
-            for line in f:
-                line = line.strip()
-                self.available_cand_index.append(api.candid2index[line])
-        # todo: only for test!!!
-        # for task in ["task_1", "task_2", "task_3", "task_4", "task_5"]:
-        #     with open(os.path.join(DATA_ROOT, "candidate", task + ".txt")) as f:
-        #         for line in f:
-        #             line = line.strip()
-        #             if api.candid2index[line] not in self.available_cand_index:
-        #                 self.available_cand_index.append(api.candid2index[line])
+        if self.config.system_mode == "deploy":
+            with open(os.path.join(DATA_ROOT, "candidate", "task_1.txt")) as f:
+                for line in f:
+                    line = line.strip()
+                    self.available_cand_index.append(api.candid2index[line])
+        else:
+            if self.config.coming_task is None:
+                for task in TASKS.keys():
+                    with open(os.path.join(DATA_ROOT, "candidate", task + ".txt")) as f:
+                        for line in f:
+                            line = line.strip()
+                            if api.candid2index[line] not in self.available_cand_index:
+                                self.available_cand_index.append(api.candid2index[line])
+            else:
+                with open(os.path.join(DATA_ROOT, "candidate", self.config.coming_task + ".txt")) as f:
+                    for line in f:
+                        line = line.strip()
+                        if api.candid2index[line] not in self.available_cand_index:
+                            self.available_cand_index.append(api.candid2index[line])
         self.available_cand_index.sort()
         self.register_buffer("candidates", torch.from_numpy(api.vectorize_candidates()))
 
@@ -295,7 +304,10 @@ class ContinuousVAE(nn.Module):
         if len(certain_index) > 0:
             acc = self.evaluate(certain_index, certain_response, feed_dict)
         else:
-            acc = 0
+            acc = None
+
+        if self.config.system_mode == "test":
+            return uncertain_index, certain_index, certain_response, acc
 
         # Step5: Get the loss
         #    step1: Simulate human in the loop and update the available response set
@@ -311,9 +323,9 @@ class ContinuousVAE(nn.Module):
             self.available_cand_index.sort()
             current_candidates_rep = candidates_rep[self.available_cand_index]
 
-            # # add all tagged data
-            # for position, resp in zip(uncertain_index, uncertain_resp_index):
-            #     self.api.tagged[resp].append(feed_dict["start"] + position)
+            # add all tagged data
+            for position, resp in zip(uncertain_index, uncertain_resp_index):
+                self.api.tagged[resp].append(feed_dict["start"] + position)
 
             # step2: Get the uncertain cond & resp embed
             uncertain_cond_emb = cond_emb[uncertain_index]
@@ -434,13 +446,40 @@ class ContinuousVAE(nn.Module):
             # todo: Such as mutual information to stable z, weight lock for continuous learning, normalisation term
         else:
             elbo = None
-        return elbo, \
+
+        if "cluster_contexts" not in feed_dict.keys():
+            cluster_loss = None
+        else:
+            if self.config.ctx_encode_method == "MemoryNetwork":
+                cluster_ctx = self.ctx_encode_m2n(feed_dict["cluster_contexts"])
+            elif self.config.ctx_encode_method == "HierarchalSelfAttn":
+                cluster_ctx = self.ctx_encode_h_self_attn(feed_dict["cluster_contexts"])
+            elif self.config.ctx_encode_method == "HierarchalRNN":
+                cluster_ctx = self.ctx_encode_h_rnn(feed_dict["cluster_contexts"])
+
+            cluster_ctx_temp1 = cluster_ctx.unsqueeze(1).expand(-1, cluster_ctx.size(0), -1).contiguous().view(-1, cluster_ctx.size(-1))
+            cluster_ctx_temp2 = cluster_ctx.unsqueeze(0).expand(cluster_ctx.size(0), -1, -1).contiguous().view(-1, cluster_ctx.size(-1))
+
+            cluster_loss = F.cosine_embedding_loss(cluster_ctx_temp1, cluster_ctx_temp2, feed_dict["tagged"])
+
+        if elbo is None and cluster_loss is None:
+            loss = None
+        elif elbo is None and cluster_loss is not None:
+            loss = self.config.cluster_loss_factor * cluster_loss
+        elif elbo is not None and cluster_loss is None:
+            loss = elbo
+        else:
+            loss = elbo + self.config.cluster_loss_factor * cluster_loss
+
+        return loss, \
+               loss.item() if loss is not None else 0, \
+               elbo.item() if elbo is not None else 0, \
+               cluster_loss.item() if cluster_loss is not None else 0, \
+               avg_rc_loss.item() if elbo is not None else 0,\
+               avg_kld.item() if elbo is not None else 0,\
                uncertain_index, \
                certain_index, \
-               certain_response, \
-               elbo.item() if elbo is not None else 0, \
-               avg_rc_loss.item() if elbo is not None else 0, \
-               avg_kld.item() if elbo is not None else 0, \
+               certain_response,\
                acc
 
 
@@ -451,19 +490,7 @@ class ContinuousAgent(object):
         self.model = model.to(config.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
         self.api = api
-        self.coming_data = list()
-        self.test_data = dict()
-        for task in TASKS.keys():
-            for data_set in ["train", "dev"]:
-                self.coming_data.extend(self.api.all_data[task][data_set])
-        self.comingS, self.comingQ, self.comingA = self.api.vectorize_data(self.coming_data, self.config.batch_size)
-        # self.api.comingS = self.comingS
-        # self.api.comingQ = self.comingQ
-        # self.api.comingA = self.comingA
-        for task in TASKS.keys():
-            self.test_data[task] = dict()
-            self.test_data[task]["S"], self.test_data[task]["Q"], self.test_data[task]["A"] = self.api.vectorize_data(
-                self.api.all_data[task]["test"], self.config.batch_size)
+        self.comingS, self.comingQ, self.comingA = self.api.vectorize_data(self.api.data)
 
     def tensor_wrapper(self, data):
         if isinstance(data, list):
@@ -471,39 +498,108 @@ class ContinuousAgent(object):
         data = torch.from_numpy(data)
         return data.to(self.config.device)
 
+    def main(self):
+        if self.config.system_mode == "deploy":
+            with torch.set_grad_enabled(True):
+                self.simulate_run()
+        else:
+            with torch.set_grad_enabled(False):
+                self.test()
+
+    def test(self):
+        uncertain = list()
+        certain = list()
+        acc_in_certain = list()
+
+        for step, (s, q, a, start) in enumerate(
+                batch_iter(self.comingS, self.comingQ, self.comingA, self.config.batch_size)):
+            feed_dict = {"contexts": (self.tensor_wrapper(s), self.tensor_wrapper(q)),
+                         "responses": a, "step": step, "start": start}
+
+            uncertain_index, certain_index, _, acc = self.model(feed_dict)
+            uncertain.append(len(uncertain_index))
+            certain.append(len(certain_index))
+            acc_in_certain.append(acc)
+
+        acc_num = 0
+        for acc, certain_num in zip(acc_in_certain, certain):
+            if acc is not None:
+                acc_num += acc * certain_num
+
+        print("In testing, we have {} points certain, "
+              "{} points uncertain. "
+              "In the certain points, {} points are right. "
+              "The rate is {}.".format(sum(certain), sum(uncertain), acc_num, acc_num / sum(certain)))
+
     def simulate_run(self):
         loss_log = defaultdict(list)
 
         for step, (s, q, a, start) in enumerate(
                 batch_iter(self.comingS, self.comingQ, self.comingA, self.config.batch_size, shuffle=True)):
-            # print("step:", step)
             self.optimizer.zero_grad()
-            feed_dict = {"contexts": (self.tensor_wrapper(s), self.tensor_wrapper(q)),
-                         "responses": a, "step": step}
-            elbo, uncertain_index, certain_index, certain_response, elbo_item, avg_rc_loss_item, avg_kld_item, acc = \
-                self.model(feed_dict)
-            if elbo is not None:
-                elbo.backward()
+
+            if self.config.cluster_loss_available is True:
+                sampled_cluster = cluster_sampler(self.config.max_clusters, self.config.max_samples, self.api.tagged)
+            else:
+                sampled_cluster = None
+
+            if sampled_cluster is None:
+                feed_dict = {"contexts": (self.tensor_wrapper(s), self.tensor_wrapper(q)),
+                             "responses": a, "step": step, "start": start}
+            else:
+                sampled_batch, tagged = sampled_cluster
+                cluster_s = [self.comingS[i] for i in sampled_batch]
+                cluster_q = [self.comingQ[i] for i in sampled_batch]
+                feed_dict = {"contexts": (self.tensor_wrapper(s), self.tensor_wrapper(q)),
+                             "responses": a, "step": step, "start": start,
+                             "cluster_contexts": (self.tensor_wrapper(cluster_s), self.tensor_wrapper(cluster_q)),
+                             "tagged": self.tensor_wrapper(tagged)}
+
+            loss, loss_value, elbo_value, cluster_loss_value, avg_rc_loss_value, avg_kld_value, \
+            uncertain_index, certain_index, certain_response, acc_in_certain = self.model(feed_dict)
+
+            if loss is not None:
+                loss.backward()
                 nn.utils.clip_grad_norm_(self.model.parameters(), self.config.max_clip)
                 self.optimizer.step()
-            print(len(certain_index), elbo_item, avg_rc_loss_item, avg_kld_item, acc)
+
+            # for debug
+            print("We have {} points replied by machine. The accuracy is {}. "
+                  "\nLoss is {}. Of which, elbo is {}, cluster loss is {}, rc_loss is {}, kld is {}."
+                  .format(len(certain_index), acc_in_certain,
+                          loss_value, elbo_value, cluster_loss_value,
+                          avg_rc_loss_value, avg_kld_value))
+
             # print(len(certain_index), acc)
             loss_log["certain"].append(len(certain_index))
-            loss_log["elbo"].append(elbo_item)
-            loss_log["avg_rc_loss"].append(avg_rc_loss_item)
-            loss_log["avg_kld_loss"].append(avg_kld_item)
-            loss_log["acc"].append(acc)
+            loss_log["uncertain"].append(len(uncertain_index))
+            loss_log["elbo"].append(elbo_value)
+            loss_log["avg_rc_loss"].append(avg_rc_loss_value)
+            loss_log["avg_kld_loss"].append(avg_kld_value)
+            loss_log["acc_in_certain"].append(acc_in_certain)
+            loss_log["loss"].append(loss_value)
+            loss_log["cluster_loss"].append(cluster_loss_value)
 
         torch.save(self.model.state_dict(), self.config.model_save_path)
         pickle.dump(loss_log, open(self.config.debug_path, "wb"))
 
         # for debug
         print("debug details")
+        acc_num = 0
+        for acc, certain_num in zip(loss_log["acc_in_certain"], loss_log["certain"]):
+            if acc is not None:
+                acc_num += acc * certain_num
+        print("In deployment, we have {} points certain, "
+              "{} points uncertain. "
+              "In the certain points, {} points are right. "
+              "The rate is {}.".format(sum(loss_log["certain"]), sum(loss_log["uncertain"]),
+                                       acc_num, acc_num / sum(loss_log["certain"])))
+                
         for feed_response, contents in self.model.error.items():
             print("**************************************************************************************")
             print(">>>>", feed_response)
             for content in contents:
                 for c in content:
-                    print(c)
+                    print(c.strip())
                 print("\n")
             print("**************************************************************************************")
