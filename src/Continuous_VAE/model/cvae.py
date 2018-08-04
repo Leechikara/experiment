@@ -600,6 +600,6 @@ class ContinuousAgent(object):
             print(">>>>", feed_response)
             for content in contents:
                 for c in content:
-                    print(c.strip())
+                    print(c.strip() if type(c) is str else c)
                 print("\n")
             print("**************************************************************************************")
