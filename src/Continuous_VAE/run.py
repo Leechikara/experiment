@@ -13,7 +13,7 @@ if __name__ == "__main__":
     api = DataUtils(config.ctx_encode_method)
     api.load_vocab()
     api.load_candidates()
-    api.load_dialog()
+    api.load_dialog(config.coming_task, config.system_mode)
     api.build_pad_config(config.memory_size)
 
     model = ContinuousVAE(config, api)
@@ -27,4 +27,4 @@ if __name__ == "__main__":
         model.load_state_dict(torch.load(config.trained_model))
 
     agent = ContinuousAgent(config, model, api)
-    agent.simulate_run()
+    agent.main()
