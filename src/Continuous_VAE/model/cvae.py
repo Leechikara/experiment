@@ -472,11 +472,11 @@ class ContinuousVAE(nn.Module):
             loss = elbo + self.config.cluster_loss_factor * cluster_loss
 
         return loss, \
-               loss.item() if loss is not None else 0, \
-               elbo.item() if elbo is not None else 0, \
-               cluster_loss.item() if cluster_loss is not None else 0, \
-               avg_rc_loss.item() if elbo is not None else 0,\
-               avg_kld.item() if elbo is not None else 0,\
+               loss.item() if loss is not None else None, \
+               elbo.item() if elbo is not None else None, \
+               cluster_loss.item() if cluster_loss is not None else None, \
+               avg_rc_loss.item() if elbo is not None else None,\
+               avg_kld.item() if elbo is not None else None,\
                uncertain_index, \
                certain_index, \
                certain_response,\
