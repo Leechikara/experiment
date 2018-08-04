@@ -4,8 +4,10 @@ import torch
 
 class RunConfig(object):
     trained_model = None
-    model_save_path = "checkpoints/model_H_RNN.pkl"
-    debug_path = "debug/loss_H_RNN.pkl"
+    coming_task = "task_1"
+    system_mode = "deploy"
+    model_save_path = "checkpoints/model_H_RNN_task1_deploy.pkl"
+    debug_path = "debug/loss_H_RNN_task1_deploy.pkl"
 
     random_seed = 42
     lr = 0.001
@@ -50,6 +52,11 @@ class RunConfig(object):
     posterior_sample = 50
     threshold = 0.7
     full_kl_step = 10000
+
+    cluster_loss_available = True
+    max_clusters = 32
+    max_samples = 256
+    cluster_loss_factor = 1
 
     if sent_encode_method == "rnn":
         if sent_self_attn is True:
