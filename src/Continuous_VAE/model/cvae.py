@@ -580,6 +580,9 @@ class ContinuousAgent(object):
             loss_log["loss"].append(loss_value)
             loss_log["cluster_loss"].append(cluster_loss_value)
 
+            # memory problem
+            torch.cuda.empty_cache()
+
         torch.save(self.model.state_dict(), self.config.model_save_path)
         pickle.dump(loss_log, open(self.config.debug_path, "wb"))
 
