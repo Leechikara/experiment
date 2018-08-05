@@ -600,7 +600,15 @@ class ContinuousAgent(object):
                 
         for feed_response, contents in self.model.error.items():
             print("**************************************************************************************")
-            print(">>>>", feed_response, str(len(contents)))
+            print(">>>>", feed_response, "Error case:", str(len(contents)))
+            print("Error response:")
+            temp = list()
+            for content in contents:
+                temp.append(content[2].strip())
+            temp = set(temp)
+            for r in temp:
+                print(r)
+            print("Details:")
             for content in contents:
                 for c in content:
                     print(c.strip() if type(c) is str else c)
