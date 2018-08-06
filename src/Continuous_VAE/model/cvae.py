@@ -323,10 +323,6 @@ class ContinuousVAE(nn.Module):
             self.available_cand_index.sort()
             current_candidates_rep = candidates_rep[self.available_cand_index]
 
-            # add all tagged data
-            for position, resp in zip(uncertain_index, uncertain_resp_index):
-                self.api.tagged[resp].append(feed_dict["start"] + position)
-
             # step2: Get the uncertain cond & resp embed
             uncertain_cond_emb = cond_emb[uncertain_index]
             uncertain_resp_emb = candidates_rep[uncertain_resp_index]
@@ -444,23 +440,71 @@ class ContinuousVAE(nn.Module):
             # todo: add MI loss
             # todo: more loss. THIS IS VERY IMPORTANT
             # todo: Such as mutual information to stable z, weight lock for continuous learning, normalisation term
+
+            # add cluster loss
+            if self.config.cluster_loss_available is True:
+                sampled_cluster = cluster_sampler(uncertain_resp_index,
+                                                  self.api.tagged,
+                                                  self.config.max_positive_samples,
+                                                  self.config.max_negative_samples)
+                if sampled_cluster is None:
+                    cluster_loss = None
+                else:
+                    sampled_batch, tag, total_samples = sampled_cluster
+
+                    cluster_s = [self.api.comingS[i] for i in sampled_batch]
+                    cluster_q = [self.api.comingQ[i] for i in sampled_batch]
+                    cluster_contexts = (self.tensor_wrapper(cluster_s), self.tensor_wrapper(cluster_q))
+                    tag = self.tensor_wrapper(tag)
+
+                    if self.config.ctx_encode_method == "MemoryNetwork":
+                        cluster_ctx = self.ctx_encode_m2n(cluster_contexts)
+                    elif self.config.ctx_encode_method == "HierarchalSelfAttn":
+                        cluster_ctx = self.ctx_encode_h_self_attn(cluster_contexts)
+                    elif self.config.ctx_encode_method == "HierarchalRNN":
+                        cluster_ctx = self.ctx_encode_h_rnn(cluster_contexts)
+
+                    uncertain_cond_emb_cluster = uncertain_cond_emb.unsqueeze(1).expand(-1, total_samples, -1)
+                    uncertain_cond_emb_cluster = uncertain_cond_emb_cluster.contiguous().view(-1, uncertain_cond_emb.size(-1))
+
+                    cluster_loss = F.cosine_embedding_loss(uncertain_cond_emb_cluster, cluster_ctx, tag)
+            else:
+                cluster_loss = None
+
+            # add all tagged data
+            tagged_data = dict()
+            all_tagged_data = set()
+            for position in uncertain_index:
+                all_tagged_data.add(feed_dict["start"] + position)
+            for position, resp in zip(uncertain_index, uncertain_resp_index):
+                if resp not in tagged_data.keys():
+                    tagged_data[resp] = {"pos": []}
+                tagged_data[resp]["pos"].append(feed_dict["start"] + position)
+            for key in tagged_data.keys():
+                tagged_data[key]["neg"] = list(all_tagged_data - set(tagged_data[key]["pos"]))
+            for key, value in tagged_data.items():
+                if key not in self.api.tagged.keys():
+                    self.api.tagged[key] = {"pos": [], "neg": []}
+                self.api.tagged[key]["pos"].extend(value["pos"])
+                self.api.tagged[key]["neg"].extend(value["neg"])
         else:
             elbo = None
-
-        if "cluster_contexts" not in feed_dict.keys():
             cluster_loss = None
-        else:
-            if self.config.ctx_encode_method == "MemoryNetwork":
-                cluster_ctx = self.ctx_encode_m2n(feed_dict["cluster_contexts"])
-            elif self.config.ctx_encode_method == "HierarchalSelfAttn":
-                cluster_ctx = self.ctx_encode_h_self_attn(feed_dict["cluster_contexts"])
-            elif self.config.ctx_encode_method == "HierarchalRNN":
-                cluster_ctx = self.ctx_encode_h_rnn(feed_dict["cluster_contexts"])
 
-            cluster_ctx_temp1 = cluster_ctx.unsqueeze(1).expand(-1, cluster_ctx.size(0), -1).contiguous().view(-1, cluster_ctx.size(-1))
-            cluster_ctx_temp2 = cluster_ctx.unsqueeze(0).expand(cluster_ctx.size(0), -1, -1).contiguous().view(-1, cluster_ctx.size(-1))
-
-            cluster_loss = F.cosine_embedding_loss(cluster_ctx_temp1, cluster_ctx_temp2, feed_dict["tagged"])
+        # if "cluster_contexts" not in feed_dict.keys() or elbo is None:
+        #     cluster_loss = None
+        # else:
+        #     if self.config.ctx_encode_method == "MemoryNetwork":
+        #         cluster_ctx = self.ctx_encode_m2n(feed_dict["cluster_contexts"])
+        #     elif self.config.ctx_encode_method == "HierarchalSelfAttn":
+        #         cluster_ctx = self.ctx_encode_h_self_attn(feed_dict["cluster_contexts"])
+        #     elif self.config.ctx_encode_method == "HierarchalRNN":
+        #         cluster_ctx = self.ctx_encode_h_rnn(feed_dict["cluster_contexts"])
+        #
+        #     cluster_ctx_temp1 = cluster_ctx.unsqueeze(1).expand(-1, cluster_ctx.size(0), -1).contiguous().view(-1, cluster_ctx.size(-1))
+        #     cluster_ctx_temp2 = cluster_ctx.unsqueeze(0).expand(cluster_ctx.size(0), -1, -1).contiguous().view(-1, cluster_ctx.size(-1))
+        #
+        #     cluster_loss = F.cosine_embedding_loss(cluster_ctx_temp1, cluster_ctx_temp2, feed_dict["tagged"])
 
         if elbo is None and cluster_loss is None:
             loss = None
@@ -490,7 +534,7 @@ class ContinuousAgent(object):
         self.model = model.to(config.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=config.lr)
         self.api = api
-        self.comingS, self.comingQ, self.comingA = self.api.vectorize_data(self.api.data)
+        self.api.vectorize_data(self.api.data)
 
     def tensor_wrapper(self, data):
         if isinstance(data, list):
@@ -512,7 +556,7 @@ class ContinuousAgent(object):
         acc_in_certain = list()
 
         for step, (s, q, a, start) in enumerate(
-                batch_iter(self.comingS, self.comingQ, self.comingA, self.config.batch_size)):
+                batch_iter(self.api.comingS, self.api.comingQ, self.api.comingA, self.config.batch_size)):
             feed_dict = {"contexts": (self.tensor_wrapper(s), self.tensor_wrapper(q)),
                          "responses": a, "step": step, "start": start}
 
@@ -535,25 +579,18 @@ class ContinuousAgent(object):
         loss_log = defaultdict(list)
 
         for step, (s, q, a, start) in enumerate(
-                batch_iter(self.comingS, self.comingQ, self.comingA, self.config.batch_size, shuffle=True)):
+                batch_iter(self.api.comingS, self.api.comingQ, self.api.comingA, self.config.batch_size, shuffle=True)):
             self.optimizer.zero_grad()
-
-            if self.config.cluster_loss_available is True:
-                sampled_cluster = cluster_sampler(self.config.max_clusters, self.config.max_samples, self.api.tagged)
-            else:
-                sampled_cluster = None
-
-            if sampled_cluster is None:
-                feed_dict = {"contexts": (self.tensor_wrapper(s), self.tensor_wrapper(q)),
-                             "responses": a, "step": step, "start": start}
-            else:
-                sampled_batch, tagged = sampled_cluster
-                cluster_s = [self.comingS[i] for i in sampled_batch]
-                cluster_q = [self.comingQ[i] for i in sampled_batch]
-                feed_dict = {"contexts": (self.tensor_wrapper(s), self.tensor_wrapper(q)),
-                             "responses": a, "step": step, "start": start,
-                             "cluster_contexts": (self.tensor_wrapper(cluster_s), self.tensor_wrapper(cluster_q)),
-                             "tagged": self.tensor_wrapper(tagged)}
+            feed_dict = {"contexts": (self.tensor_wrapper(s), self.tensor_wrapper(q)),
+                         "responses": a, "step": step, "start": start}
+            # else:
+            #     sampled_batch, tagged = sampled_cluster
+            #     cluster_s = [self.comingS[i] for i in sampled_batch]
+            #     cluster_q = [self.comingQ[i] for i in sampled_batch]
+            #     feed_dict = {"contexts": (self.tensor_wrapper(s), self.tensor_wrapper(q)),
+            #                  "responses": a, "step": step, "start": start,
+            #                  "cluster_contexts": (self.tensor_wrapper(cluster_s), self.tensor_wrapper(cluster_q)),
+            #                  "tagged": self.tensor_wrapper(tagged)}
 
             loss, loss_value, elbo_value, cluster_loss_value, avg_rc_loss_value, avg_kld_value, \
             uncertain_index, certain_index, certain_response, acc_in_certain = self.model(feed_dict)
