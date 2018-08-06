@@ -2,7 +2,6 @@
 import numpy as np
 import os, sys, json, re
 from itertools import chain
-from collections import defaultdict
 import random
 
 sys.path.append("/home/wkwang/workstation/experiment/src")
@@ -30,8 +29,8 @@ class DataUtils(object):
 
         self.ctx_encode = ctx_encode
 
-        self.tagged = defaultdict(list)
-        # self.comingS, self.comingQ, self.comingA = None, None, None
+        self.tagged = dict()
+        self.comingS, self.comingQ, self.comingA = None, None, None
 
     def load_vocab(self):
         self.word2index = dict()
@@ -179,7 +178,7 @@ class DataUtils(object):
             stories.append(np.array(ss, dtype=np.int64))
             queries.append(np.array(q, dtype=np.int64))
             answers.append(np.array(answer, dtype=np.int64))
-        return stories, queries, answers
+        self.comingS, self.comingQ, self.comingA = stories, queries, answers
 
 
 def batch_iter(stories, queries, answers, batch_size, shuffle=False):
@@ -205,21 +204,39 @@ def batch_iter(stories, queries, answers, batch_size, shuffle=False):
         yield stories_batch, queries_batch, answers_batch, start
 
 
-def cluster_sampler(max_clusters, max_samples, tagged_data):
-    clusters = min(len(tagged_data), max_clusters)
-    if clusters == 0:
+# def cluster_sampler(max_clusters, max_samples, tagged_data):
+#     clusters = min(len(tagged_data), max_clusters)
+#     if clusters == 0:
+#         return None
+#     sampled_clusters = random.sample(list(tagged_data.keys()), clusters)
+#     samples = min(max_samples, min([len(tagged_data[c]) for c in sampled_clusters]))
+#     sampled_batch = list()
+#     for c in sampled_clusters:
+#         sampled_batch.extend(random.sample(tagged_data[c], samples))
+#
+#     tag = list()
+#     for i in range(len(sampled_batch)):
+#         offset = i // samples
+#         temp_tagged = [-1] * (offset * samples) + [1] * samples + [-1] * (len(sampled_batch) - samples * (offset + 1))
+#         tag.extend(temp_tagged)
+#     tag = np.array(tag, dtype=np.float32)
+#
+#     return sampled_batch, tag
+
+def cluster_sampler(labled_class, tagged_data, max_positive_samples, max_negative_samples):
+    positive_samples = min(max_positive_samples, min([len(tagged_data[c]["pos"]) if c in tagged_data.keys() else 0 for c in labled_class]))
+    negative_samples = min(max_negative_samples, min([len(tagged_data[c]["neg"]) if c in tagged_data.keys() else 0 for c in labled_class]))
+
+    total_samples = positive_samples + negative_samples
+    if total_samples == 0:
         return None
-    sampled_clusters = random.sample(list(tagged_data.keys()), clusters)
-    samples = min(max_samples, min([len(tagged_data[c]) for c in sampled_clusters]))
+
     sampled_batch = list()
-    for c in sampled_clusters:
-        sampled_batch.extend(random.sample(tagged_data[c], samples))
-
     tag = list()
-    for i in range(len(sampled_batch)):
-        offset = i // samples
-        temp_tagged = [-1] * (offset * samples) + [1] * samples + [-1] * (len(sampled_batch) - samples * (offset + 1))
-        tag.extend(temp_tagged)
+    for c in labled_class:
+        sampled_batch.extend(random.sample(tagged_data[c]["pos"], positive_samples))
+        sampled_batch.extend(random.sample(tagged_data[c]["neg"], negative_samples))
+        tag.extend([1.0] * positive_samples)
+        tag.extend([-1.0] * negative_samples)
     tag = np.array(tag, dtype=np.float32)
-
-    return sampled_batch, tag
+    return sampled_batch, tag, total_samples
