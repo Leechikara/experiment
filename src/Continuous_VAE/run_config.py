@@ -54,9 +54,9 @@ class RunConfig(object):
     full_kl_step = 10000
 
     cluster_loss_available = True
-    max_clusters = 8
-    max_samples = 64
-    cluster_loss_factor = 1
+    max_negative_samples = 50
+    max_positive_samples = 200
+    cluster_loss_factor = 0.5
 
     if sent_encode_method == "rnn":
         if sent_self_attn is True:
