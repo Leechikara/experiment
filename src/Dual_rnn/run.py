@@ -34,7 +34,7 @@ if __name__ == "__main__":
         agent = DualLSTMAgent(config, model, train_data, dev_data, None, api)
         agent.train()
     else:
-        test_file = os.path.join(DATA_ROOT, "public", config.testing_task, "train.txt")
+        test_file = os.path.join(DATA_ROOT, "public", config.testing_task, "test.txt")
         if config.aware_new:
             api.load_vocab(config.testing_task)
             api.load_candidates(config.testing_task)
@@ -50,7 +50,7 @@ if __name__ == "__main__":
         api.build_pad_config(test_data)
         candidates = api.vectorize_candidates()
 
-        model = DualLSTM(config, candidates, api)
+        model = DualLSTM(config, candidates, api).to(config.device)
         assert config.trained_model is not None
         if os.path.isdir(config.trained_model):
             trained_model = os.listdir(config.trained_model)
