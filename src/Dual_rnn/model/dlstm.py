@@ -129,13 +129,13 @@ class DualLSTMAgent(object):
 
         best_validation_accuracy = 0
 
-        for epoch in range(1, self.config["epochs"] + 1):
+        for epoch in range(1, self.config.epochs + 1):
             total_cost = 0.0
-            for ctx, resp in batch_iter(train_ctx, train_resp, batch_size=self.config["batch_size"], shuffle=True):
+            for ctx, resp in batch_iter(train_ctx, train_resp, batch_size=self.config.batch_size, shuffle=True):
                 with torch.set_grad_enabled(True):
                     cost_t = self.batch_fit(self.tensor_wrapper(ctx), self.tensor_wrapper(resp))
                 total_cost += cost_t
-            if epoch % self.config["evaluation_interval"] == 0:
+            if epoch % self.config.evaluation_interval == 0:
                 with torch.set_grad_enabled(False):
                     train_preds = self.batch_predict(train_ctx)
                     val_preds = self.batch_predict(val_ctx)
@@ -152,11 +152,11 @@ class DualLSTMAgent(object):
                     best_validation_accuracy = val_acc
                     model_file = "epoch_{}_accuracy_{}.pkl".format(epoch, val_acc)
                     # A different method to store parameters
-                    with open(os.path.join(self.config["save_dir"], model_file), "wb") as f:
+                    with open(os.path.join(self.config.save_dir, model_file), "wb") as f:
                         pickle.dump(self.get_checkpoints(), f)
 
     def test(self):
-        test_ctx, test_resp = self.data_utils.vectorize_data(self.test_data, self.config["batch_size"])
+        test_ctx, test_resp = self.data_utils.vectorize_data(self.test_data, self.config.batch_size)
         n_test = len(test_ctx)
         print("Testing Size", n_test)
         with torch.set_grad_enabled(False):
