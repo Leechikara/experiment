@@ -12,7 +12,7 @@ from Dual_rnn.run_config import RunConfig as Config
 
 if __name__ == "__main__":
     config = Config()
-    api = DataUtils()
+    api = DataUtils(config.ctx_window)
     if config.system_mode == "train":
         train_file = os.path.join(DATA_ROOT, "public", config.trained_task, "train.txt")
         dev_file = os.path.join(DATA_ROOT, "public", config.trained_task, "dev.txt")
