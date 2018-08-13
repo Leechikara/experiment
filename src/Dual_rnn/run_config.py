@@ -3,13 +3,12 @@ import torch
 
 
 class RunConfig(object):
+    system_mode = "train"
     trained_task = "task_1"
-    testing_task = "task_5"
+    save_dir = "checkpoints/task_1"
     trained_model = None
     aware_new = False
-    system_mode = "train"
-    model_save_path = "checkpoints/task_5_model.pkl"
-    debug_path = "debug/task_5_train.pkl"
+    testing_task = "task_5"
 
     random_seed = 42
     lr = 0.001
