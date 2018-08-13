@@ -18,21 +18,22 @@ from nn_utils.nn_utils import rnn_seq, RnnV
 
 
 class DualLSTM(nn.Module):
-    def __init__(self, config, candidates):
+    def __init__(self, config, candidates, api):
         super(DualLSTM, self).__init__()
         torch.manual_seed(config.random_seed)
 
-        self.vocab_size = config.word_emb_size
+        self.word_emb_size = config.word_emb_size
         self.rnn_hidden_size = config.rnn_hidden_size
         self.config = config
 
-        self.ctx_encoder = RnnV(self.vocab_size, self.rnn_hidden_size, rnn_type="lstm", num_layers=config.rnn_layers,
-                                bias=True, batch_first=True, dropout=config.rnn_dropout, bidirectional=config.rnn_bidirectional)
-        self.response_encoder = RnnV(self.vocab_size, self.rnn_hidden_size, rnn_type="lstm",
+        self.ctx_encoder = RnnV(self.word_emb_size, self.rnn_hidden_size, rnn_type="lstm", num_layers=config.rnn_layers,
+                                bias=True, batch_first=True, dropout=config.rnn_dropout,
+                                bidirectional=config.rnn_bidirectional)
+        self.response_encoder = RnnV(self.word_emb_size, self.rnn_hidden_size, rnn_type="lstm",
                                      num_layers=config.rnn_layers,
                                      bias=True, batch_first=True, dropout=config.rnn_dropout,
                                      bidirectional=config.rnn_bidirectional)
-        self.embedding = nn.Embedding(self.vocab_size, self.vocab_size, padding_idx=0)
+        self.embedding = nn.Embedding(api.vocab_size, self.word_emb_size, padding_idx=0)
 
         self.W = nn.Linear(self.config.sent_emb_size, self.config.sent_emb_size)
 
