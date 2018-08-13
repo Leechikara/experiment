@@ -27,11 +27,11 @@ class DualLSTM(nn.Module):
         self.config = config
 
         self.ctx_encoder = RnnV(self.vocab_size, self.rnn_hidden_size, rnn_type="lstm", num_layers=config.rnn_layers,
-                                bias=True, batch_first=True, dropout=config.rnn_dropout, bidirectional=config.config)
+                                bias=True, batch_first=True, dropout=config.rnn_dropout, bidirectional=config.rnn_bidirectional)
         self.response_encoder = RnnV(self.vocab_size, self.rnn_hidden_size, rnn_type="lstm",
                                      num_layers=config.rnn_layers,
                                      bias=True, batch_first=True, dropout=config.rnn_dropout,
-                                     bidirectional=config.config)
+                                     bidirectional=config.rnn_bidirectional)
         self.embedding = nn.Embedding(self.vocab_size, self.vocab_size, padding_idx=0)
 
         self.W = nn.Linear(self.config.sent_emb_size, self.config.sent_emb_size)
