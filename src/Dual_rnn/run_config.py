@@ -16,10 +16,12 @@ class RunConfig(object):
     batch_size = 32
     max_clip = 40.0
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    epochs = 60
+    evaluation_interval = 2
 
     word_emb_size = 32
 
-    rnn_type = "gru"
+    rnn_type = "lstm"
     rnn_hidden_size = 32
     rnn_layers = 1
     rnn_dropout = 0
