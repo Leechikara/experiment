@@ -16,8 +16,8 @@ class RunConfig(object):
     batch_size = 32
     max_clip = 40.0
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    epochs = 60
-    evaluation_interval = 2
+    epochs = 5
+    evaluation_interval = 1
 
     word_emb_size = 32
 
