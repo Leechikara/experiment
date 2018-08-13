@@ -8,7 +8,7 @@ from config.config import DATA_ROOT
 
 
 class DataUtils(object):
-    def __init__(self):
+    def __init__(self, ctx_window):
         self.word2index = dict()
         self.index2word = dict()
         self.vocab_size = None
@@ -24,6 +24,8 @@ class DataUtils(object):
         self.candidate_sentence_size = None
         self.query_size = None
         self.memory_size = None
+
+        self.ctx_window = ctx_window
 
     def load_vocab(self, task):
         self.word2index = dict()
@@ -86,7 +88,7 @@ class DataUtils(object):
             context.append(description)
 
             memory = list()
-            for nid, description in enumerate(context):
+            for nid, description in enumerate(context[-self.ctx_window:]):
                 if nid % 2 == 0:
                     description.extend(["$u", "#" + str(nid // 2)])
                 else:
@@ -120,7 +122,7 @@ class DataUtils(object):
         stories = list()
         answers = list()
         data.sort(key=lambda x: len(x[0]), reverse=True)
-        for i, (story, _, answer) in enumerate(data):
+        for i, (story, answer) in enumerate(data):
             if i % batch_size == 0:
                 memory_size = len(story)
             ls = memory_size - len(story)
