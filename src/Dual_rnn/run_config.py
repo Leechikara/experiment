@@ -26,6 +26,7 @@ class RunConfig(object):
     rnn_layers = 1
     rnn_dropout = 0
     rnn_bidirectional = True
+    ctx_window = 4
 
     sent_emb_size = rnn_hidden_size * rnn_layers * 2 if rnn_bidirectional \
         else rnn_hidden_size * rnn_layers
