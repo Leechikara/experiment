@@ -105,9 +105,9 @@ class DualLSTMAgent(object):
         self.optimizer.step()
         return loss.item()
 
-    def batch_predict(self, ctx):
+    def batch_predict(self, contexts):
         preds = list()
-        for ctx, _ in batch_iter(ctx, None, self.config.batch_size, False):
+        for ctx, _ in batch_iter(contexts, None, self.config.batch_size, False):
             logits = self.model(self.tensor_wrapper(ctx))
             predict_op = torch.argmax(logits, dim=1)
             pred = predict_op.detach().to(torch.device("cpu")).numpy()
