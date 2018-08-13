@@ -9,7 +9,6 @@ from config.config import DATA_ROOT
 from Dual_rnn.data_apis.data_utils import DataUtils, build_p_mapping
 from Dual_rnn.run_config import RunConfig as Config
 
-
 if __name__ == "__main__":
     config = Config()
     api = DataUtils(config.ctx_window)
@@ -24,7 +23,7 @@ if __name__ == "__main__":
         data = train_data + dev_data
         api.build_pad_config(data)
         candidates = api.vectorize_candidates()
-        model = DualLSTM(config, candidates).to(config.device)
+        model = DualLSTM(config, candidates, api).to(config.device)
         if config.trained_model is not None:
             if os.path.isdir(config.trained_model):
                 trained_model = os.listdir(config.trained_model)
@@ -32,7 +31,7 @@ if __name__ == "__main__":
                 config.trained_model = os.path.join(config.trained_model, trained_model[-1])
             print("Using trained model in {}".format(config.trained_model))
             model.load_checkpoints(config.trained_model)
-        agent = DualLSTMAgent(config,model,train_data, dev_data, None, api)
+        agent = DualLSTMAgent(config, model, train_data, dev_data, None, api)
         agent.train()
     else:
         test_file = os.path.join(DATA_ROOT, "public", config.testing_task, "train.txt")
@@ -51,7 +50,7 @@ if __name__ == "__main__":
         api.build_pad_config(test_data)
         candidates = api.vectorize_candidates()
 
-        model = DualLSTM(config,candidates)
+        model = DualLSTM(config, candidates, api)
         assert config.trained_model is not None
         if os.path.isdir(config.trained_model):
             trained_model = os.listdir(config.trained_model)
