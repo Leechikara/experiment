@@ -7,6 +7,7 @@ class RunConfig(object):
     trained_task = "task_1"
     save_dir = "checkpoints/task_1"
     trained_model = None
+
     aware_new = False
     testing_task = "task_5"
 
